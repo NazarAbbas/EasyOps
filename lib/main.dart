@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:easy_ops/constants/constant.dart';
 import 'package:easy_ops/constants/dependency_injection/dependency_injection.dart';
-import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/constants/values/app_language.dart';
 import 'package:easy_ops/route_managment/all_pages.dart';
 import 'package:easy_ops/route_managment/routes.dart';
@@ -23,7 +22,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   Get.put(ThemeController());
   runApp(MyApp());
 }
@@ -39,14 +38,13 @@ class MyApp extends StatelessWidget {
     country = Constant.englishCountry;
     return Obx(() {
       return GetMaterialApp(
-        
         builder: EasyLoading.init(),
         debugShowCheckedModeBanner: false,
         translations: Languages(),
         locale: Locale(language, country),
         fallbackLocale: Locale(language, country),
         theme: themeController.currentTheme.value,
-        initialRoute: Routes.splashPage,
+        initialRoute: Routes.splashScreen,
         initialBinding: ScreenBindings(),
         getPages: AllPages.getPages(),
       );

@@ -25,6 +25,7 @@ class LoginCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
+              // ignore: deprecated_member_use
               color: Colors.black.withOpacity(0.1),
               blurRadius: 6,
               offset: const Offset(0, 3),
@@ -39,7 +40,7 @@ class LoginCard extends StatelessWidget {
               'login_to_account'.tr,
               style: TextStyle(
                 fontSize: isTablet ? 22 : 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600, // semi-bold
               ),
             ),
             const SizedBox(height: 20),
@@ -68,13 +69,18 @@ class LoginCard extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Navigate to Forgot Password page or perform any action
+                  // Get.to(() => ForgotPasswordPage()); // Example using GetX
+                  controller.forgotPassword();
+                },
                 child: Text(
                   'forgot_password'.tr,
                   style: const TextStyle(color: AppColors.primaryBlue),
                 ),
               ),
             ),
+
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
@@ -109,15 +115,10 @@ class LoginCard extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  // Icon(
-                  //   Icons.fingerprint,
-                  //   size: isTablet ? 70 : 50,
-                  //   color: AppColors.primaryBlue,
-                  // ),
                   Image.asset(
                     AppImages.fingerPrint,
                     width: isTablet ? 70 : 50,
-                    height: isTablet ? 70 : 50
+                    height: isTablet ? 70 : 50,
                   ),
                   const SizedBox(height: 10),
                   Text('login_biometric'.tr),

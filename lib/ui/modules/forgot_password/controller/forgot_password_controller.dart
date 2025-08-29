@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_ops/route_managment/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,18 +34,28 @@ class ForgotPasswordController extends GetxController {
     startTimer();
     otpController.clear();
     otpCode.value = '';
-    Get.snackbar("OTP", "Resend Code triggered",
-        snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar(
+      "OTP",
+      "Resend Code triggered",
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   void verifyCode() {
-    if (otpCode.value.length == 6) {
-      Get.snackbar("OTP", "Code Verified ✅",
-          snackPosition: SnackPosition.BOTTOM);
-    } else {
-      Get.snackbar("OTP", "Invalid Code ❌",
-          snackPosition: SnackPosition.BOTTOM);
-    }
+    Get.toNamed(Routes.updatePasswordScreen);
+    // if (otpCode.value.length == 4) {
+    //   Get.snackbar(
+    //     "OTP",
+    //     "Code Verified ✅",
+    //     snackPosition: SnackPosition.BOTTOM,
+    //   );
+    // } else {
+    //   Get.snackbar(
+    //     "OTP",
+    //     "Invalid Code ❌",
+    //     snackPosition: SnackPosition.BOTTOM,
+    //   );
+    // }
   }
 
   @override

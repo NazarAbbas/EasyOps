@@ -21,7 +21,7 @@ class LoginLogo extends StatelessWidget {
           'EazyOps',
           style: TextStyle(
             color: Colors.white,
-            fontSize: isTablet ? 34 : 28,
+            fontSize: isTablet ? 68 : 46,
             fontWeight: FontWeight.bold,
           ),
         ),

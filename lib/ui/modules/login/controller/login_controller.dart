@@ -14,6 +14,10 @@ class LoginPageController extends GetxController {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
+  void forgotPassword() {
+    Get.toNamed(Routes.forgotPasswordScreen);
+  }
+
   void login() {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
@@ -31,7 +35,7 @@ class LoginPageController extends GetxController {
     // } else {
     //   Get.toNamed(Routes.workOrderManagement);
     // }
-     Get.toNamed(Routes.forgotPasswordScreen);
+    Get.toNamed(Routes.workOrderScreen);
 
     //   if (email.isEmpty || password.isEmpty) {
     //     Get.snackbar("Error", "Please fill in all fields",

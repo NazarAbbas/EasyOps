@@ -12,10 +12,11 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600; // breakpoint for tablet
 
-    // Adjusted sizes
-    final iconSize = size.width * 0.12; // smaller gear icon
-    final logoSize = size.width * 0.3; // smaller logo so it sits closer
+    final iconSize = isTablet ? size.width * 0.1 : size.width * 0.15;
+    final fontSize = isTablet ? size.width * 0.08 : size.width * 0.12;
+    final spacing = isTablet ? 16.0 : 8.0;
 
     return Scaffold(
       body: Container(
@@ -39,16 +40,14 @@ class SplashPage extends StatelessWidget {
                 height: iconSize,
                 color: Colors.white,
               ),
-              SizedBox(width: 5),
+              SizedBox(width: spacing),
               Text(
-                "EasyOps", // replace with the text you want
+                "EasyOps",
                 style: TextStyle(
                   fontFamily: 'inter',
-                  fontSize:
-                      logoSize * 0.35, // proportional size like your image
-                  color: Colors.white, // same color as before
-                  fontWeight: FontWeight
-                      .bold, // optional: makes it look more like a logo
+                  fontSize: fontSize,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],

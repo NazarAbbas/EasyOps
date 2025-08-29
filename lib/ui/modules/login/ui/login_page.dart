@@ -1,6 +1,6 @@
 import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/ui/modules/login/controller/login_controller.dart';
-import 'package:easy_ops/ui/modules/login/widgets/login_card_with_animation.dart';
+import 'package:easy_ops/ui/modules/login/widgets/login_card.dart';
 import 'package:easy_ops/ui/modules/login/widgets/login_footer.dart';
 import 'package:easy_ops/ui/modules/login/widgets/login_logo.dart';
 import 'package:flutter/material.dart';
@@ -22,10 +22,11 @@ class LoginPage extends StatelessWidget {
           return Stack(
             children: [
               SizedBox(
-                height: isTablet ? 550 : 450,
+                height: MediaQuery.of(context).size.height * 0.5,
                 width: double.infinity,
                 child: CustomPaint(painter: BlueBackgroundPainter()),
               ),
+
               Center(
                 child: SingleChildScrollView(
                   child: ConstrainedBox(
@@ -34,14 +35,11 @@ class LoginPage extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        SizedBox(height: isTablet ? 120 : 100),
+                        SizedBox(height: isTablet ? 100 : 80),
                         LoginLogo(isTablet: isTablet),
                         SizedBox(height: isTablet ? 50 : 40),
                         // Animation wrapper
-                        LoginCardWithAnimation(
-                          controller: controller,
-                          isTablet: isTablet,
-                        ),
+                        LoginCard(controller: controller, isTablet: isTablet),
                         SizedBox(height: isTablet ? 40 : 30),
                         const LoginFooter(),
                       ],
@@ -63,16 +61,18 @@ class BlueBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = AppColors.primaryBlue;
+
     final path = Path()
-      ..lineTo(0, size.height - 100)
+      ..lineTo(0, size.height) // Start curve 40px from bottom
       ..quadraticBezierTo(
         size.width * 0.5,
-        size.height,
+        size.height + 140, // Slight curve outside bounds
         size.width,
-        size.height - 100,
+        size.height,
       )
       ..lineTo(size.width, 0)
       ..close();
+
     canvas.drawPath(path, paint);
   }
 
