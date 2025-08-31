@@ -5,7 +5,7 @@ import 'package:easy_ops/ui/modules/work_order_management/work_order_management_
 import 'package:easy_ops/ui/modules/forgot_password/controller/forgot_password_controller.dart';
 import 'package:easy_ops/ui/modules/login/controller/login_controller.dart';
 import 'package:easy_ops/ui/modules/splash/controller/splash_controller.dart';
-import 'package:easy_ops/ui/modules/update_password/controller/UpdatePasswordController.dart';
+import 'package:easy_ops/ui/modules/update_password/controller/update_password_controller.dart';
 import 'package:get/instance_manager.dart';
 
 class ScreenBindings implements Bindings {

@@ -102,7 +102,7 @@ class ForgotPasswordController extends GetxController {
     await Future.delayed(const Duration(seconds: 2)); // mock API delay
     isVerifying.value = false;
 
-    Get.toNamed(Routes.updatePasswordScreen);
+    Get.offNamed(Routes.updatePasswordScreen);
   }
 
   @override

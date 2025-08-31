@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/route_managment/routes.dart';
 import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/controller/work_order_list_controller.dart';
@@ -68,23 +70,90 @@ class WorkOrdersPage extends GetView<WorkOrdersController> {
               child: SizedBox(
                 height: btnH,
                 width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                child: Stack(
+                  children: [
+                    // Background: gradient + soft outline + shadow
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2F6BFF), Color(0xFF3F84FF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.18),
+                            width: 1,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x332F6BFF),
+                              blurRadius: 16,
+                              offset: Offset(0, 8),
+                            ),
+                            BoxShadow(
+                              color: Color(0x1A000000),
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    elevation: 1.5,
-                  ),
-                  onPressed: () => Get.toNamed(Routes.workOrderTabShellScreen),
-                  child: Text(
-                    'Create Work Order',
-                    style: TextStyle(
-                      fontSize: btnFs,
-                      fontWeight: FontWeight.w700,
+
+                    // Subtle gloss highlight
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.white.withOpacity(0.10),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+
+                    // Tap layer with ripple
+                    Positioned.fill(
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () =>
+                              Get.toNamed(Routes.workOrderTabShellScreen),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.add_circled_solid,
+                                color: Colors.white,
+                                size: btnFs + 4,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Create Work Order',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: btnFs,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -114,7 +183,7 @@ class _GradientHeader extends GetView<WorkOrdersController>
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF2F6BFF), Color(0xFF3F84FF)],
+          colors: [AppColors.primaryBlue, AppColors.primaryBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -253,7 +322,7 @@ class _CalendarCard extends GetView<WorkOrdersController> {
               shape: BoxShape.circle,
             ),
             todayTextStyle: TextStyle(
-              color: Color(0xFF2F6BFF),
+              color: AppColors.primaryBlue,
               fontWeight: FontWeight.w700,
             ),
             selectedDecoration: BoxDecoration(
@@ -261,7 +330,7 @@ class _CalendarCard extends GetView<WorkOrdersController> {
               shape: BoxShape.circle,
             ),
             selectedTextStyle: TextStyle(
-              color: Color(0xFF2F6BFF),
+              color: AppColors.primaryBlue,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -308,29 +377,35 @@ class _WorkOrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTablet = _isTablet(context);
 
-    final double radius = isTablet ? 14 : 12;
+    // Sizing
+    final double radius = isTablet ? 16 : 12;
     final double pad = isTablet ? 16 : 14;
-    final double titleSize = isTablet ? 18 : 16;
+    final double titleSize = isTablet ? 16 : 14;
     final double metaSize = isTablet ? 13.5 : 12.5;
     final double labelSize = isTablet ? 14.5 : 13.5;
-    final double iconSize = isTablet ? 16 : 14;
 
-    const textPrimary = Color(0xFF1F2937);
+    // Colors
+    const textPrimary = Color(0xFF111827);
     const textSecondary = Color(0xFF6B7280);
-    const bullet = Color(0xFFBCC7D6);
     const borderSoft = Color(0xFFE9EEF5);
+    final accent = _accentFor(order);
 
-    final Color accent = _accentFor(order);
-
-    return Material(
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
       color: Colors.white,
-      borderRadius: BorderRadius.circular(radius),
-      child: InkWell(
+      surfaceTintColor: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radius),
+        side: const BorderSide(color: borderSoft, width: 1),
+      ),
+      child: InkWell(
         onTap: () =>
             Get.toNamed(Routes.workOrderDetailScreen, arguments: order),
         child: Stack(
           children: [
+            // Accent stripe
             Positioned.fill(
               left: 0,
               child: Align(
@@ -338,143 +413,184 @@ class _WorkOrderCard extends StatelessWidget {
                 child: Container(width: 3, color: accent),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(radius),
-                border: Border.all(color: borderSoft, width: 1),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(pad),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            order.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.w800,
-                              height: 1.25,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _Pill(order.statusPill),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 2,
-                      children: [
-                        Text(
-                          order.code,
-                          style: _muted(metaSize, textSecondary),
-                        ),
-                        const Text('•', style: TextStyle(color: bullet)),
-                        Text(
-                          order.time,
-                          style: _muted(metaSize, textSecondary),
-                        ),
-                        const Text('•', style: TextStyle(color: bullet)),
-                        Text(
-                          order.date,
-                          style: _muted(metaSize, textSecondary),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // left
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                order.department,
+
+            // Content
+            Padding(
+              padding: EdgeInsets.fromLTRB(pad + 2, pad, pad, pad),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top row: Title + status + chevron
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // severity dot + title
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // _SeverityDot(color: accent),
+                            // const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                order.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: textPrimary,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: labelSize,
+                                  fontSize: titleSize,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.25,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Icon(
-                                    CupertinoIcons
-                                        .exclamationmark_triangle_fill,
-                                    size: iconSize,
-                                    color: const Color(0xFFE25555),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      order.line,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: textPrimary,
-                                        fontSize: metaSize,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      if (order.status != Status.resolved) ...[
+                        const SizedBox(width: 15),
+                        _StatusPill(pill: order.priority),
+                      ],
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Meta row: [code]  [time | date................]                [STATUS -> right]
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // left: code
+                      _MetaChip(icon: CupertinoIcons.number, label: order.code),
+
+                      const SizedBox(width: 8),
+
+                      // middle: time | date (expands), keeps left alignment
+                      Expanded(
+                        child: _MetaChip(
+                          icon: null,
+                          label: '${order.time} | ${order.date}',
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // right: status (only if not 'none')
+                      if (order.status != Status.none)
+                        Text(
+                          order.status.text,
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: order.status.color,
+                            fontWeight: FontWeight.w800,
+                            fontSize: labelSize,
                           ),
                         ),
-                        // right
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Divider (soft)
+                  const Divider(height: 1, color: borderSoft),
+
+                  const SizedBox(height: 12),
+
+                  // Bottom info: left (dept & line) | right (badge + duration + tag)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // LEFT
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (order.rightStatus != RightStatus.none)
-                              Text(
-                                order.rightStatus.text,
-                                style: TextStyle(
-                                  color: order.rightStatus.color,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: labelSize,
-                                ),
-                              ),
-                            const SizedBox(height: 6),
+                            // Department
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  CupertinoIcons.time,
-                                  size: iconSize,
+                                const Icon(
+                                  CupertinoIcons.square_grid_2x2_fill,
+                                  size: 14,
                                   color: textSecondary,
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
-                                  order.duration,
-                                  style: _muted(metaSize, textSecondary),
+                                Flexible(
+                                  child: Text(
+                                    order.department,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: textPrimary,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: labelSize,
+                                    ),
+                                  ),
+                                ),
+                                // const SizedBox(width: 6),
+                                // if (order.footerTag.isNotEmpty) ...[
+                                //   const SizedBox(height: 6),
+                                //   _TagChip(text: order.footerTag),
+                                // ],
+                              ],
+                            ),
+                            const SizedBox(height: 15),
+                            // Line (with danger icon)
+                            Row(
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.exclamationmark_triangle_fill,
+                                  size: 14,
+                                  color: Color(0xFFE25555),
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    order.line,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: textSecondary,
+                                      fontSize: metaSize,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                            if (order.footerTag.isNotEmpty) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                order.footerTag,
-                                style: _muted(metaSize, textSecondary),
-                              ),
-                            ],
                           ],
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+
+                      // RIGHT
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // if (order.status != Status.none)
+                          //   Text(
+                          //     order.status.text,
+                          //     style: TextStyle(
+                          //       color: order.status.color,
+                          //       fontWeight: FontWeight.w800,
+                          //       fontSize: labelSize,
+                          //     ),
+                          //   ),
+                          _MetaChip(
+                            icon: CupertinoIcons.clock,
+                            label: order.duration,
+                            dense: true,
+                          ),
+                          const SizedBox(width: 6),
+                          if (order.footerTag.isNotEmpty &&
+                              order.status != Status.resolved) ...[
+                            const SizedBox(height: 6),
+                            _MetaChip(icon: null, label: order.footerTag),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
@@ -483,16 +599,151 @@ class _WorkOrderCard extends StatelessWidget {
     );
   }
 
-  TextStyle _muted(double size, Color color) =>
-      TextStyle(color: color, fontWeight: FontWeight.w500, fontSize: size);
+  // ---- helpers ----
 
   Color _accentFor(WorkOrder o) {
-    switch (o.statusPill) {
-      case StatusPill.high:
-        return const Color(0xFFFF5A5F);
-      case StatusPill.resolved:
-        return const Color(0xFF22C55E);
+    switch ((o.priority, o.status)) {
+      case (Priority.high, final s) when s != Status.resolved:
+        return AppColors.red; // coral red
+      case (_, Status.resolved):
+        return AppColors.successGreen; // coral red
+      default:
+        return const Color(0xFF2F6BFF); // brand blue fallback
     }
+  }
+}
+
+/* ============================ Bits ============================ */
+
+class _MetaChip extends StatelessWidget {
+  final IconData? icon;
+  final String label;
+  final bool dense;
+
+  const _MetaChip({this.icon, required this.label, this.dense = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final padH = dense ? 8.0 : 10.0;
+    final padV = dense ? 4.0 : 6.0;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      widthFactor: 1, // <- make width = child's width
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF4F7FB),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE9EEF5)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
+          child: Row(
+            mainAxisSize: MainAxisSize.min, // <- content width
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: dense ? 12 : 14,
+                  color: const Color(0xFF6B7280),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                softWrap: false,
+                overflow: TextOverflow.fade, // avoids forcing extra width
+                style: TextStyle(
+                  color: const Color(0xFF374151),
+                  fontWeight: FontWeight.w700,
+                  fontSize: dense ? 11.5 : 12.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final Priority pill;
+  final double fontSize;
+  final bool uppercase;
+  final bool showDot;
+
+  const _StatusPill({
+    required this.pill,
+    this.fontSize = 12.5,
+    this.uppercase = true,
+    this.showDot = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cfg = switch (pill) {
+      Priority.high => (color: AppColors.red, label: 'High'),
+    };
+
+    final label = uppercase ? cfg.label.toUpperCase() : cfg.label;
+
+    return Semantics(
+      label: 'Status: ${cfg.label}',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: cfg.color, // 🔴 red background
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: RichText(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              children: [
+                if (showDot)
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: _Dot(
+                        color: Colors.white, // white dot on red bg
+                        size: fontSize * 0.5,
+                      ),
+                    ),
+                  ),
+                TextSpan(
+                  text: label,
+                  style: TextStyle(
+                    color: Colors.white, // white text on red bg
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _Dot({required this.color, this.size = 6});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
   }
 }
 
@@ -509,15 +760,15 @@ class _Tabs extends GetView<WorkOrdersController> {
   @override
   Widget build(BuildContext context) {
     final isTablet = _isTablet(context);
-    final double tabH = isTablet ? 44 : 36;
+    final double tabH = isTablet ? 28 : 18;
     final double fs = isTablet ? 15 : 13.5;
     final double uThick = isTablet ? 3.5 : 3;
     final double uSide = isTablet ? 12 : 10;
     final double uGap = isTablet ? 8 : 6;
 
     return Container(
-      color: const Color(0xFF2F6BFF),
-      padding: const EdgeInsets.only(bottom: 6),
+      color: AppColors.primaryBlue,
+      padding: const EdgeInsets.only(bottom: 10),
       child: LayoutBuilder(
         builder: (context, c) {
           final count = controller.tabs.length;
@@ -692,38 +943,6 @@ class _IconSquare extends StatelessWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  final StatusPill pill;
-  const _Pill(this.pill);
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = switch (pill) {
-      StatusPill.high => (
-        bg: const Color(0xFFE94141),
-        fg: Colors.white,
-        text: 'High',
-      ),
-      StatusPill.resolved => (
-        bg: const Color(0xFF017F0E),
-        fg: Colors.white,
-        text: 'Resolved',
-      ),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: colors.bg,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Text(
-        colors.text,
-        style: TextStyle(color: colors.fg, fontWeight: FontWeight.w800),
-      ),
-    );
-  }
-}
-
 class _EmptyState extends StatelessWidget {
   final VoidCallback onCreate;
   const _EmptyState({required this.onCreate});
@@ -786,7 +1005,6 @@ class BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationBarTheme(
       data: NavigationBarThemeData(
-        // ignore: deprecated_member_use
         indicatorColor: _blue.withOpacity(0.10),
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
           final selected = states.contains(WidgetState.selected);

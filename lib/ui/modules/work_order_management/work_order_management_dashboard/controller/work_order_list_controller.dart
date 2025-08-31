@@ -81,7 +81,7 @@ class WorkOrdersController extends GetxController {
             .toList();
         break;
       case 3: // Critical
-        src = src.where((w) => w.statusPill == StatusPill.high).toList();
+        src = src.where((w) => w.priority == Priority.high).toList();
         break;
     }
 
@@ -94,7 +94,7 @@ class WorkOrdersController extends GetxController {
     visibleOrders.assignAll(src);
   }
 
-  bool _isResolved(WorkOrder w) => w.statusPill == StatusPill.resolved;
+  bool _isResolved(WorkOrder w) => w.priority == Priority.high;
 
   // ---------------- Calendar markers (TableCalendar) ----------------
   DateTime _d(DateTime d) => DateTime.utc(d.year, d.month, d.day);
@@ -136,20 +136,21 @@ final _mockOrders = <WorkOrder>[
     date: '09 Aug',
     department: 'Mechanical',
     line: 'CNC - 1',
-    statusPill: StatusPill.high,
-    rightStatus: RightStatus.inProgress,
+    priority: Priority.high,
+    status: Status.inProgress,
     duration: '3h 20m',
     footerTag: 'Escalated',
   ),
   WorkOrder(
-    title: 'Hydraulic Press Not Generating Adequate Force',
+    title:
+        'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly During Operation',
     code: 'BD-118',
     time: '14:12',
     date: '10 Aug',
     department: 'Electrical',
     line: 'CNC - 7',
-    statusPill: StatusPill.resolved,
-    rightStatus: RightStatus.none,
+    priority: Priority.high,
+    status: Status.resolved,
     duration: '1h 20m',
     footerTag: '',
   ),
@@ -160,8 +161,8 @@ final _mockOrders = <WorkOrder>[
     date: '11 Aug',
     department: 'Mechanical',
     line: 'CNC - 1',
-    statusPill: StatusPill.high,
-    rightStatus: RightStatus.none,
+    priority: Priority.high,
+    status: Status.inProgress,
     duration: '3h 20m',
     footerTag: 'Escalated',
   ),
@@ -172,8 +173,8 @@ final _mockOrders = <WorkOrder>[
     date: '11 Aug',
     department: 'Mechanical',
     line: 'CNC - 1',
-    statusPill: StatusPill.high,
-    rightStatus: RightStatus.none,
+    priority: Priority.high,
+    status: Status.inProgress,
     duration: '3h 20m',
     footerTag: 'Critial',
   ),

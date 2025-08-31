@@ -1,16 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:easy_ops/ui/modules/update_password/controller/UpdatePasswordController.dart';
+import 'package:easy_ops/ui/modules/update_password/controller/update_password_controller.dart';
 import 'package:easy_ops/utils/loading_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class UpdatePasswordPage extends StatelessWidget {
+class UpdatePasswordPage extends GetView<UpdatePasswordController> {
   UpdatePasswordPage({super.key});
-
-  final UpdatePasswordController controller = Get.put(
-    UpdatePasswordController(),
-  );
 
   // Local reactive UI state (no controller changes needed)
   final RxDouble _strength = 0.0.obs;
@@ -384,7 +380,7 @@ class _RequirementsCard extends StatelessWidget {
           }),
           const SizedBox(height: 16),
           const Text(
-            'Requirements',
+            'Recommended',
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),

@@ -1,20 +1,23 @@
+import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Left colored pill on the card
-enum StatusPill { high, resolved } // high == Critical
+enum Priority { high } // high == Critical
 
 /// Right-side status text
-enum RightStatus { inProgress, none }
+enum Status { inProgress, resolved, none }
 
-extension RightStatusX on RightStatus {
+extension RightStatusX on Status {
   String get text => switch (this) {
-    RightStatus.inProgress => 'In Progress',
-    RightStatus.none => '',
+    Status.inProgress => 'In Progress',
+    Status.none => '',
+    Status.resolved => 'Resolved',
   };
 
   Color get color => switch (this) {
-    RightStatus.inProgress => const Color(0xFF2F6BFF),
-    RightStatus.none => Colors.transparent,
+    Status.inProgress => AppColors.primary,
+    Status.none => Colors.transparent,
+    Status.resolved => AppColors.successGreen,
   };
 }
 
@@ -28,8 +31,8 @@ class WorkOrder {
   final String date;
   final String department;
   final String line;
-  final StatusPill statusPill;
-  final RightStatus rightStatus;
+  final Priority priority;
+  final Status status;
   final String duration;
   final String footerTag; // e.g. 'Escalated'
 
@@ -40,8 +43,8 @@ class WorkOrder {
     required this.date,
     required this.department,
     required this.line,
-    required this.statusPill,
-    required this.rightStatus,
+    required this.priority,
+    required this.status,
     required this.duration,
     required this.footerTag,
   });
@@ -49,15 +52,15 @@ class WorkOrder {
 
 /// Convenience helpers for filtering
 extension WorkOrderX on WorkOrder {
-  bool get isInProgress => rightStatus == RightStatus.inProgress;
+  bool get isInProgress => status == Status.inProgress;
 
   /// Per spec: "today means none"
-  bool get isToday => rightStatus == RightStatus.none;
+  bool get isToday => status == Status.none;
 
   bool get isEscalated => footerTag.toLowerCase() == 'escalated';
 
   /// Critical maps to the left pill (StatusPill.high)
-  bool get isCritical => statusPill == StatusPill.high;
+  bool get isCritical => priority == Priority.high;
 
   /// Matches a tab category
   bool matches(WorkTab tab) {

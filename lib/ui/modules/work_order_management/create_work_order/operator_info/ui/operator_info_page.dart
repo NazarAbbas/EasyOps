@@ -5,6 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+String _formatDdMmYyyy(DateTime d) {
+  final dd = d.day.toString().padLeft(2, '0');
+  final mm = d.month.toString().padLeft(2, '0');
+  return '$dd/$mm/${d.year}';
+}
+
 class OperatorInfoPage extends GetView<OperatorInfoController> {
   const OperatorInfoPage({super.key});
 
@@ -13,6 +19,106 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
       Get.put<OperatorInfoController>(OperatorInfoController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
+
+  String _timeText(BuildContext context) {
+    final t = controller.reportedTime.value;
+    return t == null ? 'hh:mm' : t.format(context);
+  }
+
+  String _dateText() {
+    final d = controller.reportedDate.value;
+    return d == null ? 'dd/mm/yyyy' : _formatDdMmYyyy(d);
+  }
+
+  Future<void> _pickTime(BuildContext context) async {
+    final res = await showTimePicker(
+      context: context,
+      initialTime: controller.reportedTime.value ?? TimeOfDay.now(),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          timePickerTheme: const TimePickerThemeData(
+            dialHandColor: AppColors.primaryBlue,
+            hourMinuteTextStyle: TextStyle(
+              color: AppColors.primaryBlue,
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+            ),
+            dayPeriodTextStyle: TextStyle(
+              color: AppColors.primaryBlue,
+              fontWeight: FontWeight.w700,
+            ),
+            helpTextStyle: TextStyle(
+              color: AppColors.primaryBlue,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          colorScheme: Theme.of(
+            ctx,
+          ).colorScheme.copyWith(primary: AppColors.primaryBlue),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(foregroundColor: AppColors.primaryBlue),
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (res != null) controller.reportedTime.value = res;
+  }
+
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final res = await showDatePicker(
+      context: context,
+      initialDate: controller.reportedDate.value ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx).colorScheme.copyWith(
+            primary: AppColors.primaryBlue,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+            onSurface: AppColors.text,
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(foregroundColor: AppColors.primaryBlue),
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (res != null) controller.reportedDate.value = res;
+  }
+
+  Future<void> _pickFromList(
+    BuildContext context, {
+    required String title,
+    required List<String> options,
+    required ValueChanged<String> onSelected,
+  }) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: FractionallySizedBox(
+            heightFactor: 0.7,
+            child: _PickerContent(
+              title: title,
+              options: options,
+              onSelected: onSelected,
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +129,63 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
+
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: Size.fromHeight(btnH),
+                    side: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.4,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    foregroundColor: AppColors.primary,
+                  ),
+                  onPressed: () => controller.discard(),
+                  child: const Text(
+                    'Discard',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: Size.fromHeight(btnH),
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 1.5,
+                  ),
+                  onPressed: () => controller.saveAndBack(),
+                  child: const Text(
+                    'Save and Back',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
           child: Column(
             children: [
+              // ── Reporter
               _SectionBox(
                 title: 'Reporter',
                 subtitle: 'Who is raising this work order?',
@@ -80,11 +238,14 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
 
               SizedBox(height: vGap),
 
+              // ── Location & Shift
               _SectionBox(
                 title: 'Location & Shift Info',
                 subtitle: 'Where and when was this reported?',
-                child: Obx(
-                  () => Column(
+                child: Obx(() {
+                  final timeText = _timeText(context);
+                  final dateText = _dateText();
+                  return Column(
                     children: [
                       _Row2(
                         spacing: 12,
@@ -99,7 +260,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                               size: 18,
                               color: AppColors.muted,
                             ),
-                            trailing: Icon(
+                            trailing: const Icon(
                               CupertinoIcons.chevron_down,
                               color: AppColors.muted,
                             ),
@@ -122,7 +283,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                               size: 18,
                               color: AppColors.muted,
                             ),
-                            trailing: Icon(
+                            trailing: const Icon(
                               CupertinoIcons.chevron_down,
                               color: AppColors.muted,
                             ),
@@ -141,25 +302,25 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         left: _Label(
                           'Reported At',
                           child: _TapField(
-                            text: controller.timeText,
+                            text: timeText,
                             leading: const Icon(
                               CupertinoIcons.time,
                               size: 18,
                               color: AppColors.muted,
                             ),
-                            onTap: () => controller.pickTime(context),
+                            onTap: () => _pickTime(context),
                           ),
                         ),
                         right: _Label(
                           'Reported On',
                           child: _TapField(
-                            text: controller.dateText,
+                            text: dateText,
                             leading: const Icon(
                               CupertinoIcons.calendar,
                               size: 18,
                               color: AppColors.muted,
                             ),
-                            onTap: () => controller.pickDate(context),
+                            onTap: () => _pickDate(context),
                           ),
                         ),
                       ),
@@ -175,7 +336,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             size: 18,
                             color: AppColors.muted,
                           ),
-                          trailing: Icon(
+                          trailing: const Icon(
                             CupertinoIcons.chevron_down,
                             color: AppColors.muted,
                           ),
@@ -188,112 +349,90 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         ),
                       ),
                     ],
-                  ),
-                ),
+                  );
+                }),
               ),
 
               SizedBox(height: vGap),
 
+              // ── Operator
               _SectionBox(
                 title: 'Operator',
                 subtitle: 'Who will execute the work?',
-                child: _CheckboxLine(
-                  label: 'Same as Operator',
-                  value: false,
-                  onChanged: (_) {},
+                child: Obx(
+                  () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _CheckboxLine(
+                        label: 'Same as Operator',
+                        value: controller.sameAsOperator.value,
+                        onChanged: (v) {
+                          controller.sameAsOperator.value = v;
+                          // if checked, mirror reporter name into operator
+                          if (v) {
+                            controller.operatorCtrl.text =
+                                controller.reporterCtrl.text;
+                          }
+                        },
+                      ),
+                      if (!controller.sameAsOperator.value) ...[
+                        SizedBox(height: vGap - 2),
+                        _Label(
+                          'Operator',
+                          child: TextField(
+                            controller:
+                                controller.operatorCtrl, // <-- dedicated
+                            enabled: !controller.sameAsOperator.value, // safety
+                            textInputAction: TextInputAction.next,
+                            decoration: AppInput.bordered(
+                              hintText: "Enter operator's name",
+                              prefixIcon: const Padding(
+                                padding: EdgeInsets.only(left: 10, right: 4),
+                                child: Icon(
+                                  CupertinoIcons.person,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                              suffixIcon: const Padding(
+                                padding: EdgeInsets.only(right: 8),
+                                child: Icon(
+                                  CupertinoIcons.search,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: vGap - 2),
+                        _Row2(
+                          spacing: 12,
+                          left: Obx(
+                            () => _LabelValuePlain(
+                              'Employee ID',
+                              controller.employeeId.value,
+                            ),
+                          ),
+                          right: Obx(
+                            () => _LabelValuePlain(
+                              'Phone Number',
+                              controller.phoneNumber.value,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: Size.fromHeight(btnH),
-                    side: const BorderSide(
-                      color: AppColors.primary,
-                      width: 1.4,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    foregroundColor: AppColors.primary,
-                  ),
-                  onPressed: () => controller.discard(),
-                  child: const Text(
-                    'Discard',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    minimumSize: Size.fromHeight(btnH),
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 1.5,
-                  ),
-                  onPressed: () => controller.saveAndBack(),
-                  child: const Text(
-                    'Save and Back',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// BOTTOM SHEET — bounded height & keyboard-aware (no overflow)
-  Future<void> _pickFromList(
-    BuildContext context, {
-    required String title,
-    required List<String> options,
-    required ValueChanged<String> onSelected,
-  }) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true, // keyboard + tall sheets
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
-        return Padding(
-          padding: EdgeInsets.only(bottom: bottomInset),
-          child: FractionallySizedBox(
-            heightFactor: 0.7, // take up to 70% of screen height
-            child: _PickerContent(
-              title: title,
-              options: options,
-              onSelected: onSelected,
-            ),
-          ),
-        );
-      },
     );
   }
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   PIECES
-─────────────────────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────────────── */
 
 class _SectionBox extends StatelessWidget {
   final String title;
@@ -383,7 +522,6 @@ class _Label extends StatelessWidget {
   }
 }
 
-/// Plain value like the mock (no border)
 class _LabelValuePlain extends StatelessWidget {
   final String label;
   final String value;
@@ -417,6 +555,11 @@ class _TapField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPlaceholder =
+        text == 'Select' ||
+        text == 'Select Shift' ||
+        text == 'hh:mm' ||
+        text == 'dd/mm/yyyy';
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
@@ -430,18 +573,15 @@ class _TapField extends StatelessWidget {
                 ),
           suffixIcon: trailing == null
               ? null
-              : Padding(padding: EdgeInsets.only(right: 8), child: trailing),
+              : Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: trailing!,
+                ),
         ),
         child: Text(
           text,
           style: TextStyle(
-            color:
-                (text == 'Select' ||
-                    text == 'Select Shift' ||
-                    text == 'hh:mm' ||
-                    text == 'dd/mm/yyyy')
-                ? AppColors.muted
-                : AppColors.text,
+            color: isPlaceholder ? AppColors.muted : AppColors.text,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -453,40 +593,42 @@ class _TapField extends StatelessWidget {
 class _CheckboxLine extends StatelessWidget {
   final String label;
   final bool value;
-  final ValueChanged<bool?> onChanged;
+  final ValueChanged<bool> onChanged;
   const _CheckboxLine({
     required this.label,
     required this.value,
     required this.onChanged,
   });
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Checkbox(
-          value: value,
-          activeColor: AppColors.primary,
-          onChanged: onChanged,
-        ),
-        const SizedBox(width: 6),
-        // single-line, ellipsized
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.text,
-              fontWeight: FontWeight.w600,
+    return InkWell(
+      onTap: () => onChanged(!value),
+      child: Row(
+        children: [
+          Checkbox(
+            value: value,
+            activeColor: AppColors.primary,
+            onChanged: (v) => onChanged(v ?? false),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-/// Always two columns (keeps the compact, premium look even on phones).
 class _Row2 extends StatelessWidget {
   final double spacing;
   final Widget left;
@@ -504,8 +646,6 @@ class _Row2 extends StatelessWidget {
     );
   }
 }
-
-/* ─────────────  Bottom-sheet content (bounded, scrollable)  ───────────── */
 
 class _PickerContent extends StatelessWidget {
   final String title;

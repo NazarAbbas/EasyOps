@@ -1,14 +1,177 @@
+import 'dart:io';
+import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:audioplayers/audioplayers.dart';
 
 class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
-  const WorkOrderInfoPage({super.key});
+  WorkOrderInfoPage({super.key});
   @override
   WorkorderInfoController get controller => Get.put(WorkorderInfoController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
+
+  // Ephemeral helpers (UI layer only)
+  final ImagePicker _picker = ImagePicker();
+  final AudioRecorder _rec = AudioRecorder(); // record v6+
+  final AudioPlayer _player = AudioPlayer(); // playback
+  final RxBool _isPlaying = false.obs; // local playback state
+
+  /* -------------------- Photos -------------------- */
+
+  Future<void> _pickFromCamera(WorkorderInfoController c) async {
+    final XFile? f = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+    if (f != null) c.addPhoto(f.path);
+  }
+
+  Future<void> _pickFromGallery(WorkorderInfoController c) async {
+    final files = await _picker.pickMultiImage(imageQuality: 85);
+    if (files.isNotEmpty) c.addPhotos(files.map((e) => e.path));
+  }
+
+  Future<void> _showPhotoPickerSheet(
+    BuildContext context,
+    WorkorderInfoController c,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(CupertinoIcons.camera),
+              title: const Text('Camera'),
+              onTap: () async {
+                Get.back();
+                await _pickFromCamera(c);
+              },
+            ),
+            ListTile(
+              leading: const Icon(CupertinoIcons.photo_on_rectangle),
+              title: const Text('Gallery'),
+              onTap: () async {
+                Get.back();
+                await _pickFromGallery(c);
+              },
+            ),
+            if (c.photos.isNotEmpty)
+              ListTile(
+                leading: const Icon(CupertinoIcons.trash),
+                title: const Text('Clear Photos'),
+                onTap: () {
+                  c.clearPhotos();
+                  Get.back();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* -------------------- Voice record + play -------------------- */
+
+  Future<void> _toggleRecording(WorkorderInfoController c) async {
+    // Stop playback if playing
+    if (_isPlaying.value) {
+      await _player.stop();
+      _isPlaying.value = false;
+    }
+
+    if (!c.isRecording.value) {
+      if (!await _rec.hasPermission()) {
+        Get.snackbar(
+          'Permission',
+          'Microphone access denied',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        return;
+      }
+      final dir = await getApplicationDocumentsDirectory();
+      final path = p.join(
+        dir.path,
+        'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
+      );
+
+      await _rec.start(
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: path,
+      );
+      c.isRecording.value = true;
+    } else {
+      final saved = await _rec.stop(); // -> path (or null)
+      c.isRecording.value = false;
+      if (saved != null) {
+        c.setVoiceNote(saved);
+        Get.snackbar(
+          'Voice note',
+          'Saved',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.primaryBlue,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
+
+  Future<void> _playOrPauseVoice(WorkorderInfoController c) async {
+    final path = c.voiceNotePath.value;
+    if (path.isEmpty) return;
+
+    if (_isPlaying.value) {
+      await _player.pause();
+      _isPlaying.value = false;
+    } else {
+      await _player.stop(); // ensure fresh start
+      await _player.play(DeviceFileSource(path));
+      _isPlaying.value = true;
+
+      // when completes, reset state
+      _player.onPlayerComplete.listen((_) {
+        _isPlaying.value = false;
+      });
+    }
+  }
+
+  Future<void> _removeVoice(WorkorderInfoController c) async {
+    if (_isPlaying.value) {
+      await _player.stop();
+      _isPlaying.value = false;
+    }
+    c.clearVoiceNote();
+    Get.snackbar(
+      'Voice note',
+      'Removed',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.black87,
+      colorText: Colors.white,
+    );
+  }
+
+  Future<void> _reRecord(WorkorderInfoController c) async {
+    await _removeVoice(c);
+    // Start recording immediately
+    await _toggleRecording(c);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +219,14 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                         _TapField(
                           textRx: controller.issueType,
                           placeholder: 'Select',
-                          onTap: () => controller.pickFromList(
+                          onTap: () => pickFromList(
                             context: context,
                             title: 'Select Issue Type',
                             items: controller.issueTypes,
-                            onSelected: (v) => controller.issueType.value = v,
+                            onSelected: (v) {
+                              controller.issueType.value = v;
+                              controller.saveDraft();
+                            },
                           ),
                         ),
                       ),
@@ -69,11 +235,14 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                         _TapField(
                           textRx: controller.impact,
                           placeholder: 'Select',
-                          onTap: () => controller.pickFromList(
+                          onTap: () => pickFromList(
                             context: context,
                             title: 'Select Impact',
                             items: controller.impacts,
-                            onSelected: (v) => controller.impact.value = v,
+                            onSelected: (v) {
+                              controller.impact.value = v;
+                              controller.saveDraft();
+                            },
                           ),
                         ),
                       ),
@@ -88,6 +257,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                         'Assets Number',
                         TextField(
                           controller: controller.assetsCtrl,
+                          onChanged: (_) => controller.saveDraft(),
                           decoration: _D.field(
                             hint: 'Search',
                             prefix: const Padding(
@@ -120,7 +290,20 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                             const SizedBox(width: 10),
                             _IconSquare(
                               tooltip: 'Recent types',
-                              onTap: () {},
+                              onTap: () {
+                                pickFromList(
+                                  context: context,
+                                  title: 'Recent Types',
+                                  items: const ['Motor', 'Pump', 'Fan'],
+                                  onSelected: (v) {
+                                    controller.setAssetMeta(
+                                      type: v,
+                                      description:
+                                          'Selected $v', // replace with real lookup
+                                    );
+                                  },
+                                );
+                              },
                               child: const Icon(
                                 CupertinoIcons.clock,
                                 color: _C.primary,
@@ -148,6 +331,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       'Problem Description',
                       TextField(
                         controller: controller.problemCtrl,
+                        onChanged: (_) => controller.saveDraft(),
                         minLines: 5,
                         maxLines: 8,
                         decoration: _D.field(hint: 'Write here'),
@@ -159,18 +343,164 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                     // Upload photos + mic button
                     Row(
                       children: [
-                        Expanded(child: _UploadPhotosBox(onTap: () {})),
+                        Expanded(
+                          child: _UploadPhotosBox(
+                            onTap: () =>
+                                _showPhotoPickerSheet(context, controller),
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        _IconSquare(
-                          tooltip: 'Voice note',
-                          onTap: () {},
-                          child: const Icon(
-                            CupertinoIcons.mic,
-                            color: _C.primary,
+                        Obx(
+                          () => _IconSquare(
+                            tooltip: controller.isRecording.value
+                                ? 'Stop recording'
+                                : 'Record voice note',
+                            onTap: () => _toggleRecording(controller),
+                            child: Icon(
+                              controller.isRecording.value
+                                  ? CupertinoIcons.mic_fill
+                                  : CupertinoIcons.mic,
+                              color: controller.isRecording.value
+                                  ? Colors.red
+                                  : _C.primary,
+                            ),
                           ),
                         ),
                       ],
                     ),
+
+                    // Photo previews
+                    Obx(() {
+                      if (controller.photos.isEmpty)
+                        return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: List.generate(controller.photos.length, (
+                              i,
+                            ) {
+                              final path = controller.photos[i];
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      File(path),
+                                      width: 72,
+                                      height: 72,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: -8,
+                                    top: -8,
+                                    child: GestureDetector(
+                                      onTap: () => controller.removePhotoAt(i),
+                                      child: const CircleAvatar(
+                                        radius: 10,
+                                        backgroundColor: Colors.black54,
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 12,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }),
+                          ),
+                        ],
+                      );
+                    }),
+
+                    // Voice note controls (play/pause, delete, re-record)
+                    // Voice note controls (play/pause, delete, re-record)
+                    Obx(() {
+                      final path =
+                          controller.voiceNotePath.value; // <-- Rx read
+                      final playing = _isPlaying.value; // <-- Rx read
+                      if (path.isEmpty) return const SizedBox.shrink();
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE9F5FF),
+                            border: Border.all(color: const Color(0xFFD6EAFB)),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                CupertinoIcons.waveform_circle,
+                                size: 16,
+                                color: _C.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Voice note saved',
+                                style: TextStyle(
+                                  color: _C.text,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+
+                              // Play / Pause (NO inner Obx)
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                iconSize: 20,
+                                splashRadius: 18,
+                                onPressed: () => _playOrPauseVoice(controller),
+                                icon: Icon(
+                                  playing
+                                      ? CupertinoIcons.pause_circle
+                                      : CupertinoIcons.play_circle,
+                                  color: _C.primary,
+                                ),
+                              ),
+
+                              // Delete
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                iconSize: 20,
+                                splashRadius: 18,
+                                onPressed: () => _removeVoice(controller),
+                                icon: const Icon(
+                                  CupertinoIcons.trash,
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+
+                              // Re-record
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                iconSize: 20,
+                                splashRadius: 18,
+                                onPressed: () => _reRecord(controller),
+                                icon: const Icon(
+                                  CupertinoIcons.mic_circle,
+                                  color: _C.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -222,9 +552,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                 ),
                 elevation: 1.5,
               ),
-              onPressed: () {
-                controller.goToWorkOrderDetailScreen();
-              },
+              onPressed: () => controller.goToWorkOrderDetailScreen(),
               child: const Text(
                 'Create',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
@@ -438,7 +766,6 @@ class _IconSquare extends StatelessWidget {
   Widget build(BuildContext context) {
     final btn = Material(
       color: const Color(0xFFEFF3FF),
-
       child: InkWell(
         onTap: onTap,
         child: Container(
@@ -492,24 +819,108 @@ class _C {
 
 class _D {
   static InputDecoration field({String? hint, Widget? prefix, Widget? suffix}) {
-    return InputDecoration(
+    return const InputDecoration(
       isDense: true,
-      hintText: hint,
-      hintStyle: const TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
+      hintText: null,
+      hintStyle: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      prefixIcon: prefix,
-      suffixIcon: suffix,
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      prefixIcon: null,
+      suffixIcon: null,
       border: OutlineInputBorder(
-        borderSide: const BorderSide(color: Color(0xFFE1E6EF)),
+        borderSide: BorderSide(color: Color(0xFFE1E6EF)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Color(0xFFE1E6EF)),
+        borderSide: BorderSide(color: Color(0xFFE1E6EF)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Color(0xFFE1E6EF)),
+        borderSide: BorderSide(color: Color(0xFFE1E6EF)),
       ),
-    );
+    ).copyWith(hintText: hint, prefixIcon: prefix, suffixIcon: suffix);
   }
+}
+
+/* -------------------- Picker Sheet -------------------- */
+Future<void> pickFromList({
+  required BuildContext context,
+  required String title,
+  required List<String> items,
+  required ValueChanged<String> onSelected,
+}) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      final maxH = MediaQuery.of(ctx).size.height * 0.60;
+      return SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxH),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Color(0xFFE9EEF6),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: Get.back,
+                      icon: const Icon(CupertinoIcons.xmark, size: 18),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: AppColors.line),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, color: Color(0xFFF2F5FA)),
+                  itemBuilder: (_, i) => ListTile(
+                    dense: true,
+                    title: Text(
+                      items[i],
+                      style: const TextStyle(
+                        color: AppColors.text,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onTap: () {
+                      onSelected(items[i]);
+                      Get.back();
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }

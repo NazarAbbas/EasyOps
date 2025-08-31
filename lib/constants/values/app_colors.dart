@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -16,9 +14,10 @@ class AppColors {
   static const fieldBorder = Color(0xFFE1E6EF);
   static const panel = Colors.white;
 
-  static const primary = Color(0xFF2F6BFF);
+  static const primary = Color(0xFF3C87F8);
   static const text = Color(0xFF2D2F39);
   static const muted = Color(0xFF7C8698);
   static const border = Color(0xFFE1E6EF);
   static const line = Color(0xFFE6EBF3);
+  static const red = Color(0xFFFF5A5F);
 }

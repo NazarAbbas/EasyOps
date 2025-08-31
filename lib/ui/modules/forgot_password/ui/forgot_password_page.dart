@@ -8,17 +8,15 @@ import 'package:get/get.dart';
 import 'package:easy_ops/constants/values/app_images.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-class ForgotPasswordPage extends StatelessWidget {
+class ForgotPasswordPage extends GetView<ForgotPasswordController> {
   const ForgotPasswordPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.put(ForgotPasswordController());
-
     return Scaffold(
       appBar: AppBar(title: Text('forgot_password_text'.tr)),
       body: Obx(() {
-        final initLoading = c.isInitLoading.value;
+        final initLoading = controller.isInitLoading.value;
 
         return Stack(
           children: [
@@ -52,9 +50,9 @@ class ForgotPasswordPage extends StatelessWidget {
             if (initLoading) const LoadingOverlay(message: 'Sending OTP…'),
 
             // Action-specific overlays
-            if (c.isVerifying.value)
+            if (controller.isVerifying.value)
               const LoadingOverlay(message: 'Verifying OTP…'),
-            if (c.isResending.value)
+            if (controller.isResending.value)
               const LoadingOverlay(message: 'Resending OTP…'),
           ],
         );

@@ -6,10 +6,10 @@ import 'package:easy_ops/utils/loading_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class LoginPage extends GetView<LoginPageController> {
+  const LoginPage({super.key});
 
-  final controller = Get.put(LoginPageController());
+  //final controller = Get.put(LoginPageController());
 
   @override
   Widget build(BuildContext context) {

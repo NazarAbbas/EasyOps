@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+<uses-permission android:name="android.permission.CAMERA"/>
+
+<!-- For older targets that need external storage access (most modern setups don't) -->
+<!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> -->
+
     <application
         android:label="easy_ops"
         android:name="${applicationName}"

@@ -1,5 +1,6 @@
 // ignore: file_names
 import 'dart:ui';
+import 'package:easy_ops/route_managment/routes.dart';
 import 'package:get/get.dart';
 
 class WorkOrderDetailsController extends GetxController {
@@ -34,9 +35,10 @@ class WorkOrderDetailsController extends GetxController {
   // Thumbnails (use your real images; placeholders used here)
   final thumbs = <Color>[
     const Color(0xFFDEE9FF),
-    const Color(0xFFDFF6E1),
-    const Color(0xFFFFEDD5),
+    // const Color(0xFFDFF6E1),
+    // const Color(0xFFFFEDD5),
   ].obs;
 
-  void goToListing() => Get.back(); // Replace with your navigation
+  void goToListing() =>
+      Get.offAllNamed(Routes.workOrderScreen); // Replace with your navigation
 }

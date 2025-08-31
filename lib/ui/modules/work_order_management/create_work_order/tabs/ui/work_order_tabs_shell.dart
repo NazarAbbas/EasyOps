@@ -71,10 +71,10 @@ class WorkOrderTabsShell extends StatelessWidget {
       body: Obx(
         () => IndexedStack(
           index: ctrl.selectedTab.value, // 0 shows WorkOrderInfoPage first
-          children: const [
+          children: [
             WorkOrderInfoPage(),
-            OperatorInfoPage(),
-            McHistoryPage(),
+            const OperatorInfoPage(),
+            const McHistoryPage(),
           ],
         ),
       ),
