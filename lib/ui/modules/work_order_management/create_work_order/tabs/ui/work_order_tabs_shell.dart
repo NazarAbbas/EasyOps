@@ -17,15 +17,17 @@ class WorkOrderTabsShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctrl = Get.put(WorkTabsController());
     final isTablet = _isTablet(context);
-
+    final primary =
+        Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.primary;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(isTablet ? 140 : 120),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF2F6BFF), Color(0xFF3F84FF)],
+              colors: [primary, primary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

@@ -1,9 +1,16 @@
 import 'package:easy_ops/route_managment/routes.dart';
 import 'package:easy_ops/ui/binding/screen_binding.dart';
+import 'package:easy_ops/ui/modules/assets_management/assets_details/ui/assets_details_page.dart';
+import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboard/ui/assets_management_dashboard/assets_management_dashboard_page.dart';
+import 'package:easy_ops/ui/modules/assets_management/assets_specification/ui/assets_specification_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/tabs/ui/work_order_tabs_shell.dart';
+import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
+import 'package:easy_ops/ui/modules/work_order_management/update_work_order/closure_work_order/ui/closure_work_order_page.dart';
+import 'package:easy_ops/ui/modules/work_order_management/update_work_order/re_open_work_order/ui/re_open_work_order_page.dart';
+import 'package:easy_ops/ui/modules/work_order_management/update_work_order/tabs/ui/update_work_order_tabs_shell.dart';
 import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/ui/bottom_navigation/navigation_bottom_assets.dart';
 import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/ui/bottom_navigation/navigation_bottom_home_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
@@ -45,7 +52,7 @@ class AllPages {
         name: Routes.workOrderScreen,
         page: () => WorkOrdersPage(),
         binding: ScreenBindings(),
-        transition: Transition.rightToLeft,
+        transition: Transition.zoom,
       ),
 
       GetPage(
@@ -62,7 +69,7 @@ class AllPages {
       ),
       GetPage(
         name: Routes.workOrderInfoScreen,
-        page: () => WorkOrdersPage(),
+        page: () => WorkOrderInfoPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
@@ -89,6 +96,42 @@ class AllPages {
         page: () => WorkOrderDetailsPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.updateWorkOrderTabScreen,
+        page: () => WorkOrderTabsDetails(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.reOpenWorkOrderScreen,
+        page: () => ReopenWorkOrderPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.closureWorkOrderScreen,
+        page: () => ClosureWorkOrderPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.assetsManagementDashboardScreen,
+        page: () => AssetsManagementDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsDetailsScreen,
+        page: () => AssetsDetailPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsSpecificationScreen,
+        page: () => AssetsSpecificationPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
       ),
     ];
   }

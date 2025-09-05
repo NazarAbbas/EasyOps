@@ -79,10 +79,12 @@ class OperatorInfoController extends GetxController {
     ];
     // Save when reporter text changes
     reporterCtrl.addListener(saveDraft);
+    operatorCtrl.addListener(saveDraft);
   }
 
   Map<String, dynamic> _payload() => {
     'reporter': reporterCtrl.text,
+    'operator': operatorCtrl.text,
     'employeeId': employeeId.value,
     'phoneNumber': phoneNumber.value,
     'location': location.value,
@@ -102,6 +104,7 @@ class OperatorInfoController extends GetxController {
     final json = Map<String, dynamic>.from(raw);
 
     reporterCtrl.text = (json['reporter'] ?? '') as String;
+    operatorCtrl.text = (json['operator'] ?? '') as String;
     employeeId.value = (json['employeeId'] ?? '-') as String;
     phoneNumber.value = (json['phoneNumber'] ?? '-') as String;
 
@@ -119,6 +122,7 @@ class OperatorInfoController extends GetxController {
   // ===== Public actions =====
   void discard() {
     reporterCtrl.clear();
+    operatorCtrl.clear();
     employeeId.value = '-';
     phoneNumber.value = '-';
     location.value = '';

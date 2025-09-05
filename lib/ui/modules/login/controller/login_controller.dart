@@ -12,6 +12,7 @@ class LoginPageController extends GetxController {
   final isPasswordVisible = false.obs;
   final isLoading = false.obs; // <-- for the progress indicator
   final role = ''.obs;
+  final themeController = Get.find<ThemeController>();
 
   @override
   void onInit() {
@@ -75,10 +76,10 @@ class LoginPageController extends GetxController {
       await Future.delayed(const Duration(seconds: 2)); // mock latency
 
       // Mock “success” logic
-      final themeController = Get.find<ThemeController>();
-      const userRoleFromApi = 'user';
-      role.value = userRoleFromApi;
-      themeController.setThemeByRole(userRoleFromApi);
+
+      //const userRoleFromApi = 'admin';
+      // role.value = userRoleFromApi;
+      themeController.setThemeByRole('admin'); //user/admin
 
       // Navigate or show success
       Get.toNamed(Routes.workOrderScreen);

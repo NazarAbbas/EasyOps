@@ -11,4 +11,11 @@ class Routes {
   static String mcHistoryScreen = '/MC_HISTORY_SCREEN';
   static String workOrderTabShellScreen = '/WORK_ORDER_TAB_SHELL_SCREEN';
   static String workOrderDetailScreen = '/WORK_ORDER_DETAIL_SCREEN';
+  static String updateWorkOrderTabScreen = '/UPDATE_WORK_ORDER_TAB_SCREEN';
+  static String reOpenWorkOrderScreen = '/REOPEN_WORK_ORDER_SCREEN';
+  static String closureWorkOrderScreen = '/CLOSURE_WORK_ORDER_SCREEN';
+  static String assetsManagementDashboardScreen =
+      '/ASSETS_MANAGEMENT_DASHBOARD_SCREEN';
+  static String assetsDetailsScreen = '/ASSETS_DETAILS_SCREEN';
+  static String assetsSpecificationScreen = '/ASSETS_SPECIFICATION_SCREEN';
 }

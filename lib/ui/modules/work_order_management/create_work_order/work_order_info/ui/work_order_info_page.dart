@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:audioplayers/audioplayers.dart';
 
@@ -124,12 +125,38 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
         c.setVoiceNote(saved);
         Get.snackbar(
           'Voice note',
-          'Saved',
+          'Recording has been saved successfully!',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColors.primaryBlue,
           colorText: Colors.white,
         );
       }
+    }
+  }
+
+  // NEW: stop button logic (stops & saves if recording)
+  Future<void> _stopAndSaveRecording(WorkorderInfoController c) async {
+    if (!c.isRecording.value) {
+      Get.snackbar(
+        'Recorder',
+        'No active recording',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    final saved = await _rec.stop();
+    c.isRecording.value = false;
+    if (saved != null) {
+      c.setVoiceNote(saved);
+      Get.snackbar(
+        'Voice note',
+        'Recording has been saved successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.primaryBlue,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -145,7 +172,6 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
       await _player.play(DeviceFileSource(path));
       _isPlaying.value = true;
 
-      // when completes, reset state
       _player.onPlayerComplete.listen((_) {
         _isPlaying.value = false;
       });
@@ -160,16 +186,30 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
     c.clearVoiceNote();
     Get.snackbar(
       'Voice note',
-      'Removed',
+      'Removed, and a new recording has started.',
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.primary,
+      colorText: Colors.white,
+    );
+  }
+
+  Future<void> _removedRecording(WorkorderInfoController c) async {
+    if (_isPlaying.value) {
+      await _player.stop();
+      _isPlaying.value = false;
+    }
+    c.clearVoiceNote();
+    Get.snackbar(
+      'Voice note',
+      'Recording has been removed.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.primary,
       colorText: Colors.white,
     );
   }
 
   Future<void> _reRecord(WorkorderInfoController c) async {
     await _removeVoice(c);
-    // Start recording immediately
     await _toggleRecording(c);
   }
 
@@ -181,357 +221,376 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Work Order card
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFFFFFF), Color(0xFFF7FAFF)],
-                ),
-                borderRadius: BorderRadius.circular(cardRadius),
-                border: Border.all(color: const Color(0xFFE9EEF6)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Work Order card
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF7FAFF)],
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const _CardTitle('Work Order Info'),
-                    const SizedBox(height: 12),
-
-                    // Issue Type | Impact
-                    _Row2(
-                      left: _Label(
-                        'Issue Type',
-                        _TapField(
-                          textRx: controller.issueType,
-                          placeholder: 'Select',
-                          onTap: () => pickFromList(
-                            context: context,
-                            title: 'Select Issue Type',
-                            items: controller.issueTypes,
-                            onSelected: (v) {
-                              controller.issueType.value = v;
-                              controller.saveDraft();
-                            },
-                          ),
-                        ),
-                      ),
-                      right: _Label(
-                        'Impact',
-                        _TapField(
-                          textRx: controller.impact,
-                          placeholder: 'Select',
-                          onTap: () => pickFromList(
-                            context: context,
-                            title: 'Select Impact',
-                            items: controller.impacts,
-                            onSelected: (v) {
-                              controller.impact.value = v;
-                              controller.saveDraft();
-                            },
-                          ),
-                        ),
-                      ),
+                  borderRadius: BorderRadius.circular(cardRadius),
+                  border: Border.all(color: const Color(0xFFE9EEF6)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
                     ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _CardTitle('Work Order Info'),
+                      const SizedBox(height: 12),
 
-                    const SizedBox(height: 12),
-                    const _Hr(),
-
-                    // Assets Number | Type + clock square
-                    _Row2(
-                      left: _Label(
-                        'Assets Number',
-                        TextField(
-                          controller: controller.assetsCtrl,
-                          onChanged: (_) => controller.saveDraft(),
-                          decoration: _D.field(
-                            hint: 'Search',
-                            prefix: const Padding(
-                              padding: EdgeInsets.only(left: 12, right: 6),
-                              child: Icon(
-                                CupertinoIcons.number,
-                                size: 18,
-                                color: _C.muted,
-                              ),
-                            ),
-                            suffix: const Padding(
-                              padding: EdgeInsets.only(right: 8),
-                              child: Icon(
-                                CupertinoIcons.search,
-                                color: _C.muted,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      right: _Label(
-                        'Type',
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Obx(
-                                () => _ValueTile(controller.typeText.value),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            _IconSquare(
-                              tooltip: 'Recent types',
-                              onTap: () {
-                                pickFromList(
-                                  context: context,
-                                  title: 'Recent Types',
-                                  items: const ['Motor', 'Pump', 'Fan'],
-                                  onSelected: (v) {
-                                    controller.setAssetMeta(
-                                      type: v,
-                                      description:
-                                          'Selected $v', // replace with real lookup
-                                    );
-                                  },
-                                );
+                      // Issue Type | Impact
+                      _Row2(
+                        left: _Label(
+                          'Issue Type',
+                          _TapField(
+                            textRx: controller.issueType,
+                            placeholder: 'Select',
+                            onTap: () => pickFromList(
+                              context: context,
+                              title: 'Select Issue Type',
+                              items: controller.issueTypes,
+                              onSelected: (v) {
+                                controller.issueType.value = v;
+                                controller.saveDraft();
                               },
-                              child: const Icon(
-                                CupertinoIcons.clock,
-                                color: _C.primary,
-                                size: 22,
+                            ),
+                          ),
+                        ),
+                        right: _Label(
+                          'Impact',
+                          _TapField(
+                            textRx: controller.impact,
+                            placeholder: 'Select',
+                            onTap: () => pickFromList(
+                              context: context,
+                              title: 'Select Impact',
+                              items: controller.impacts,
+                              onSelected: (v) {
+                                controller.impact.value = v;
+                                controller.saveDraft();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+                      const _Hr(),
+
+                      // Assets Number | Type + clock square
+                      // const double _fieldH = 48;
+                      _Row2(
+                        left: _Label(
+                          'Assets Number',
+                          SizedBox(
+                            height: 48,
+                            child: TextField(
+                              controller: controller.assetsCtrl,
+                              onChanged: (txt) {
+                                controller.saveDraft();
+                                controller.applyAssetMetaFor(
+                                  txt,
+                                ); // auto bind type + description
+                              },
+                              decoration: _D.field(
+                                hint: 'Search / type number',
+                                prefix: const Padding(
+                                  padding: EdgeInsets.only(left: 12, right: 6),
+                                  child: Icon(
+                                    CupertinoIcons.number,
+                                    size: 18,
+                                    color: _C.muted,
+                                  ),
+                                ),
+                                suffix: GestureDetector(
+                                  onTap: () =>
+                                      controller.openAssetPicker(context),
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(right: 8),
+                                    child: Icon(
+                                      CupertinoIcons.search,
+                                      color: _C.muted,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-                    const _Hr(),
-
-                    // Description (read-only tile)
-                    _Label(
-                      'Description',
-                      Obx(() => _ValueTile(controller.descriptionText.value)),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Problem Description
-                    _Label(
-                      'Problem Description',
-                      TextField(
-                        controller: controller.problemCtrl,
-                        onChanged: (_) => controller.saveDraft(),
-                        minLines: 5,
-                        maxLines: 8,
-                        decoration: _D.field(hint: 'Write here'),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Upload photos + mic button
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _UploadPhotosBox(
-                            onTap: () =>
-                                _showPhotoPickerSheet(context, controller),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Obx(
-                          () => _IconSquare(
-                            tooltip: controller.isRecording.value
-                                ? 'Stop recording'
-                                : 'Record voice note',
-                            onTap: () => _toggleRecording(controller),
-                            child: Icon(
-                              controller.isRecording.value
-                                  ? CupertinoIcons.mic_fill
-                                  : CupertinoIcons.mic,
-                              color: controller.isRecording.value
-                                  ? Colors.red
-                                  : _C.primary,
+                        right: _Label(
+                          'Type',
+                          SizedBox(
+                            height: 48,
+                            child: Obx(
+                              () => _ValueTile(controller.typeText.value),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
 
-                    // Photo previews
-                    Obx(() {
-                      if (controller.photos.isEmpty)
-                        return const SizedBox.shrink();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 12),
+                      const _Hr(),
+
+                      // Description (read-only tile)
+                      _Label(
+                        'Description',
+                        Obx(() => _ValueTile(controller.descriptionText.value)),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Problem Description
+                      _Label(
+                        'Problem Description',
+                        TextField(
+                          controller: controller.problemCtrl,
+                          onChanged: (_) => controller.saveDraft(),
+                          minLines: 5,
+                          maxLines: 8,
+                          decoration: _D.field(hint: 'Write here'),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Upload photos + mic + stop buttons
+                      Row(
                         children: [
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: List.generate(controller.photos.length, (
-                              i,
-                            ) {
-                              final path = controller.photos[i];
-                              return Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      File(path),
-                                      width: 72,
-                                      height: 72,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  Positioned(
-                                    right: -8,
-                                    top: -8,
-                                    child: GestureDetector(
-                                      onTap: () => controller.removePhotoAt(i),
-                                      child: const CircleAvatar(
-                                        radius: 10,
-                                        backgroundColor: Colors.black54,
-                                        child: Icon(
-                                          Icons.close,
-                                          size: 12,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }),
+                          Expanded(
+                            child: _UploadPhotosBox(
+                              onTap: () =>
+                                  _showPhotoPickerSheet(context, controller),
+                            ),
                           ),
-                        ],
-                      );
-                    }),
+                          const SizedBox(width: 10),
 
-                    // Voice note controls (play/pause, delete, re-record)
-                    // Voice note controls (play/pause, delete, re-record)
-                    Obx(() {
-                      final path =
-                          controller.voiceNotePath.value; // <-- Rx read
-                      final playing = _isPlaying.value; // <-- Rx read
-                      if (path.isEmpty) return const SizedBox.shrink();
-
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE9F5FF),
-                            border: Border.all(color: const Color(0xFFD6EAFB)),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          // Stack mic + stop
+                          Column(
                             children: [
-                              const Icon(
-                                CupertinoIcons.waveform_circle,
-                                size: 16,
-                                color: _C.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Voice note saved',
-                                style: TextStyle(
-                                  color: _C.text,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12.5,
+                              Obx(
+                                () => _IconSquare(
+                                  tooltip: controller.isRecording.value
+                                      ? 'Stop recording'
+                                      : 'Record voice note',
+                                  onTap: () => _toggleRecording(controller),
+                                  child: Icon(
+                                    controller.isRecording.value
+                                        ? CupertinoIcons.mic_fill
+                                        : CupertinoIcons.mic,
+                                    color: controller.isRecording.value
+                                        ? Colors.red
+                                        : _C.primary,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-
-                              // Play / Pause (NO inner Obx)
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                iconSize: 20,
-                                splashRadius: 18,
-                                onPressed: () => _playOrPauseVoice(controller),
-                                icon: Icon(
-                                  playing
-                                      ? CupertinoIcons.pause_circle
-                                      : CupertinoIcons.play_circle,
-                                  color: _C.primary,
-                                ),
-                              ),
-
-                              // Delete
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                iconSize: 20,
-                                splashRadius: 18,
-                                onPressed: () => _removeVoice(controller),
-                                icon: const Icon(
-                                  CupertinoIcons.trash,
-                                  color: Colors.redAccent,
-                                ),
-                              ),
-
-                              // Re-record
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                iconSize: 20,
-                                splashRadius: 18,
-                                onPressed: () => _reRecord(controller),
-                                icon: const Icon(
-                                  CupertinoIcons.mic_circle,
-                                  color: _C.primary,
+                              const SizedBox(height: 8),
+                              Obx(
+                                () => _IconSquare(
+                                  tooltip: 'Stop & save',
+                                  onTap: () =>
+                                      _stopAndSaveRecording(controller),
+                                  child: Icon(
+                                    CupertinoIcons.stop_circle,
+                                    color: controller.isRecording.value
+                                        ? _C.primary
+                                        : _C.muted,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    }),
+                        ],
+                      ),
+
+                      // Photo previews
+                      Obx(() {
+                        if (controller.photos.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: List.generate(
+                                controller.photos.length,
+                                (i) {
+                                  final path = controller.photos[i];
+                                  return Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          File(path),
+                                          width: 72,
+                                          height: 72,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: -8,
+                                        top: -8,
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              controller.removePhotoAt(i),
+                                          child: const CircleAvatar(
+                                            radius: 10,
+                                            backgroundColor: Colors.black54,
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 12,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+
+                      // Voice note controls
+                      Obx(() {
+                        final path = controller.voiceNotePath.value;
+                        final playing = _isPlaying.value;
+                        if (path.isEmpty) return const SizedBox.shrink();
+
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE9F5FF),
+                              border: Border.all(
+                                color: const Color(0xFFD6EAFB),
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.waveform_circle,
+                                  size: 16,
+                                  color: _C.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Voice note saved',
+                                  style: TextStyle(
+                                    color: _C.text,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+
+                                // Play / Pause
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  iconSize: 20,
+                                  splashRadius: 18,
+                                  onPressed: () =>
+                                      _playOrPauseVoice(controller),
+                                  icon: Icon(
+                                    playing
+                                        ? CupertinoIcons.pause_circle
+                                        : CupertinoIcons.play_circle,
+                                    color: _C.primary,
+                                  ),
+                                ),
+
+                                // Delete
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  iconSize: 20,
+                                  splashRadius: 18,
+                                  onPressed: () =>
+                                      _removedRecording(controller),
+                                  icon: const Icon(
+                                    CupertinoIcons.trash,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+
+                                // Re-record
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  iconSize: 20,
+                                  splashRadius: 18,
+                                  onPressed: () => _reRecord(controller),
+                                  icon: const Icon(
+                                    CupertinoIcons.mic_circle,
+                                    color: _C.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // ── Operator Info footer
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(cardRadius),
+                  border: Border.all(color: const Color(0xFFE9EEF6)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(child: _OperatorInfoFooter()),
+                    const SizedBox(width: 10),
+                    _IconSquare(
+                      tooltip: 'Edit',
+                      onTap: () {},
+                      child: const Icon(
+                        CupertinoIcons.pencil,
+                        color: _C.primary,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
 
-            const SizedBox(height: 18),
-
-            // ── Operator Info footer
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(cardRadius),
-                border: Border.all(color: const Color(0xFFE9EEF6)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Expanded(child: _OperatorInfoFooter()),
-                  const SizedBox(width: 10),
-                  _IconSquare(
-                    tooltip: 'Edit',
-                    onTap: () {}, // navigate to operator page if needed
-                    child: const Icon(CupertinoIcons.pencil, color: _C.primary),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 80),
-          ],
+              const SizedBox(height: 80),
+            ],
+          ),
         ),
       ),
 
@@ -598,39 +657,45 @@ class _CardTitle extends StatelessWidget {
   }
 }
 
-class _OperatorInfoFooter extends StatelessWidget {
-  const _OperatorInfoFooter();
+class _OperatorInfoFooter extends GetView<WorkorderInfoController> {
+  const _OperatorInfoFooter({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Operator Info',
-          style: TextStyle(
-            color: Color(0xFF5B667A),
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
+    return Obx(() {
+      final name = controller.operatorName.value.trim();
+      final mobile = controller.operatorMobileNumber.value.trim();
+      final info = controller.operatorInfo.value.trim();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Operator Info',
+            style: TextStyle(
+              color: Color(0xFF5B667A),
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
           ),
-        ),
-        SizedBox(height: 8),
-        Text(
-          'Ajay Kumar (MP18292)',
-          style: TextStyle(color: _C.text, fontWeight: FontWeight.w800),
-        ),
-        SizedBox(height: 2),
-        Text(
-          '9876543211',
-          style: TextStyle(color: _C.text, fontWeight: FontWeight.w700),
-        ),
-        SizedBox(height: 2),
-        Text(
-          'Assets Shop | 12:20| 03 Sept| A',
-          style: TextStyle(color: _C.text, fontWeight: FontWeight.w700),
-        ),
-      ],
-    );
+          const SizedBox(height: 8),
+          Text(
+            name.isEmpty ? '—' : name,
+            style: const TextStyle(color: _C.text, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            mobile.isEmpty ? '—' : mobile,
+            style: const TextStyle(color: _C.text, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            info.isEmpty ? '—' : info,
+            style: const TextStyle(color: _C.text, fontWeight: FontWeight.w700),
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -704,13 +769,7 @@ class _ValueTile extends StatelessWidget {
   const _ValueTile(this.value);
   @override
   Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: _D.field(),
-      child: Text(
-        value,
-        style: const TextStyle(color: _C.text, fontWeight: FontWeight.w700),
-      ),
-    );
+    return Text(value, style: const TextStyle(color: _C.text));
   }
 }
 

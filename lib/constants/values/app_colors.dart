@@ -20,4 +20,5 @@ class AppColors {
   static const border = Color(0xFFE1E6EF);
   static const line = Color(0xFFE6EBF3);
   static const red = Color(0xFFFF5A5F);
+  static const darkGray = Color(0xFF3b3b3b);
 }

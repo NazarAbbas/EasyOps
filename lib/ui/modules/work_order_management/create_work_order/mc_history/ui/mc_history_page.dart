@@ -1,3 +1,4 @@
+import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/controller/mc_history_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/models/history_items.dart';
@@ -8,9 +9,9 @@ import 'package:get/get.dart';
 class McHistoryPage extends GetView<McHistoryController> {
   const McHistoryPage({super.key});
 
-  @override
-  McHistoryController get controller =>
-      Get.put<McHistoryController>(McHistoryController());
+  // @override
+  // McHistoryController get controller =>
+  //     Get.put<McHistoryController>(McHistoryController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -107,7 +108,7 @@ class _StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF2F6BFF);
+    const blue = AppColors.primary;
     const label = TextStyle(
       color: Color(0xFF7C8698),
       fontWeight: FontWeight.w400,
@@ -117,9 +118,9 @@ class _StatsCard extends StatelessWidget {
     Widget cell(String l, String v) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l, style: label),
+        Text(l, style: label.copyWith(fontSize: (label.fontSize ?? 14) - 1)),
         const SizedBox(height: 2),
-        Text(v, style: value),
+        Text(v, style: value.copyWith(fontSize: (value.fontSize ?? 14) - 1)),
       ],
     );
 

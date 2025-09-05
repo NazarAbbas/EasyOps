@@ -14,9 +14,9 @@ String _formatDdMmYyyy(DateTime d) {
 class OperatorInfoPage extends GetView<OperatorInfoController> {
   const OperatorInfoPage({super.key});
 
-  @override
-  OperatorInfoController get controller =>
-      Get.put<OperatorInfoController>(OperatorInfoController());
+  // @override
+  // OperatorInfoController get controller =>
+  //     Get.put<OperatorInfoController>(OperatorInfoController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

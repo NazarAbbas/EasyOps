@@ -23,7 +23,10 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  Get.put(ThemeController());
+  final themeCtrl = Get.put(ThemeController(), permanent: true);
+  // Example: set role once you know it (e.g., after login/api)
+  const userRoleFromApi = 'user';
+  themeCtrl.setThemeByRole(userRoleFromApi);
   runApp(MyApp());
 }
 

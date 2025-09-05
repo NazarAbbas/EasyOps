@@ -9,8 +9,6 @@ import 'package:get/get.dart';
 class LoginPage extends GetView<LoginPageController> {
   const LoginPage({super.key});
 
-  //final controller = Get.put(LoginPageController());
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

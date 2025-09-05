@@ -31,7 +31,7 @@ class WorkOrdersPage extends GetView<WorkOrdersController> {
       ),
       body: Column(
         children: [
-          const _Tabs(),
+          _Tabs(),
           const SizedBox(height: 8),
           Expanded(
             child: Obx(() {
@@ -180,10 +180,13 @@ class _GradientHeader extends GetView<WorkOrdersController>
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final primary =
+        Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.primary;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primaryBlue, AppColors.primaryBlue],
+          colors: [primary, primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -401,8 +404,13 @@ class _WorkOrderCard extends StatelessWidget {
         side: const BorderSide(color: borderSoft, width: 1),
       ),
       child: InkWell(
-        onTap: () =>
-            Get.toNamed(Routes.workOrderDetailScreen, arguments: order),
+        onTap: () => {
+          if (order.status.name == 'resolved')
+            {Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order)}
+          else
+            {Get.toNamed(Routes.workOrderDetailScreen, arguments: order)},
+        },
+
         child: Stack(
           children: [
             // Accent stripe
@@ -765,9 +773,11 @@ class _Tabs extends GetView<WorkOrdersController> {
     final double uThick = isTablet ? 3.5 : 3;
     final double uSide = isTablet ? 12 : 10;
     final double uGap = isTablet ? 8 : 6;
-
+    final primary =
+        Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.primary;
     return Container(
-      color: AppColors.primaryBlue,
+      color: primary,
       padding: const EdgeInsets.only(bottom: 10),
       child: LayoutBuilder(
         builder: (context, c) {
@@ -1043,7 +1053,7 @@ class BottomBar extends StatelessWidget {
               Get.offAllNamed(Routes.bottomNavigationHomeScreen);
               break;
             case 1:
-              Get.offAllNamed(Routes.bottomNavigationAssetsScreen);
+              Get.offAllNamed(Routes.assetsManagementDashboardScreen);
               break;
             case 2:
               Get.offAllNamed(Routes.workOrderScreen);
