@@ -2,8 +2,11 @@ import 'package:easy_ops/route_managment/routes.dart';
 import 'package:easy_ops/ui/binding/screen_binding.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_dashboard/ui/assets_dashboard_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_details/ui/assets_details_page.dart';
+import 'package:easy_ops/ui/modules/assets_management/assets_history/ui/assets_history_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboard/ui/assets_management_dashboard/assets_management_dashboard_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/ui/assets_specification_page.dart';
+import 'package:easy_ops/ui/modules/assets_management/pm_checklist/ui/pm_checklist_page.dart';
+import 'package:easy_ops/ui/modules/assets_management/pm_schedular/ui/pm_schedular_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
@@ -137,6 +140,24 @@ class AllPages {
       GetPage(
         name: Routes.assetsDashboardScreen,
         page: () => AssetsDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsPMSchedular,
+        page: () => PMSchedulePage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.pMCheckListScreen,
+        page: () => PMChecklistPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsHistoryScreen,
+        page: () => AssetsHistoryPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),

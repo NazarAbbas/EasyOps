@@ -48,25 +48,13 @@ class AssetsDetailController extends GetxController {
   // ── Actions (wire up your real flows here)
   void onViewMore(String section) => {
     if (section == "Assets Specification")
-      {
-        Get.toNamed(Routes.assetsSpecificationScreen),
-        //
-        // Get.snackbar(
-        //   'Open',
-        //   'View More: $section',
-        //   snackPosition: SnackPosition.BOTTOM,
-        // ),
-      }
+      {Get.toNamed(Routes.assetsSpecificationScreen)}
     else if (section == "Assets Dashboard")
-      {
-        Get.toNamed(Routes.assetsDashboardScreen),
-        //
-        // Get.snackbar(
-        //   'Open',
-        //   'View More: $section',
-        //   snackPosition: SnackPosition.BOTTOM,
-        // ),
-      },
+      {Get.toNamed(Routes.assetsDashboardScreen)}
+    else if (section == "PM Schedule")
+      {Get.toNamed(Routes.assetsPMSchedular)}
+    else if (section == "Assets History")
+      {Get.toNamed(Routes.assetsHistoryScreen)},
   };
 
   void callPhone() =>
@@ -86,9 +74,5 @@ class AssetsDetailController extends GetxController {
   );
   void proposeNew() =>
       Get.snackbar('PM', 'Propose New', snackPosition: SnackPosition.BOTTOM);
-  void viewChecklist() => Get.snackbar(
-    'PM',
-    'View Check List',
-    snackPosition: SnackPosition.BOTTOM,
-  );
+  void viewChecklist() => {Get.toNamed(Routes.pMCheckListScreen)};
 }

@@ -1,7 +1,10 @@
 import 'package:easy_ops/ui/modules/assets_management/assets_dashboard/controller/assets_dashboard_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_details/controller/assets_details_controller.dart';
+import 'package:easy_ops/ui/modules/assets_management/assets_history/controller/assets_history_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboard/controller/assets_management_list_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/controller/assets_specification_controller.dart';
+import 'package:easy_ops/ui/modules/assets_management/pm_checklist/controller/pm_checklist_controller.dart';
+import 'package:easy_ops/ui/modules/assets_management/pm_schedular/controller/pm_schedular_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/controller/mc_history_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
@@ -42,5 +45,8 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => AssetsDetailController());
     Get.lazyPut(() => AssetSpecificationController());
     Get.lazyPut(() => AssetsDashboardController());
+    Get.lazyPut(() => PMScheduleController());
+    Get.lazyPut(() => PMChecklistController());
+    Get.lazyPut(() => AssetsHistoryController());
   }
 }

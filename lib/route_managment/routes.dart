@@ -19,4 +19,7 @@ class Routes {
   static String assetsDetailsScreen = '/ASSETS_DETAILS_SCREEN';
   static String assetsSpecificationScreen = '/ASSETS_SPECIFICATION_SCREEN';
   static String assetsDashboardScreen = '/ASSETS_DASHBOARD_SCREEN';
+  static String assetsPMSchedular = '/ASSETS_PM_SCHEDULAR_SCREEN';
+  static String pMCheckListScreen = '/PM_CHECKLIST_SCREEN';
+  static String assetsHistoryScreen = '/ASSETS_HISTORY_SCREEN';
 }
