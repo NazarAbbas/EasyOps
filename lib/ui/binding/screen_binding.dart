@@ -1,3 +1,4 @@
+import 'package:easy_ops/ui/modules/assets_management/assets_dashboard/controller/assets_dashboard_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_details/controller/assets_details_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboard/controller/assets_management_list_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/controller/assets_specification_controller.dart';
@@ -40,5 +41,6 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => AssetsManagementDashboardController());
     Get.lazyPut(() => AssetsDetailController());
     Get.lazyPut(() => AssetSpecificationController());
+    Get.lazyPut(() => AssetsDashboardController());
   }
 }

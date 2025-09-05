@@ -56,6 +56,16 @@ class AssetsDetailController extends GetxController {
         //   'View More: $section',
         //   snackPosition: SnackPosition.BOTTOM,
         // ),
+      }
+    else if (section == "Assets Dashboard")
+      {
+        Get.toNamed(Routes.assetsDashboardScreen),
+        //
+        // Get.snackbar(
+        //   'Open',
+        //   'View More: $section',
+        //   snackPosition: SnackPosition.BOTTOM,
+        // ),
       },
   };
 

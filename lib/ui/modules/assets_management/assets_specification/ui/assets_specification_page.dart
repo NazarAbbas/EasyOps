@@ -22,7 +22,7 @@ class AssetsSpecificationPage extends GetView<AssetSpecificationController> {
         ),
         title: const Text('Assets Specification'),
         elevation: 0,
-        backgroundColor: primary,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Colors.white,
       ),
       body: Obx(() {

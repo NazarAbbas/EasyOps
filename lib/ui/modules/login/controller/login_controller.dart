@@ -79,7 +79,7 @@ class LoginPageController extends GetxController {
 
       //const userRoleFromApi = 'admin';
       // role.value = userRoleFromApi;
-      themeController.setThemeByRole('admin'); //user/admin
+      themeController.setThemeByRole('user'); //user/admin
 
       // Navigate or show success
       Get.toNamed(Routes.workOrderScreen);

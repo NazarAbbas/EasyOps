@@ -1,5 +1,6 @@
 import 'package:easy_ops/route_managment/routes.dart';
 import 'package:easy_ops/ui/binding/screen_binding.dart';
+import 'package:easy_ops/ui/modules/assets_management/assets_dashboard/ui/assets_dashboard_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_details/ui/assets_details_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboard/ui/assets_management_dashboard/assets_management_dashboard_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/ui/assets_specification_page.dart';
@@ -130,6 +131,12 @@ class AllPages {
       GetPage(
         name: Routes.assetsSpecificationScreen,
         page: () => AssetsSpecificationPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsDashboardScreen,
+        page: () => AssetsDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),

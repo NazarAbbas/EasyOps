@@ -18,4 +18,5 @@ class Routes {
       '/ASSETS_MANAGEMENT_DASHBOARD_SCREEN';
   static String assetsDetailsScreen = '/ASSETS_DETAILS_SCREEN';
   static String assetsSpecificationScreen = '/ASSETS_SPECIFICATION_SCREEN';
+  static String assetsDashboardScreen = '/ASSETS_DASHBOARD_SCREEN';
 }
