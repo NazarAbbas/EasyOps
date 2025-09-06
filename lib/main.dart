@@ -22,6 +22,13 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, // Android
+      statusBarBrightness: Brightness.dark, // iOS
+    ),
+  );
 
   final themeCtrl = Get.put(ThemeController(), permanent: true);
   // Example: set role once you know it (e.g., after login/api)
@@ -32,16 +39,18 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final themeController = Get.find<ThemeController>();
-    final String language;
-    final String country;
-    language = Constant.englishLanguage;
-    country = Constant.englishCountry;
+    final String language = Constant.englishLanguage;
+    final String country = Constant.englishCountry;
+
+    // Compose EasyLoading + global AnnotatedRegion in ONE builder
+    final TransitionBuilder easyLoadingBuilder = EasyLoading.init();
+
     return Obx(() {
       return GetMaterialApp(
-        builder: EasyLoading.init(),
         debugShowCheckedModeBanner: false,
         translations: Languages(),
         locale: Locale(language, country),
@@ -50,6 +59,19 @@ class MyApp extends StatelessWidget {
         initialRoute: Routes.splashScreen,
         initialBinding: ScreenBindings(),
         getPages: AllPages.getPages(),
+
+        // Single builder: EasyLoading wrapped by AnnotatedRegion (white status bar icons)
+        builder: (context, child) {
+          final easyWrapped = easyLoadingBuilder(context, child);
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light, // ANDROID → white
+              statusBarBrightness: Brightness.dark, // iOS    → white
+            ),
+            child: easyWrapped,
+          );
+        },
       );
     });
   }
