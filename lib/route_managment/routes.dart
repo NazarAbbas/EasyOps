@@ -4,7 +4,7 @@ class Routes {
   static String forgotPasswordScreen = '/FORGOT_PASSWORD_SCREEN';
   static String updatePasswordScreen = '/UPDATE_PAASWORD_SCREEN';
   static String workOrderScreen = '/WORK_ORDER_SCREEN';
-  static String bottomNavigationHomeScreen = '/HOME_SCREEN';
+  static String homeDashboardScreen = '/HOME_SCREEN';
   static String bottomNavigationAssetsScreen = '/ASSETS_SCREEN';
   static String workOrderInfoScreen = '/WORK_ORDER_INFO_SCREEN';
   static String operatorInfoScreen = '/OPERATOR_INFO_SCREEN';
@@ -22,4 +22,11 @@ class Routes {
   static String assetsPMSchedular = '/ASSETS_PM_SCHEDULAR_SCREEN';
   static String pMCheckListScreen = '/PM_CHECKLIST_SCREEN';
   static String assetsHistoryScreen = '/ASSETS_HISTORY_SCREEN';
+  static String profileScreen = '/PROFILE_SCREEN';
+  static String supportScreen = '/SUPPORT_SCREEN';
+  static String suggestionScreen = '/SUGGESTION_SCREEN';
+  static String newSuggestionScreen = '/NEW_SUGGESTION_SCREEN';
+  static String suggestionDetailsScreen = '/SUGGESTION_DETAILS_SCREEN';
+  static String alertScreen = '/ALERT_SCREEN';
+  static String sparePartsTabsShellScreen = '/SPARE_PARTS_TABS_SHELL_SCREEN';
 }

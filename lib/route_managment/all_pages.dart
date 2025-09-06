@@ -7,6 +7,14 @@ import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboar
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/ui/assets_specification_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/pm_checklist/ui/pm_checklist_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/pm_schedular/ui/pm_schedular_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/alerts/ui/alerts_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/profile/ui/profile_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestion/ui/suggestion_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
+import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/support/ui/support_page.dart';
+import 'package:easy_ops/ui/modules/spare_parts/tabs/ui/spare_parts_tabs_shell.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
@@ -60,8 +68,8 @@ class AllPages {
       ),
 
       GetPage(
-        name: Routes.bottomNavigationHomeScreen,
-        page: () => NavigationBottomHomePage(),
+        name: Routes.homeDashboardScreen,
+        page: () => HomeDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
@@ -160,6 +168,49 @@ class AllPages {
         page: () => AssetsHistoryPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.profileScreen,
+        page: () => ProfilePage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.supportScreen,
+        page: () => SupportPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.suggestionScreen,
+        page: () => SuggestionsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.newSuggestionScreen,
+        page: () => NewSuggestionPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.suggestionDetailsScreen,
+        page: () => SuggestionDetailPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.alertScreen,
+        page: () => AlertsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+
+      GetPage(
+        name: Routes.sparePartsTabsShellScreen,
+        page: () => SparePartsTabsShell(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
       ),
     ];
   }

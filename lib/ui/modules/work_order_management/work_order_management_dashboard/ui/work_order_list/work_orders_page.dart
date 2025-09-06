@@ -1050,7 +1050,7 @@ class BottomBar extends StatelessWidget {
           if (i == currentIndex) return;
           switch (i) {
             case 0:
-              Get.offAllNamed(Routes.bottomNavigationHomeScreen);
+              Get.offAllNamed(Routes.homeDashboardScreen);
               break;
             case 1:
               Get.offAllNamed(Routes.assetsManagementDashboardScreen);
