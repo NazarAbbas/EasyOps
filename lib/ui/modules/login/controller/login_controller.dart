@@ -16,7 +16,6 @@ class LoginPageController extends GetxController {
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
     emailController.text = "8860700947";
     passwordController.text = "8860700947";
@@ -44,7 +43,9 @@ class LoginPageController extends GetxController {
 
   Future<void> login() async {
     // prevent double taps while in progress
-    if (isLoading.value) return;
+    if (isLoading.value) {
+      return;
+    }
 
     final idRaw = emailController.text.trim();
     final password = passwordController.text.trim();
