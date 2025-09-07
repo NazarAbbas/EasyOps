@@ -82,8 +82,8 @@ class LoginPageController extends GetxController {
       themeController.setThemeByRole('user'); //user/admin
 
       // Navigate or show success
-      // Get.toNamed(Routes.workOrderScreen);
-      Get.toNamed(Routes.workOrderManagementScreen);
+      Get.toNamed(Routes.workOrderScreen);
+      // Get.toNamed(Routes.workOrderManagementScreen);
       Get.snackbar(
         'Success',
         'Logged in successfully',

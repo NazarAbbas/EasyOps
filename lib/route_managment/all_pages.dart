@@ -14,9 +14,6 @@ import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/profile/u
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestion/ui/suggestion_page.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/support/ui/support_page.dart';
-import 'package:easy_ops/ui/modules/maintenance_work_order/maintenance_wotk_order_management/controller/work_order_management_controller.dart';
-import 'package:easy_ops/ui/modules/maintenance_work_order/maintenance_wotk_order_management/ui/work_order_management_page.dart';
-import 'package:easy_ops/ui/modules/spare_parts/tabs/ui/spare_parts_tabs_shell.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
@@ -26,7 +23,6 @@ import 'package:easy_ops/ui/modules/work_order_management/update_work_order/clos
 import 'package:easy_ops/ui/modules/work_order_management/update_work_order/re_open_work_order/ui/re_open_work_order_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/update_work_order/tabs/ui/update_work_order_tabs_shell.dart';
 import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/ui/bottom_navigation/navigation_bottom_assets.dart';
-import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/ui/bottom_navigation/navigation_bottom_home_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
 import 'package:easy_ops/ui/modules/forgot_password/ui/forgot_password_page.dart';
 import 'package:easy_ops/ui/modules/update_password/ui/update_password_page.dart';
@@ -65,13 +61,6 @@ class AllPages {
       GetPage(
         name: Routes.workOrderScreen,
         page: () => WorkOrdersPage(),
-        binding: ScreenBindings(),
-        transition: Transition.zoom,
-      ),
-
-      GetPage(
-        name: Routes.workOrderManagementScreen,
-        page: () => WorkOrdersManagementPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
@@ -213,13 +202,6 @@ class AllPages {
         page: () => AlertsPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
-      ),
-
-      GetPage(
-        name: Routes.sparePartsTabsShellScreen,
-        page: () => SparePartsTabsShell(),
-        binding: ScreenBindings(),
-        transition: Transition.rightToLeft,
       ),
     ];
   }

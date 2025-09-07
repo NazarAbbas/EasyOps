@@ -12,10 +12,6 @@ import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/profile/c
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestion/controller/suggestion_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestions_details/controller/suggestions_details_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/support/controller/support_controller.dart';
-import 'package:easy_ops/ui/modules/maintenance_work_order/maintenance_wotk_order_management/controller/work_order_management_controller.dart';
-import 'package:easy_ops/ui/modules/spare_parts/consume_spare_parts/controller/consume_spare_parts_controller.dart';
-import 'package:easy_ops/ui/modules/spare_parts/return_spare_parts/controller/return_spare_parts_controller.dart';
-import 'package:easy_ops/ui/modules/spare_parts/tabs/controller/spare_parts_tabs_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/controller/mc_history_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
@@ -44,7 +40,6 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => WorkOrdersController());
     Get.lazyPut(() => WorkorderInfoController());
     Get.lazyPut(() => WorkTabsController());
-    Get.lazyPut(() => SparePartsController());
     Get.lazyPut(() => OperatorInfoController());
     Get.lazyPut(() => UpdateWorkOrderDetailsController());
     Get.lazyPut(() => UpdateWorkTabsController());
@@ -67,8 +62,5 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => NewSuggestionController());
     Get.lazyPut(() => SuggestionDetailController());
     Get.lazyPut(() => AlertsController());
-    Get.lazyPut(() => ReturnSparePartsController());
-    Get.lazyPut(() => ConsumedSparePartsController());
-    Get.lazyPut(() => WorkOrdersManagementController());
   }
 }
