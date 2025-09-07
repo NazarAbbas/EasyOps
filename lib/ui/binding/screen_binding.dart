@@ -12,6 +12,7 @@ import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/profile/c
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestion/controller/suggestion_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestions_details/controller/suggestions_details_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/support/controller/support_controller.dart';
+import 'package:easy_ops/ui/modules/maintenance_work_order/maintenance_wotk_order_management/controller/work_order_management_controller.dart';
 import 'package:easy_ops/ui/modules/spare_parts/consume_spare_parts/controller/consume_spare_parts_controller.dart';
 import 'package:easy_ops/ui/modules/spare_parts/return_spare_parts/controller/return_spare_parts_controller.dart';
 import 'package:easy_ops/ui/modules/spare_parts/tabs/controller/spare_parts_tabs_controller.dart';
@@ -68,5 +69,6 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => AlertsController());
     Get.lazyPut(() => ReturnSparePartsController());
     Get.lazyPut(() => ConsumedSparePartsController());
+    Get.lazyPut(() => WorkOrdersManagementController());
   }
 }

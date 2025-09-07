@@ -29,4 +29,5 @@ class Routes {
   static String suggestionDetailsScreen = '/SUGGESTION_DETAILS_SCREEN';
   static String alertScreen = '/ALERT_SCREEN';
   static String sparePartsTabsShellScreen = '/SPARE_PARTS_TABS_SHELL_SCREEN';
+  static String workOrderManagementScreen = '/WORK_ORDER_MANAGEMENT_SCREEN';
 }
