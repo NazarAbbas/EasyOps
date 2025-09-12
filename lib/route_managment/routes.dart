@@ -29,4 +29,10 @@ class Routes {
   static String suggestionDetailsScreen = '/SUGGESTION_DETAILS_SCREEN';
   static String alertScreen = '/ALERT_SCREEN';
   static String sparePartsTabsShellScreen = '/SPARE_PARTS_TABS_SHELL_SCREEN';
+  static String editWorkOrderTabShellScreen =
+      '/EDIT_WORK_ORDER_TAB_SHELL_SCREEN';
+  static String editWorkOrderInfoScreen = '/EDIT_WORK_ORDER_INFO_SCREEN';
+  static String editOperatorInfoScreen = '/EDIT_OPERATOR_INFO_SCREEN';
+  static String editmcHistoryScreen = '/EDIT_MC_HISTORY_SCREEN';
+  static String editWorkOrderDetailScreen = '/EDIT_WORK_ORDER_DETAIL_SCREEN';
 }

@@ -19,6 +19,10 @@ import 'package:easy_ops/ui/modules/work_order_management/create_work_order/oper
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/tabs/ui/work_order_tabs_shell.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
+import 'package:easy_ops/ui/modules/work_order_management/edit_work_order/operator_info/ui/edit_operator_info_page.dart';
+import 'package:easy_ops/ui/modules/work_order_management/edit_work_order/tabs/ui/edit_work_order_tabs_shell.dart';
+import 'package:easy_ops/ui/modules/work_order_management/edit_work_order/work_order_detail/ui/edit_work_order_detail_page.dart';
+import 'package:easy_ops/ui/modules/work_order_management/edit_work_order/work_order_info/ui/edit_work_order_info_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/update_work_order/closure_work_order/ui/closure_work_order_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/update_work_order/re_open_work_order/ui/re_open_work_order_page.dart';
 import 'package:easy_ops/ui/modules/work_order_management/update_work_order/tabs/ui/update_work_order_tabs_shell.dart';
@@ -200,6 +204,37 @@ class AllPages {
       GetPage(
         name: Routes.alertScreen,
         page: () => AlertsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.editWorkOrderTabShellScreen,
+        page: () => EditWorkOrderTabsShell(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+
+      GetPage(
+        name: Routes.editWorkOrderInfoScreen,
+        page: () => EditWorkOrderInfoPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.editOperatorInfoScreen,
+        page: () => EditOperatorInfoPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.mcHistoryScreen,
+        page: () => McHistoryPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.editWorkOrderDetailScreen,
+        page: () => EditWorkOrderDetailsPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),

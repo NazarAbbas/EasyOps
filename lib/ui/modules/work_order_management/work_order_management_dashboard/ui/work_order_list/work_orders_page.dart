@@ -408,7 +408,7 @@ class _WorkOrderCard extends StatelessWidget {
           if (order.status.name == 'resolved') {
             Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order);
           } else if (order.status.name == 'open') {
-            Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
+            Get.toNamed(Routes.editWorkOrderTabShellScreen, arguments: order);
           } else {
             Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
           }

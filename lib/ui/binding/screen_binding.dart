@@ -69,5 +69,12 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => NewSuggestionController());
     Get.lazyPut(() => SuggestionDetailController());
     Get.lazyPut(() => AlertsController());
+
+    //  Get.lazyPut(() => AlertsController());
+    //   Get.lazyPut(() => AlertsController());
+    //    Get.lazyPut(() => AlertsController());
+    //     Get.lazyPut(() => AlertsController());
+    //      Get.lazyPut(() => AlertsController());
+    //       Get.lazyPut(() => AlertsController());
   }
 }
