@@ -14,6 +14,8 @@ class _C {
   static const chipRed = Color(0xFFEF4444);
   static const chipAmber = Color(0xFFF59E0B);
   static const chipGreen = Color(0xFF10B981);
+
+  static const bg = Color(0xFFF6F7FB);
 }
 
 /* ───────────────────────── Page ───────────────────────── */
@@ -24,30 +26,45 @@ class AssetsDetailPage extends GetView<AssetsDetailController> {
   @override
   AssetsDetailController get controller => Get.put(AssetsDetailController());
 
+  bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
+
   @override
   Widget build(BuildContext context) {
+    final isTablet = _isTablet(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: _C.bg,
       appBar: AppBar(
         elevation: 0,
-        title: Obx(() => Text(controller.pageTitle.value)),
+        centerTitle: true,
+        title: Obx(
+          () => Text(
+            controller.pageTitle.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: isTablet ? 18 : 16,
+            ),
+          ),
+        ),
         backgroundColor:
             Theme.of(context).appBarTheme.backgroundColor ?? _C.primary,
         foregroundColor: Colors.white,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
+        padding: EdgeInsets.fromLTRB(12, isTablet ? 14 : 10, 12, 16),
         children: const [
           _CardDashboard(),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
           _CardSpecification(),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
           _CardContact(),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
           _CardPmSchedule(),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
           _CardHistory(),
-          SizedBox(height: 24),
+          SizedBox(height: 20),
         ],
       ),
     );
@@ -67,41 +84,57 @@ class _SectionCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _C.card,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _C.line),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          // header
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 12, 10),
+            padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
             child: Row(
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: _C.text,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15.5,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _C.text,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14.5,
+                      height: 1.1,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 if (onMore != null)
-                  GestureDetector(
+                  InkWell(
                     onTap: onMore,
-                    child: const Text(
-                      'View More',
-                      style: TextStyle(
-                        color: _C.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'View More',
+                          style: TextStyle(
+                            color: _C.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 14,
+                          color: _C.primary,
+                        ),
+                      ],
                     ),
                   ),
               ],
@@ -115,6 +148,57 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
+class _MetaChip extends StatelessWidget {
+  final String text;
+  final IconData? icon;
+  final Color? color;
+  final EdgeInsets padding;
+  const _MetaChip(
+    this.text, {
+    this.icon,
+    this.color,
+    this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? _C.primary;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 220),
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: c.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: c.withOpacity(0.18)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 13, color: c),
+              const SizedBox(width: 4),
+            ],
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: c,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _KpiCell extends StatelessWidget {
   final String label;
   final String value;
@@ -123,12 +207,26 @@ class _KpiCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(color: _C.muted, fontSize: 13)),
-          const SizedBox(height: 6),
-          Text(value, style: const TextStyle(color: _C.primary, fontSize: 13)),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: _C.muted, fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _C.primary,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ],
       ),
     );
@@ -142,17 +240,23 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 120),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 11.5,
+          ),
         ),
       ),
     );
@@ -172,42 +276,48 @@ class _CardDashboard extends GetView<AssetsDetailController> {
       child: Obx(
         () => Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Row(
-            children: [
-              const SizedBox(width: 2),
-              Expanded(
-                child: _KpiCell(label: 'MTBF', value: controller.mtbf.value),
-              ),
-              _vSep(),
-              Expanded(
-                child: _KpiCell(
-                  label: 'BD Hours',
-                  value: controller.bdHours.value,
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                const SizedBox(width: 2),
+                Expanded(
+                  child: _KpiCell(label: 'MTBF', value: controller.mtbf.value),
                 ),
-              ),
-              _vSep(),
-              Expanded(
-                child: _KpiCell(label: 'MTTR', value: controller.mttr.value),
-              ),
-              _vSep(),
-              Expanded(
-                child: _KpiCell(
-                  label: 'Criticality',
-                  value: controller.criticality.value,
+                const _VSep(),
+                Expanded(
+                  child: _KpiCell(
+                    label: 'BD Hours',
+                    value: controller.bdHours.value,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 2),
-            ],
+                const _VSep(),
+                Expanded(
+                  child: _KpiCell(label: 'MTTR', value: controller.mttr.value),
+                ),
+                const _VSep(),
+                Expanded(
+                  child: _KpiCell(
+                    label: 'Criticality',
+                    value: controller.criticality.value,
+                  ),
+                ),
+                const SizedBox(width: 2),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _vSep() => const SizedBox(
-    height: 42,
-    child: VerticalDivider(width: 1, color: _C.line, thickness: 1),
-  );
+class _VSep extends StatelessWidget {
+  const _VSep();
+
+  @override
+  Widget build(BuildContext context) {
+    return const VerticalDivider(width: 1, color: _C.line, thickness: 1);
+  }
 }
 
 class _CardSpecification extends GetView<AssetsDetailController> {
@@ -218,6 +328,9 @@ class _CardSpecification extends GetView<AssetsDetailController> {
       case 'critical':
         return _C.chipRed;
       case 'medium':
+      case 'semi':
+      case 'semi critical':
+      case 'semi-critical':
         return _C.chipAmber;
       default:
         return _C.chipGreen;
@@ -231,42 +344,46 @@ class _CardSpecification extends GetView<AssetsDetailController> {
       onMore: () => controller.onViewMore('Assets Specification'),
       child: Obx(
         () => Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFF6F7FB),
-              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFFF8FAFD),
+              borderRadius: BorderRadius.circular(10),
             ),
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // title + pill
+                // title + pill pinned right
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: RichText(
-                        text: TextSpan(
+                      child: Text.rich(
+                        TextSpan(
                           style: const TextStyle(
                             color: _C.text,
                             fontWeight: FontWeight.w800,
-                            fontSize: 16,
+                            fontSize: 15,
                             height: 1.2,
                           ),
                           children: [
                             TextSpan(text: controller.assetName.value),
-                            const TextSpan(text: '  |  '),
+                            const TextSpan(text: '  •  '),
                             TextSpan(
                               text: controller.brand.value,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
+                                color: _C.muted,
                               ),
                             ),
                           ],
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     _Pill(
                       controller.priority.value,
                       _pillColor(controller.priority.value),
@@ -276,18 +393,14 @@ class _CardSpecification extends GetView<AssetsDetailController> {
                 const SizedBox(height: 8),
                 Text(
                   controller.description.value,
-                  style: const TextStyle(color: _C.text, height: 1.3),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _C.text, height: 1.28),
                 ),
                 const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    controller.runningState.value,
-                    style: const TextStyle(
-                      color: _C.muted,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                _MetaChip(
+                  controller.runningState.value,
+                  icon: CupertinoIcons.check_mark_circled_solid,
                 ),
               ],
             ),
@@ -307,15 +420,18 @@ class _CardContact extends GetView<AssetsDetailController> {
       title: 'Manufacturer Contact Info',
       child: Obx(
         () => Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           child: Column(
             children: [
               _contactRow(
                 leading: Text(
                   controller.phone.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: _C.text,
                     fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
                 ),
                 trailing: IconButton(
@@ -331,9 +447,12 @@ class _CardContact extends GetView<AssetsDetailController> {
               _contactRow(
                 leading: Text(
                   controller.email.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: _C.text,
                     fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
                 ),
                 trailing: IconButton(
@@ -345,11 +464,13 @@ class _CardContact extends GetView<AssetsDetailController> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               _contactRow(
                 leading: Text(
                   controller.address.value,
-                  style: const TextStyle(color: _C.text, height: 1.3),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _C.text, height: 1.28),
                 ),
                 trailing: IconButton(
                   onPressed: controller.openMap,
@@ -361,34 +482,40 @@ class _CardContact extends GetView<AssetsDetailController> {
                 ),
                 alignTop: true,
               ),
-              const SizedBox(height: 12),
-              const Divider(height: 1, color: _C.line),
               const SizedBox(height: 10),
+              const Divider(height: 1, color: _C.line),
+              const SizedBox(height: 8),
               ...controller.hours.map((e) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           e.$1,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: _C.muted,
                             fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
                           ),
                         ),
                       ),
                       Text(
                         e.$2,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: _C.text,
                           fontWeight: FontWeight.w800,
+                          fontSize: 12.5,
                         ),
                       ),
                     ],
                   ),
                 );
-              }),
+              }).toList(),
             ],
           ),
         ),
@@ -424,7 +551,7 @@ class _CardPmSchedule extends GetView<AssetsDetailController> {
       onMore: () => controller.onViewMore('PM Schedule'),
       child: Obx(
         () => Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
           child: Column(
             children: [
               Row(
@@ -432,9 +559,12 @@ class _CardPmSchedule extends GetView<AssetsDetailController> {
                   Expanded(
                     child: Text(
                       controller.pmType.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _C.muted,
                         fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
                       ),
                     ),
                   ),
@@ -442,9 +572,12 @@ class _CardPmSchedule extends GetView<AssetsDetailController> {
                     child: Text(
                       controller.pmStatusRightTitle.value,
                       textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _C.muted,
                         fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
                       ),
                     ),
                   ),
@@ -461,58 +594,61 @@ class _CardPmSchedule extends GetView<AssetsDetailController> {
                       children: [
                         Text(
                           controller.pmTitle.value,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: _C.text,
                             fontWeight: FontWeight.w800,
-                            height: 1.25,
+                            height: 1.22,
+                            fontSize: 13.5,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          controller.pmWhen.value,
-                          style: const TextStyle(color: _C.text),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.time,
+                              size: 14,
+                              color: _C.muted,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                controller.pmWhen.value,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: _C.text,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
 
                   // Right actions
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: [
-                        GestureDetector(
+                        _LinkChip(
+                          label: 'View Activities',
                           onTap: controller.viewActivities,
-                          child: const Text(
-                            'View Activities',
-                            style: TextStyle(
-                              color: _C.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
                         ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
+                        _LinkChip(
+                          label: 'Propose New',
                           onTap: controller.proposeNew,
-                          child: const Text(
-                            'Propose New',
-                            style: TextStyle(
-                              color: _C.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
                         ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
+                        _LinkChip(
+                          label: 'View Check List',
                           onTap: controller.viewChecklist,
-                          child: const Text(
-                            'View Check List',
-                            style: TextStyle(
-                              color: _C.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -537,76 +673,113 @@ class _CardHistory extends GetView<AssetsDetailController> {
       onMore: () => controller.onViewMore('Assets History'),
       child: Obx(
         () => Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top meta row
-              Row(
+              // chips (wrap safely)
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
-                  Expanded(
-                    child: Text(
-                      controller.histDate.value,
-                      style: const TextStyle(
-                        color: _C.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  _MetaChip(
+                    controller.histDate.value,
+                    icon: CupertinoIcons.calendar,
                   ),
-                  Expanded(
-                    child: Text(
-                      controller.histType.value,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: _C.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  _MetaChip(
+                    controller.histType.value,
+                    icon: CupertinoIcons.tag,
                   ),
-                  Expanded(
-                    child: Text(
-                      controller.histDept.value,
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        color: _C.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+                  _MetaChip(
+                    controller.histDept.value,
+                    icon: CupertinoIcons.building_2_fill,
+                  ), // ✅ valid icon
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 controller.histText.value,
-                style: const TextStyle(color: _C.text, height: 1.3),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _C.text, height: 1.28),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   const Icon(
                     CupertinoIcons.person_crop_circle,
-                    size: 16,
+                    size: 14,
                     color: _C.muted,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    controller.histUser.value,
-                    style: const TextStyle(
-                      color: _C.muted,
-                      fontWeight: FontWeight.w700,
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      controller.histUser.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _C.muted,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  const Icon(CupertinoIcons.time, size: 16, color: _C.muted),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
+                  const Icon(CupertinoIcons.time, size: 14, color: _C.muted),
+                  const SizedBox(width: 4),
                   Text(
                     controller.histDuration.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: _C.muted,
                       fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/* ───────────────────────── Small UI helpers ───────────────────────── */
+
+class _LinkChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _LinkChip({required this.label, required this.onTap, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: StadiumBorder(
+        side: BorderSide(color: _C.primary.withOpacity(0.28)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(CupertinoIcons.link, size: 13, color: _C.primary),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _C.primary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12.5,
+                ),
               ),
             ],
           ),

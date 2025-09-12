@@ -404,11 +404,14 @@ class _WorkOrderCard extends StatelessWidget {
         side: const BorderSide(color: borderSoft, width: 1),
       ),
       child: InkWell(
-        onTap: () => {
-          if (order.status.name == 'resolved')
-            {Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order)}
-          else
-            {Get.toNamed(Routes.workOrderDetailScreen, arguments: order)},
+        onTap: () {
+          if (order.status.name == 'resolved') {
+            Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order);
+          } else if (order.status.name == 'open') {
+            Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
+          } else {
+            Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
+          }
         },
 
         child: Stack(

@@ -1,23 +1,27 @@
 import 'package:easy_ops/constants/values/app_colors.dart';
+import 'package:easy_ops/ui/modules/work_order_management/common_models/work_draft_model.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+
+typedef Json = Map<String, dynamic>;
 
 class OperatorInfoController extends GetxController {
-  // Storage
-  final sameAsOperator = false.obs;
-  static const _draftKey = 'operator_info_draft_v1';
-  final _box = GetStorage();
+  final draft = Get.find<WorkOrderDraft>();
+
+  // Debounced autosave trigger (kept tiny)
+  final _saveSignal = 0.obs;
+  late final Worker _saveWorker;
   late final List<Worker> _workers;
 
-  // Reporter
+  // Fields
+  final sameAsOperator = false.obs;
+
   final operatorCtrl = TextEditingController();
   final reporterCtrl = TextEditingController();
   final employeeId = '-'.obs;
   final phoneNumber = '-'.obs;
 
-  // Location & shift
   final location = ''.obs;
   final plant = ''.obs;
   final reportedTime = Rxn<TimeOfDay>();
@@ -29,7 +33,6 @@ class OperatorInfoController extends GetxController {
   final plantsOpt = const ['Plant A', 'Plant B', 'Plant C'];
   final shiftsOpt = const ['A', 'B', 'C'];
 
-  // ----- UI helpers used by the page (read-only) -----
   String get timeText {
     final t = reportedTime.value;
     if (t == null) return 'hh:mm';
@@ -42,17 +45,14 @@ class OperatorInfoController extends GetxController {
   String get dateText {
     final d = reportedDate.value;
     if (d == null) return 'dd/mm/yyyy';
-    return '${d.day.toString().padLeft(2, '0')}/'
-        '${d.month.toString().padLeft(2, '0')}/'
-        '${d.year}';
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
   }
 
-  // ===== Lifecycle =====
   @override
   void onInit() {
     super.onInit();
-    _loadDraft();
-    _setupAutosave();
+    _hydrateFromDraft();
+    _bindAutosave();
   }
 
   @override
@@ -60,69 +60,80 @@ class OperatorInfoController extends GetxController {
     for (final w in _workers) {
       w.dispose();
     }
+    _saveWorker.dispose();
     reporterCtrl.dispose();
     operatorCtrl.dispose();
     super.onClose();
   }
 
-  // ===== Draft persistence =====
-  void _setupAutosave() {
-    // Save when any Rx changes
+  // -------- Draft <-> Rx wiring ----------
+  void _hydrateFromDraft() {
+    reporterCtrl.text = draft.get<String>(WD.reporter, '');
+    operatorCtrl.text = draft.get<String>(
+      WD.operatorName,
+      '',
+    ); // mirrors operator name if you want
+    employeeId.value = draft.get<String>(WD.employeeId, '-');
+    phoneNumber.value = draft.get<String>(WD.phoneNumber, '-');
+
+    location.value = draft.get<String>(WD.location, '');
+    plant.value = draft.get<String>(WD.plant, '');
+    shift.value = draft.get<String>(WD.shift, '');
+    sameAsOperator.value = draft.get<bool>(WD.sameAsOperator, false);
+
+    final rt = draft.get<String?>(WD.reportedTime, null);
+    final rd = draft.get<String?>(WD.reportedDate, null);
+    reportedTime.value = _decodeTime(rt);
+    reportedDate.value = _decodeDate(rd);
+  }
+
+  void _bindAutosave() {
+    _saveWorker = debounce<int>(
+      _saveSignal,
+      (_) => _saveNow(),
+      time: const Duration(milliseconds: 250),
+    );
+
     _workers = [
-      ever<String>(employeeId, (_) => saveDraft()),
-      ever<String>(phoneNumber, (_) => saveDraft()),
-      ever<String>(location, (_) => saveDraft()),
-      ever<String>(plant, (_) => saveDraft()),
-      ever<TimeOfDay?>(reportedTime, (_) => saveDraft()),
-      ever<DateTime?>(reportedDate, (_) => saveDraft()),
-      ever<String>(shift, (_) => saveDraft()),
+      ever<String>(employeeId, _nudge),
+      ever<String>(phoneNumber, _nudge),
+      ever<String>(location, _nudge),
+      ever<String>(plant, _nudge),
+      ever<TimeOfDay?>(reportedTime, _nudge),
+      ever<DateTime?>(reportedDate, _nudge),
+      ever<String>(shift, _nudge),
+      ever<bool>(sameAsOperator, _onSameAsOperatorChanged),
     ];
-    // Save when reporter text changes
-    reporterCtrl.addListener(saveDraft);
-    operatorCtrl.addListener(saveDraft);
+
+    reporterCtrl.addListener(_nudge);
+    operatorCtrl.addListener(_nudge);
   }
 
-  Map<String, dynamic> _payload() => {
-    'reporter': reporterCtrl.text,
-    'operator': operatorCtrl.text,
-    'employeeId': employeeId.value,
-    'phoneNumber': phoneNumber.value,
-    'location': location.value,
-    'plant': plant.value,
-    'reportedTime': _encodeTime(reportedTime.value), // "HH:mm"
-    'reportedDate': _encodeDate(reportedDate.value), // ISO
-    'shift': shift.value,
-  };
+  void _nudge([dynamic _]) => _saveSignal.value++;
 
-  void saveDraft() {
-    _box.write(_draftKey, _payload());
+  void _saveNow() {
+    draft.merge({
+      WD.reporter: reporterCtrl.text,
+
+      // Persist operator name here only if you intend this tab to control it:
+      // WD.operatorName: operatorCtrl.text,
+      WD.employeeId: employeeId.value,
+      WD.phoneNumber: phoneNumber.value,
+
+      WD.location: location.value,
+      WD.plant: plant.value,
+      WD.shift: shift.value,
+      WD.sameAsOperator: sameAsOperator.value,
+
+      WD.reportedTime: _encodeTime(reportedTime.value),
+      WD.reportedDate: _encodeDate(reportedDate.value),
+    });
   }
 
-  void _loadDraft() {
-    final raw = _box.read(_draftKey);
-    if (raw is! Map) return;
-    final json = Map<String, dynamic>.from(raw);
-
-    reporterCtrl.text = (json['reporter'] ?? '') as String;
-    operatorCtrl.text = (json['operator'] ?? '') as String;
-    employeeId.value = (json['employeeId'] ?? '-') as String;
-    phoneNumber.value = (json['phoneNumber'] ?? '-') as String;
-
-    location.value = (json['location'] ?? '') as String;
-    plant.value = (json['plant'] ?? '') as String;
-
-    reportedTime.value = _decodeTime(json['reportedTime'] as String?);
-    reportedDate.value = _decodeDate(json['reportedDate'] as String?);
-
-    shift.value = (json['shift'] ?? '') as String;
-  }
-
-  void _clearDraft() => _box.remove(_draftKey);
-
-  // ===== Public actions =====
+  // Actions
   void discard() {
     reporterCtrl.clear();
-    operatorCtrl.clear();
+    // operatorCtrl.clear(); // uncomment if this tab owns operator name
     employeeId.value = '-';
     phoneNumber.value = '-';
     location.value = '';
@@ -130,8 +141,20 @@ class OperatorInfoController extends GetxController {
     reportedTime.value = null;
     reportedDate.value = null;
     shift.value = '';
+    sameAsOperator.value = false;
 
-    _clearDraft();
+    // Clear only this tab’s fields from the map (non-destructive to other tabs)
+    draft.merge({
+      WD.reporter: '',
+      WD.employeeId: '-',
+      WD.phoneNumber: '-',
+      WD.location: '',
+      WD.plant: '',
+      WD.reportedTime: null,
+      WD.reportedDate: null,
+      WD.shift: '',
+      WD.sameAsOperator: false,
+    });
 
     Get.snackbar(
       'Discarded',
@@ -143,7 +166,7 @@ class OperatorInfoController extends GetxController {
   }
 
   void saveAndBack() {
-    saveDraft();
+    _saveNow();
     Get.snackbar(
       'Saved',
       'Operator info saved.',
@@ -152,14 +175,20 @@ class OperatorInfoController extends GetxController {
       colorText: AppColors.text,
     );
     Get.find<WorkTabsController>().goTo(0);
-    // Get.back();
   }
 
-  // ===== Encoding helpers =====
+  // If toggled, mirror operator name to reporter; untoggle keeps values as-is.
+  void _onSameAsOperatorChanged(bool v) {
+    if (v) {
+      reporterCtrl.text = operatorCtrl.text;
+    }
+    _nudge();
+  }
+
+  // Encode/Decode
   String? _encodeTime(TimeOfDay? t) => t == null
       ? null
       : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
   TimeOfDay? _decodeTime(String? s) {
     if (s == null || s.isEmpty) return null;
     final parts = s.split(':');
@@ -171,6 +200,6 @@ class OperatorInfoController extends GetxController {
   }
 
   String? _encodeDate(DateTime? d) => d?.toIso8601String();
-
-  DateTime? _decodeDate(String? s) => s == null ? null : DateTime.tryParse(s);
+  DateTime? _decodeDate(String? s) =>
+      (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
 }

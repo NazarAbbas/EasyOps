@@ -137,7 +137,7 @@ final _mockOrders = <WorkOrder>[
     department: 'Mechanical',
     line: 'CNC - 1',
     priority: Priority.high,
-    status: Status.inProgress,
+    status: Status.open,
     duration: '3h 20m',
     footerTag: 'Escalated',
   ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:easy_ops/constants/values/app_colors.dart';
+import 'package:easy_ops/ui/modules/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -349,9 +350,31 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       const _Hr(),
 
                       // Description (read-only tile)
-                      _Label(
-                        'Description',
-                        Obx(() => _ValueTile(controller.descriptionText.value)),
+                      // Description (read-only tile)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 👇 Flex horizontally at Row level (safe)
+                          Expanded(
+                            child: _Label(
+                              'Description',
+                              Obx(
+                                () => _ValueTile(
+                                  controller.descriptionText.value,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _IconSquare(
+                            tooltip: 'Edit',
+                            onTap: () => Get.find<WorkTabsController>().goTo(2),
+                            child: const Icon(
+                              CupertinoIcons.clock,
+                              color: _C.primary,
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 20),
@@ -578,7 +601,9 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                     const SizedBox(width: 10),
                     _IconSquare(
                       tooltip: 'Edit',
-                      onTap: () {},
+                      onTap: () {
+                        Get.find<WorkTabsController>().goTo(1);
+                      },
                       child: const Icon(
                         CupertinoIcons.pencil,
                         color: _C.primary,
@@ -795,6 +820,8 @@ class _UploadPhotosBox extends StatelessWidget {
                 Icon(CupertinoIcons.upload_circle, color: _C.primary),
                 SizedBox(width: 8),
                 Text(
+                  maxLines: 3, // tweak as you like
+                  overflow: TextOverflow.ellipsis,
                   'Upload photos',
                   style: TextStyle(
                     color: _C.primary,

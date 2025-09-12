@@ -12,6 +12,7 @@ import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/profile/c
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestion/controller/suggestion_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/suggestions_details/controller/suggestions_details_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/support/controller/support_controller.dart';
+import 'package:easy_ops/ui/modules/work_order_management/common_models/work_draft_model.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/mc_history/controller/mc_history_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
@@ -32,6 +33,12 @@ import 'package:get/instance_manager.dart';
 class ScreenBindings implements Bindings {
   @override
   void dependencies() {
+    Get.putAsync<WorkOrderDraft>(
+      () => WorkOrderDraft().init(),
+      permanent: true,
+    );
+
+    //Controllers
     Get.lazyPut(() => SplashPageController());
     Get.lazyPut(() => LoginPageController());
     Get.lazyPut(() => ForgotPasswordController());

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:easy_ops/constants/constant.dart';
 import 'package:easy_ops/constants/dependency_injection/dependency_injection.dart';
@@ -41,7 +40,7 @@ void main() async {
 
   final themeCtrl = Get.put(ThemeController(), permanent: true);
   // Example: set role once you know it (e.g., after login/api)
-  const userRoleFromApi = 'admin';
+  const userRoleFromApi = 'user';
   themeCtrl.setThemeByRole(userRoleFromApi);
   await AuthStore.instance.init(); // restores token into memory
   runApp(MyApp());

@@ -5,19 +5,21 @@ import 'package:flutter/material.dart';
 enum Priority { high } // high == Critical
 
 /// Right-side status text
-enum Status { inProgress, resolved, none }
+enum Status { inProgress, resolved, open, none }
 
 extension RightStatusX on Status {
   String get text => switch (this) {
     Status.inProgress => 'In Progress',
     Status.none => '',
     Status.resolved => 'Resolved',
+    Status.open => 'Open',
   };
 
   Color get color => switch (this) {
     Status.inProgress => AppColors.primary,
     Status.none => Colors.transparent,
     Status.resolved => AppColors.successGreen,
+    Status.open => AppColors.red,
   };
 }
 

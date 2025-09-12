@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/controller/assets_specification_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -101,28 +103,22 @@ class AssetsSpecificationPage extends GetView<AssetSpecificationController> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Docs row
+                    // Docs row (GRID - no overflow)
                     Container(
                       decoration: BoxDecoration(
                         color: _card,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: _border),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 10,
-                      ),
-                      child: Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: controller.docs.map((d) {
-                          return _DocChip(
-                            title: d.title,
-                            pages: d.pages,
-                            progress: controller.progress[d.id],
-                            onTap: () => controller.downloadAndOpen(d),
-                          );
-                        }).toList(),
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                      child: _PdfGrid<dynamic>(
+                        docs: controller.docs,
+                        titleOf: (d) => d.title,
+                        pagesOf: (d) => d.pages,
+                        progressOf: (d) =>
+                            controller.progress[d.id], // null / -1 / 0..1 / ≥1
+                        onTapDoc: (d) =>
+                            controller.downloadAndOpen(d), // Future ok
                       ),
                     ),
                   ],
@@ -201,104 +197,6 @@ class _CriticalPill extends StatelessWidget {
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-class _DocChip extends StatelessWidget {
-  final String title;
-  final int pages;
-  final double? progress; // null = idle, 0..1 = downloading, -1 = opening
-  final VoidCallback onTap;
-
-  const _DocChip({
-    required this.title,
-    required this.pages,
-    required this.onTap,
-    this.progress,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const _border = Color(0xFFE9EEF5);
-
-    Widget trailing;
-    if (progress == null) {
-      trailing = const Icon(Icons.download_rounded, size: 18);
-    } else if (progress == -1) {
-      trailing = const SizedBox(
-        width: 18,
-        height: 18,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
-    } else if (progress! >= 0 && progress! < 1) {
-      trailing = SizedBox(
-        width: 32,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            Text(
-              '${(progress! * 100).toInt()}%',
-              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-      );
-    } else {
-      trailing = const Icon(Icons.check_circle, size: 18, color: Colors.green);
-    }
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 170,
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: _border),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.picture_as_pdf_rounded,
-              size: 18,
-              color: Colors.red,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    '$pages Pages',
-                    style: const TextStyle(fontSize: 11, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            trailing,
-          ],
         ),
       ),
     );
@@ -401,6 +299,202 @@ class _KVRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PdfGrid<T> extends StatelessWidget {
+  final List<T> docs;
+  final String Function(T doc) titleOf;
+  final int Function(T doc) pagesOf;
+  final double? Function(T doc)
+  progressOf; // null idle, -1 opening, 0..1 dl, ≥1 done
+  final FutureOr<void> Function(T doc) onTapDoc;
+
+  const _PdfGrid({
+    super.key,
+    required this.docs,
+    required this.titleOf,
+    required this.pagesOf,
+    required this.progressOf,
+    required this.onTapDoc,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (docs.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'No documents available',
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        const spacing = 10.0;
+
+        // ✅ Force at least 2 columns on phones, 3 on wider screens
+        final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+        final columns = isTablet ? 3 : 2;
+
+        // Compute a safe tile height (icon row + gaps + 2 title lines + chip + padding)
+        final ts = MediaQuery.of(context).textScaleFactor;
+        final titleLineH = 16.0 * 1.25 * ts; // matches ~12.5 font * line-height
+        final tileHeight =
+            22 /*top row*/ +
+            8 /*gap*/ +
+            (titleLineH * 2) +
+            8 /*gap*/ +
+            24 /*chip*/ +
+            20 /*vertical padding*/;
+
+        // Use the actual available width seen by the grid
+        final tileWidth = (c.maxWidth - spacing * (columns - 1)) / columns;
+        final childAspectRatio = tileWidth / tileHeight;
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns, // 👈 fixed columns (2 or 3)
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: childAspectRatio, // 👈 prevents bottom overflow
+          ),
+          itemCount: docs.length,
+          itemBuilder: (_, i) {
+            final d = docs[i];
+            return _PdfTile(
+              title: titleOf(d),
+              pages: pagesOf(d),
+              progress: progressOf(d),
+              onTap: () => onTapDoc(d),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _PdfTile extends StatelessWidget {
+  final String title;
+  final int pages;
+  final double? progress; // null idle, -1 opening, 0..1 downloading, ≥1 done
+  final VoidCallback onTap;
+
+  const _PdfTile({
+    required this.title,
+    required this.pages,
+    required this.progress,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = const Color(0xFFE9EEF5);
+    final chipBg = const Color(0xFFF2F6FF);
+    final chipText = const Color(0xFF2F6BFF);
+
+    Widget status;
+    if (progress == null) {
+      status = const Icon(Icons.download_rounded, size: 18);
+    } else if (progress == -1) {
+      status = const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    } else if (progress! >= 0 && progress! < 1) {
+      status = SizedBox(
+        width: 30,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            Text(
+              '${(progress! * 100).toInt()}%',
+              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      );
+    } else {
+      status = const Icon(Icons.check_circle, size: 18, color: Colors.green);
+    }
+
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // top row: pdf icon + status
+              Row(
+                children: const [
+                  Icon(
+                    Icons.picture_as_pdf_rounded,
+                    size: 20,
+                    color: Colors.red,
+                  ),
+                  Spacer(),
+                ],
+              ),
+              Align(alignment: Alignment.centerRight, child: status),
+              const SizedBox(height: 8),
+              // title (max 2 lines)
+              Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  height: 1.25,
+                ),
+              ),
+              const Spacer(),
+              // pages chip
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: chipBg,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Text(
+                  '$pages Pages',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: chipText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

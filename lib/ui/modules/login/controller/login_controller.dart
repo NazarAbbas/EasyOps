@@ -80,61 +80,6 @@ class LoginPageController extends GetxController {
     final phone = _normalizePhone(idRaw); // keep your existing helper
     Get.toNamed(Routes.forgotPasswordScreen, arguments: {'phone': phone});
   }
-
-  // Future<void> login() async {
-  //   // prevent double taps while in progress
-  //   if (isLoading.value) return;
-
-  //   final idRaw = emailController.text.trim();
-  //   final password = passwordController.text.trim();
-
-  //   if (idRaw.isEmpty || password.isEmpty) {
-  //     _err('Please fill in all fields');
-  //     return;
-  //   }
-
-  //   // Accept either email OR phone
-  //   final isEmail = _isValidEmail(idRaw);
-  //   final isPhone = _isValidPhone(idRaw);
-
-  //   if (!isEmail && !isPhone) {
-  //     _err('Enter a valid email address or phone number');
-  //     return;
-  //   }
-
-  //   // You can pass these to your API as separate fields if needed
-  //   final String? email = isEmail ? idRaw : null;
-  //   final String? phone = isPhone ? _normalizePhone(idRaw) : null;
-
-  //   // Dismiss keyboard
-  //   FocusManager.instance.primaryFocus?.unfocus();
-
-  //   // ---- Simulate API call ----
-  //   isLoading.value = true;
-  //   try {
-  //     await Future.delayed(const Duration(seconds: 2)); // mock latency
-
-  //     // Mock “success” logic
-
-  //     //const userRoleFromApi = 'admin';
-  //     // role.value = userRoleFromApi;
-  //     themeController.setThemeByRole('admin'); //user/admin
-
-  //     // Navigate or show success
-  //     // Get.toNamed(Routes.workOrderScreen);
-  //     Get.toNamed(Routes.workOrderManagementScreen);
-  //     Get.snackbar(
-  //       'Success',
-  //       'Logged in successfully',
-  //       snackPosition: SnackPosition.TOP,
-  //       backgroundColor: Colors.green,
-  //       colorText: Colors.white,
-  //     );
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
   /* ================= Helpers ================= */
 
   void _err(String msg) {
