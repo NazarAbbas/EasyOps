@@ -167,13 +167,13 @@ class OperatorInfoController extends GetxController {
 
   void saveAndBack() {
     _saveNow();
-    Get.snackbar(
-      'Saved',
-      'Operator info saved.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green.shade100,
-      colorText: AppColors.text,
-    );
+    // Get.snackbar(
+    //   'Saved',
+    //   'Operator info saved.',
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   backgroundColor: Colors.green.shade100,
+    //   colorText: AppColors.text,
+    // );
     Get.find<WorkTabsController>().goTo(0);
   }
 

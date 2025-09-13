@@ -8,12 +8,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:get/get.dart';
 
-class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
+class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
   const WorkOrderDetailsPage({super.key});
 
   @override
-  WorkOrderDetailsController get controller =>
-      Get.put(WorkOrderDetailsController());
+  EditWorkOrderDetailsController get controller =>
+      Get.put(EditWorkOrderDetailsController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -56,11 +56,11 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SuccessBanner(
-                    title: controller.successTitle.value,
-                    sub: controller.successSub.value,
-                  ),
-                  const SizedBox(height: 12),
+                  // _SuccessBanner(
+                  //   title: controller.successTitle.value,
+                  //   sub: controller.successSub.value,
+                  // ),
+                  // const SizedBox(height: 12),
 
                   // Reporter
                   _KVBlock(
@@ -266,19 +266,50 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
           child: SizedBox(
             height: isTablet ? 56 : 52,
             width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: _C.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                // Left button (Go Back with border only)
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _C.primary,
+                      side: BorderSide(color: _C.primary, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: controller.goBack,
+                    child: const Text(
+                      'Go Back',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              onPressed: controller.goToListing,
-              child: const Text(
-                'Go to Work Order Listing',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
+                const SizedBox(width: 12), // spacing between buttons
+                // Right button (with background)
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _C.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: controller.create,
+                    child: const Text(
+                      'Create',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -357,67 +388,6 @@ class _GradientHeader extends StatelessWidget implements PreferredSizeWidget {
             SizedBox(width: btnSize, height: btnSize),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SuccessBanner extends StatelessWidget {
-  final String title;
-  final String sub;
-  const _SuccessBanner({required this.title, required this.sub});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0E8A3B), Color(0xFF0A6A2E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(
-              color: Color(0xFFBFEBCB),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.check, color: Colors.black87, size: 28),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  sub,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.95),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

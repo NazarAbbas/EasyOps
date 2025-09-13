@@ -7,6 +7,7 @@ import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboar
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/ui/assets_specification_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/pm_checklist/ui/pm_checklist_page.dart';
 import 'package:easy_ops/ui/modules/assets_management/pm_schedular/ui/pm_schedular_page.dart';
+import 'package:easy_ops/ui/modules/cancel_work_order/ui/cancel_work_order_page.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/alerts/ui/alerts_page.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
@@ -235,6 +236,12 @@ class AllPages {
       GetPage(
         name: Routes.editWorkOrderDetailScreen,
         page: () => EditWorkOrderDetailsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.cancelWorkOrderScreen,
+        page: () => CancelWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),

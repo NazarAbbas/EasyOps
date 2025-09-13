@@ -1,5 +1,6 @@
 // work_order_details_controller.dart
 // ignore: file_names
+import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/route_managment/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -196,5 +197,17 @@ class EditWorkOrderDetailsController extends GetxController {
     return '$dd $mon';
   }
 
-  void goToListing() => Get.offAllNamed(Routes.workOrderScreen);
+  void updateOrder() {
+    Get.offAllNamed(Routes.workOrderScreen);
+
+    Get.snackbar(
+      'Update',
+      'Work Order Updated Successfully',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.successGreen,
+      colorText: AppColors.white,
+    );
+  }
+
+  void goBack() => Get.back();
 }

@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:easy_ops/constants/values/app_colors.dart';
+import 'package:easy_ops/route_managment/routes.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/ui/modules/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
+import 'package:easy_ops/ui/modules/work_order_management/edit_work_order/work_order_info/controller/edit_work_order_info_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,10 +14,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:audioplayers/audioplayers.dart';
 
-class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
+class EditWorkOrderInfoPage extends GetView<EditWorkorderInfoController> {
   EditWorkOrderInfoPage({super.key});
   @override
-  WorkorderInfoController get controller => Get.put(WorkorderInfoController());
+  EditWorkorderInfoController get controller =>
+      Get.put(EditWorkorderInfoController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -27,7 +30,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
 
   /* -------------------- Photos -------------------- */
 
-  Future<void> _pickFromCamera(WorkorderInfoController c) async {
+  Future<void> _pickFromCamera(EditWorkorderInfoController c) async {
     final XFile? f = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 85,
@@ -35,14 +38,14 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
     if (f != null) c.addPhoto(f.path);
   }
 
-  Future<void> _pickFromGallery(WorkorderInfoController c) async {
+  Future<void> _pickFromGallery(EditWorkorderInfoController c) async {
     final files = await _picker.pickMultiImage(imageQuality: 85);
     if (files.isNotEmpty) c.addPhotos(files.map((e) => e.path));
   }
 
   Future<void> _showPhotoPickerSheet(
     BuildContext context,
-    WorkorderInfoController c,
+    EditWorkorderInfoController c,
   ) async {
     await showModalBottomSheet(
       context: context,
@@ -86,7 +89,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
 
   /* -------------------- Voice record + play -------------------- */
 
-  Future<void> _toggleRecording(WorkorderInfoController c) async {
+  Future<void> _toggleRecording(EditWorkorderInfoController c) async {
     // Stop playback if playing
     if (_isPlaying.value) {
       await _player.stop();
@@ -136,7 +139,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
   }
 
   // NEW: stop button logic (stops & saves if recording)
-  Future<void> _stopAndSaveRecording(WorkorderInfoController c) async {
+  Future<void> _stopAndSaveRecording(EditWorkorderInfoController c) async {
     if (!c.isRecording.value) {
       Get.snackbar(
         'Recorder',
@@ -161,7 +164,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
     }
   }
 
-  Future<void> _playOrPauseVoice(WorkorderInfoController c) async {
+  Future<void> _playOrPauseVoice(EditWorkorderInfoController c) async {
     final path = c.voiceNotePath.value;
     if (path.isEmpty) return;
 
@@ -179,7 +182,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
     }
   }
 
-  Future<void> _removeVoice(WorkorderInfoController c) async {
+  Future<void> _removeVoice(EditWorkorderInfoController c) async {
     if (_isPlaying.value) {
       await _player.stop();
       _isPlaying.value = false;
@@ -194,7 +197,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
     );
   }
 
-  Future<void> _removedRecording(WorkorderInfoController c) async {
+  Future<void> _removedRecording(EditWorkorderInfoController c) async {
     if (_isPlaying.value) {
       await _player.stop();
       _isPlaying.value = false;
@@ -209,7 +212,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
     );
   }
 
-  Future<void> _reRecord(WorkorderInfoController c) async {
+  Future<void> _reRecord(EditWorkorderInfoController c) async {
     await _removeVoice(c);
     await _toggleRecording(c);
   }
@@ -641,7 +644,7 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
                         ),
                       ),
                       onPressed: () {
-                        // TODO: handle cancel
+                        Get.toNamed(Routes.cancelWorkOrderScreen);
                       },
                       child: const Text(
                         'Cancel Work Order',
@@ -668,9 +671,10 @@ class EditWorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       ),
                       onPressed: () {
                         // TODO: handle save
+                        controller.goToWorkOrderDetailScreen();
                       },
                       child: const Text(
-                        'Save',
+                        'Next',
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -721,7 +725,7 @@ class _CardTitle extends StatelessWidget {
   }
 }
 
-class _OperatorInfoFooter extends GetView<WorkorderInfoController> {
+class _OperatorInfoFooter extends GetView<EditWorkorderInfoController> {
   const _OperatorInfoFooter({super.key});
 
   @override

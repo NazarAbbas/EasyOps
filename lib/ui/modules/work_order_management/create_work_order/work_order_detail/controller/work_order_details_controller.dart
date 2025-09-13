@@ -1,11 +1,12 @@
 // work_order_details_controller.dart
 // ignore: file_names
+import 'package:easy_ops/constants/values/app_colors.dart';
 import 'package:easy_ops/route_managment/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-class WorkOrderDetailsController extends GetxController {
+class EditWorkOrderDetailsController extends GetxController {
   // Header
   final title = 'Work Order Details'.obs;
 
@@ -196,5 +197,17 @@ class WorkOrderDetailsController extends GetxController {
     return '$dd $mon';
   }
 
-  void goToListing() => Get.offAllNamed(Routes.workOrderScreen);
+  void create() {
+    Get.offAllNamed(Routes.workOrderScreen);
+
+    Get.snackbar(
+      'Create',
+      'Work Order Created Successfully',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.successGreen,
+      colorText: AppColors.white,
+    );
+  }
+
+  void goBack() => Get.back();
 }

@@ -5,6 +5,7 @@ import 'package:easy_ops/ui/modules/assets_management/assets_management_dashboar
 import 'package:easy_ops/ui/modules/assets_management/assets_specification/controller/assets_specification_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/pm_checklist/controller/pm_checklist_controller.dart';
 import 'package:easy_ops/ui/modules/assets_management/pm_schedular/controller/pm_schedular_controller.dart';
+import 'package:easy_ops/ui/modules/cancel_work_order/controller/cancel_work_order_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/alerts/controller/alerts_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/home_dashboard/controller/home_dashboard_controller.dart';
 import 'package:easy_ops/ui/modules/dashboard_profile_staff_suggestion/new_suggestion/controller/new_suggestions_controller.dart';
@@ -69,6 +70,7 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => NewSuggestionController());
     Get.lazyPut(() => SuggestionDetailController());
     Get.lazyPut(() => AlertsController());
+    Get.lazyPut(() => CancelWorkOrderController());
 
     //  Get.lazyPut(() => AlertsController());
     //   Get.lazyPut(() => AlertsController());

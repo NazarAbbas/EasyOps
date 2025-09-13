@@ -131,7 +131,7 @@ class ClosureWorkOrderController extends GetxController {
     );
 
     // Navigate where you need (listing, details, etc.)
-    // Get.offAllNamed(Routes.workOrderScreen);
+    Get.offAllNamed(Routes.workOrderScreen);
   }
 
   Future<String?> _saveBytes(Uint8List data) async {

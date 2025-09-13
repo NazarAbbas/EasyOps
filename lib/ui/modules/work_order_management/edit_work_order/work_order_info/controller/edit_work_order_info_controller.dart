@@ -219,16 +219,16 @@ class EditWorkorderInfoController extends GetxController {
     saveOperatorFooter();
     saveDraft();
 
-    Get.snackbar(
-      'Create',
-      'Work order saved',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.primaryBlue,
-      colorText: AppColors.white,
-    );
+    // Get.snackbar(
+    //   'Create',
+    //   'Work order saved',
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   backgroundColor: AppColors.primaryBlue,
+    //   colorText: AppColors.white,
+    // );
 
     // Pass everything forward (includes operator footer + media)
-    Get.toNamed(Routes.workOrderDetailScreen, arguments: payload());
+    Get.toNamed(Routes.editWorkOrderDetailScreen, arguments: payload());
   }
 
   // ───────── Shared picker wrapper (already used by your page)

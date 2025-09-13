@@ -215,19 +215,8 @@ class WorkorderInfoController extends GetxController {
       return;
     }
 
-    // Persist both stores before leaving
     saveOperatorFooter();
     saveDraft();
-
-    Get.snackbar(
-      'Create',
-      'Work order saved',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.primaryBlue,
-      colorText: AppColors.white,
-    );
-
-    // Pass everything forward (includes operator footer + media)
     Get.toNamed(Routes.workOrderDetailScreen, arguments: payload());
   }
 

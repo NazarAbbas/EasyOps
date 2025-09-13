@@ -1,4 +1,5 @@
 // reopen_work_order_controller.dart
+import 'package:easy_ops/route_managment/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -54,7 +55,7 @@ class ReopenWorkOrderController extends GetxController {
       'remark': remarkCtrl.text.trim(),
     };
 
-    await Future.delayed(const Duration(seconds: 10)); // ← fake network
+    await Future.delayed(const Duration(seconds: 1)); // ← fake network
 
     Get.back(result: payload);
     Get.snackbar(
@@ -62,6 +63,7 @@ class ReopenWorkOrderController extends GetxController {
       'Work order has been re-opened.',
       snackPosition: SnackPosition.BOTTOM,
     );
+    Get.offAllNamed(Routes.workOrderScreen);
   }
 
   void discard() {
