@@ -1,0 +1,250 @@
+import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/binding/screen_binding.dart';
+import 'package:easy_ops/features/assets_management/assets_dashboard/ui/assets_dashboard_page.dart';
+import 'package:easy_ops/features/assets_management/assets_details/ui/assets_details_page.dart';
+import 'package:easy_ops/features/assets_management/assets_history/ui/assets_history_page.dart';
+import 'package:easy_ops/features/assets_management/assets_management_dashboard/ui/assets_management_dashboard_page.dart';
+import 'package:easy_ops/features/assets_management/assets_specification/ui/assets_specification_page.dart';
+import 'package:easy_ops/features/assets_management/pm_checklist/ui/pm_checklist_page.dart';
+import 'package:easy_ops/features/assets_management/pm_schedular/ui/pm_schedular_page.dart';
+import 'package:easy_ops/features/cancel_work_order/ui/cancel_work_order_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/alerts/ui/alerts_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/profile/ui/profile_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/ui/suggestion_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/support/ui/support_page.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/tabs/ui/work_order_tabs_shell.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
+import 'package:easy_ops/features/work_order_management/edit_work_order/operator_info/ui/edit_operator_info_page.dart';
+import 'package:easy_ops/features/work_order_management/edit_work_order/tabs/ui/edit_work_order_tabs_shell.dart';
+import 'package:easy_ops/features/work_order_management/edit_work_order/work_order_detail/ui/edit_work_order_detail_page.dart';
+import 'package:easy_ops/features/work_order_management/edit_work_order/work_order_info/ui/edit_work_order_info_page.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/ui/closure_work_order_page.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/re_open_work_order/ui/re_open_work_order_page.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/tabs/ui/update_work_order_tabs_shell.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/bottom_navigation/navigation_bottom_assets.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
+import 'package:easy_ops/features/forgot_password/ui/forgot_password_page.dart';
+import 'package:easy_ops/features/update_password/ui/update_password_page.dart';
+import 'package:easy_ops/features/login/ui/login_page.dart';
+import 'package:easy_ops/features/splash/ui/spalsh_page.dart';
+import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:get/get_navigation/src/routes/transitions_type.dart';
+
+class AllPages {
+  static List<GetPage> getPages() {
+    return [
+      GetPage(
+        name: Routes.splashScreen,
+        page: () => SplashPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.loginScreen,
+        page: () => LoginPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.forgotPasswordScreen,
+        page: () => ForgotPasswordPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.updatePasswordScreen,
+        page: () => UpdatePasswordPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.workOrderScreen,
+        page: () => WorkOrdersPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+
+      GetPage(
+        name: Routes.homeDashboardScreen,
+        page: () => HomeDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.bottomNavigationAssetsScreen,
+        page: () => NavigationBottomAssets(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.workOrderInfoScreen,
+        page: () => WorkOrderInfoPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.operatorInfoScreen,
+        page: () => OperatorInfoPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.mcHistoryScreen,
+        page: () => McHistoryPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.workOrderTabShellScreen,
+        page: () => WorkOrderTabsShell(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.workOrderDetailScreen,
+        page: () => WorkOrderDetailsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.updateWorkOrderTabScreen,
+        page: () => WorkOrderTabsDetails(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.reOpenWorkOrderScreen,
+        page: () => ReopenWorkOrderPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.closureWorkOrderScreen,
+        page: () => ClosureWorkOrderPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.assetsManagementDashboardScreen,
+        page: () => AssetsManagementDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsDetailsScreen,
+        page: () => AssetsDetailPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsSpecificationScreen,
+        page: () => AssetsSpecificationPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsDashboardScreen,
+        page: () => AssetsDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsPMSchedular,
+        page: () => PMSchedulePage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.pMCheckListScreen,
+        page: () => PMChecklistPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.assetsHistoryScreen,
+        page: () => AssetsHistoryPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.profileScreen,
+        page: () => ProfilePage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.supportScreen,
+        page: () => SupportPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.suggestionScreen,
+        page: () => SuggestionsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.newSuggestionScreen,
+        page: () => NewSuggestionPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.suggestionDetailsScreen,
+        page: () => SuggestionDetailPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.alertScreen,
+        page: () => AlertsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.editWorkOrderTabShellScreen,
+        page: () => EditWorkOrderTabsShell(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+
+      GetPage(
+        name: Routes.editWorkOrderInfoScreen,
+        page: () => EditWorkOrderInfoPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.editOperatorInfoScreen,
+        page: () => EditOperatorInfoPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.mcHistoryScreen,
+        page: () => McHistoryPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.editWorkOrderDetailScreen,
+        page: () => EditWorkOrderDetailsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.cancelWorkOrderScreen,
+        page: () => CancelWorkOrderPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+    ];
+  }
+}
