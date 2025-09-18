@@ -15,6 +15,7 @@ import 'package:easy_ops/features/dashboard_profile_staff_suggestion/profile/ui/
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/ui/suggestion_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/support/ui/support_page.dart';
+import 'package:easy_ops/features/dashboard_screens/landing_dashboard/ui/landing_dashboard_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
@@ -242,6 +243,12 @@ class AllPages {
       GetPage(
         name: Routes.cancelWorkOrderScreen,
         page: () => CancelWorkOrderPage(),
+        binding: ScreenBindings(),
+        transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.landingDashboardScreen,
+        page: () => LandingDashboardTabShell(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),

@@ -13,6 +13,7 @@ import 'package:easy_ops/features/dashboard_profile_staff_suggestion/profile/con
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/controller/suggestion_controller.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestions_details/controller/suggestions_details_controller.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/support/controller/support_controller.dart';
+import 'package:easy_ops/features/dashboard_screens/landing_dashboard/controller/landing_dashboard_nav_controller.dart';
 import 'package:easy_ops/features/work_order_management/common_models/work_draft_model.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/mc_history/controller/mc_history_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
@@ -71,6 +72,13 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => SuggestionDetailController());
     Get.lazyPut(() => AlertsController());
     Get.lazyPut(() => CancelWorkOrderController());
+    // e.g. in main() or a Binding of the root shell
+    // Get.put(LandingRootNavController(), permanent: true);
+    Get.lazyPut<LandingRootNavController>(
+      () => LandingRootNavController(),
+      fenix: true,
+    );
+    // Get.lazyPut(() => LandingRootNavController());
 
     //  Get.lazyPut(() => AlertsController());
     //   Get.lazyPut(() => AlertsController());

@@ -3,6 +3,7 @@ import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashbo
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HomeDashboardPage extends GetView<HomeDashboardController> {
@@ -18,6 +19,7 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
         children: [
           // ======= HEADER =======
           _Header(
+            // height is optional; phones will render a compact size regardless.
             height: 150,
             onBellTap: () {
               Get.toNamed(Routes.alertScreen);
@@ -88,7 +90,7 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
                     ),
                     const SizedBox(height: 12),
 
-                    // ==== NEW: Dashboard (chart image) ====
+                    // Dashboard (chart)
                     _DashboardCard(
                       title: 'Dashboard',
                       image: _BreakdownBarChart(
@@ -97,13 +99,12 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
                         avgLine: c.breakdownAvg,
                       ),
                     ),
-
                     const SizedBox(height: 12),
 
-                    // ==== NEW: My Team section ====
+                    // My Team
                     Obx(
                       () => _SectionCard(
-                        title: c.myTeam.value.title, // "My Team"
+                        title: c.myTeam.value.title,
                         stats: c.myTeam.value,
                         onTap: (item) => c.onTileTap(c.myTeam.value, item),
                       ),
@@ -115,72 +116,125 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
           ),
         ],
       ),
-      bottomNavigationBar: const BottomBar(currentIndex: 0),
+      // bottomNavigationBar: const BottomBar(currentIndex: 0),
     );
   }
 }
 
 // ==================== HEADER ====================
+
 class _Header extends StatelessWidget {
-  final double height;
+  // Optional; on phones we keep things compact anyway.
+  final double? height;
   final VoidCallback onBellTap;
   final void Function(String value) onMenuSelect;
+
   const _Header({
-    required this.height,
+    this.height,
     required this.onBellTap,
     required this.onMenuSelect,
   });
 
+  bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
+
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.paddingOf(context).top;
-    return Container(
-      height: height,
-      padding: EdgeInsets.only(top: top + 14, left: 16, right: 16),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF2F6BFF), Color(0xFF5C8CFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    final isTablet = _isTablet(context);
+
+    // Compact, mobile-first sizing
+    final slotW = isTablet ? 48.0 : 40.0; // left/right fixed slots
+    final rowH = isTablet ? 44.0 : 36.0; // title row height
+    final gapV = isTablet ? 10.0 : 6.0; // space below title row
+    final topPad = isTablet ? 16.0 : 10.0;
+    final bottomPad = isTablet ? 12.0 : 8.0;
+
+    // Overall min height (inside SafeArea). Phones stay tight.
+    final minHPhone = 92.0;
+    final minHTab = 120.0;
+    final targetMinHeight = isTablet ? (height ?? minHTab) : minHPhone;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF2F6BFF), Color(0xFF5C8CFF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 16,
+              offset: Offset(0, 8),
+              color: Color(0x33000000),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(0)),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 16,
-            offset: Offset(0, 8),
-            color: Color(0x33000000),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: _ProfileMenu(onSelected: onMenuSelect),
-          ),
-          const Align(
-            alignment: Alignment.center,
-            child: Text(
-              'Dashboard',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.5,
-                fontWeight: FontWeight.w700,
+        child: SafeArea(
+          bottom: false,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: targetMinHeight),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Equal-width slots keep the title perfectly centered.
+                  SizedBox(
+                    height: rowH,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: slotW,
+                          height: rowH,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: _ProfileMenu(onSelected: onMenuSelect),
+                          ),
+                        ),
+                        const Expanded(
+                          child: Center(
+                            child: Text(
+                              'Dashboard',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: slotW,
+                          height: rowH,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              onPressed: onBellTap,
+                              icon: const Icon(
+                                Icons.notifications_none_rounded,
+                                color: Colors.white,
+                              ),
+                              tooltip: 'Notifications',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 36,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: gapV),
+                ],
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              onPressed: onBellTap,
-              icon: const Icon(
-                Icons.notifications_none_rounded,
-                color: Colors.white,
-              ),
-              tooltip: 'Notifications',
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -204,10 +258,10 @@ class _ProfileMenu extends StatelessWidget {
         const PopupMenuDivider(),
         _menuItem('signout', Icons.logout, 'Sign Out', danger: true),
       ],
-      child: CircleAvatar(
+      child: const CircleAvatar(
         radius: 18,
-        backgroundColor: const Color(0xFFEAF2FF),
-        child: const Icon(Icons.person, color: Color(0xFF2F6BFF), size: 20),
+        backgroundColor: Color(0xFFEAF2FF),
+        child: Icon(Icons.person, color: Color(0xFF2F6BFF), size: 20),
       ),
     );
   }
@@ -238,6 +292,7 @@ class _ProfileMenu extends StatelessWidget {
 }
 
 // ==================== SECTION + TILES ====================
+
 class _SectionCard extends StatelessWidget {
   final String? title;
   final SectionStats stats;
@@ -272,7 +327,7 @@ class _SectionCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                const gap = 10.0; // breathing room between tiles
+                const gap = 10.0; // spacing between tiles
                 final w = (constraints.maxWidth - (gap * 3)) / 4; // 4 per row
                 return Wrap(
                   spacing: gap,
@@ -404,10 +459,11 @@ class _StatTile extends StatelessWidget {
   }
 }
 
-// ==================== DASHBOARD CHART CARD (NEW) ====================
+// ==================== DASHBOARD CHART CARD ====================
+
 class _DashboardCard extends StatelessWidget {
   final String title;
-  final Widget image; // pass any chart widget or image
+  final Widget image;
 
   const _DashboardCard({required this.title, required this.image});
 
@@ -460,7 +516,7 @@ class _BreakdownBarChart extends StatelessWidget {
 
     return Stack(
       children: [
-        // leave space on top for the in-chart title
+        // Space for in-chart title
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 28, 16, 12),
           child: BarChart(
@@ -510,8 +566,8 @@ class _BreakdownBarChart extends StatelessWidget {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 36, // make room for all labels
-                    interval: 1, // <-- show every month
+                    reservedSize: 36,
+                    interval: 1,
                     getTitlesWidget: (value, meta) {
                       final i = value.toInt();
                       if (i < 0 || i >= months.length) {
@@ -521,7 +577,7 @@ class _BreakdownBarChart extends StatelessWidget {
                         axisSide: meta.axisSide,
                         space: 6,
                         child: Transform.rotate(
-                          angle: -0.7, // ~ -40°, fits all months neatly
+                          angle: -0.7, // ~ -40°
                           child: Text(
                             months[i],
                             style: const TextStyle(
@@ -542,7 +598,7 @@ class _BreakdownBarChart extends StatelessWidget {
                   barRods: [
                     BarChartRodData(
                       toY: i < values.length ? values[i] : 0,
-                      width: 12, // a bit slimmer so 12 bars + labels fit
+                      width: 12,
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(6),
                       ),
@@ -571,7 +627,7 @@ class _BreakdownBarChart extends StatelessWidget {
           ),
         ),
 
-        // In-chart title like the screenshot
+        // In-chart title
         const Positioned(
           top: 6,
           left: 0,

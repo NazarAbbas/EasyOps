@@ -36,4 +36,5 @@ class Routes {
   static String editmcHistoryScreen = '/EDIT_MC_HISTORY_SCREEN';
   static String editWorkOrderDetailScreen = '/EDIT_WORK_ORDER_DETAIL_SCREEN';
   static String cancelWorkOrderScreen = '/CANCEL_WORK_ORDER_SCREEN';
+  static String landingDashboardScreen = '/LANDING_DASHBOARD_SCREEN';
 }

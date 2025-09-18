@@ -6,6 +6,7 @@ import 'package:easy_ops/features/work_order_management/work_order_management_da
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -160,7 +161,7 @@ class WorkOrdersPage extends GetView<WorkOrdersController> {
           ),
         ],
       ),
-      bottomNavigationBar: const BottomBar(currentIndex: 2),
+      // bottomNavigationBar: const BottomBar(currentIndex: 2),
     );
   }
 }
@@ -172,85 +173,142 @@ class _GradientHeader extends GetView<WorkOrdersController>
   const _GradientHeader();
 
   @override
-  WorkOrdersController get controller => Get.find<WorkOrdersController>();
-
-  @override
   Size get preferredSize => const Size.fromHeight(120);
+
+  bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
+    final isTablet = _isTablet(context);
     final primary =
         Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primary, primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(16, top + 8, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Center(
-            child: Text(
-              'Breakdown Management',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18.5,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
-              ),
-            ),
+
+    // compact, mobile-first spacing
+    final slotW = isTablet ? 48.0 : 40.0; // fixed left/right slots
+    final rowH = isTablet ? 44.0 : 36.0;
+    final topPad = isTablet ? 12.0 : 8.0;
+    final bottomPad = isTablet ? 12.0 : 10.0;
+    final gapV = isTablet ? 10.0 : 8.0;
+
+    final canPop = Navigator.of(context).canPop();
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light, // white icons on blue
+      child: Container(
+        // Paint BLUE behind the status bar too
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [primary, primary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _SearchField(
-                  onChanged: controller.setQuery, // <- uses controller
-                ),
-              ),
-              const SizedBox(width: 12),
-              _IconSquare(
-                onTap: () {
-                  Get.dialog(
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 24,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 420),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Material(
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Equal-width left/right keeps title perfectly centered
+                SizedBox(
+                  height: rowH,
+                  child: Row(
+                    children: [
+                      // SizedBox(
+                      //   width: slotW,
+                      //   height: rowH,
+                      //   child: canPop
+                      //       ? Material(
+                      //           color: Colors.white.withOpacity(0.15),
+                      //           shape: const CircleBorder(),
+                      //           clipBehavior: Clip.antiAlias,
+                      //           child: InkWell(
+                      //             onTap: Get.back,
+                      //             child: const Center(
+                      //               child: Icon(
+                      //                 CupertinoIcons.chevron_back,
+                      //                 color: Colors.white,
+                      //                 size: 20,
+                      //               ),
+                      //             ),
+                      //           ),
+                      //         )
+                      //       : const SizedBox.shrink(),
+                      // ),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Breakdown Management',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
                               color: Colors.white,
-                              elevation: 8,
-                              clipBehavior: Clip.antiAlias,
-                              child: const _CalendarCard(),
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
                             ),
                           ),
                         ),
                       ),
+                      // right placeholder mirrors left slot width
+                      SizedBox(width: slotW, height: rowH),
+                    ],
+                  ),
+                ),
+                SizedBox(height: gapV),
+
+                // Search + calendar
+                Row(
+                  children: [
+                    Expanded(
+                      child: _SearchField(onChanged: controller.setQuery),
                     ),
-                    barrierDismissible: true,
-                    barrierColor: Colors.black.withOpacity(0.35),
-                    useSafeArea: true,
-                  );
-                },
-                // ignore: deprecated_member_use
-                bg: Colors.white.withOpacity(0.18),
-                outline: const Color(0x66FFFFFF),
-                child: const Icon(CupertinoIcons.calendar, color: Colors.white),
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    _IconSquare(
+                      onTap: () {
+                        Get.dialog(
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 24,
+                              ),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 420,
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Material(
+                                    color: Colors.white,
+                                    elevation: 8,
+                                    clipBehavior: Clip.antiAlias,
+                                    child: const _CalendarCard(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          barrierDismissible: true,
+                          barrierColor: Colors.black.withOpacity(0.35),
+                          useSafeArea: true,
+                        );
+                      },
+                      bg: Colors.white.withOpacity(0.18),
+                      outline: const Color(0x66FFFFFF),
+                      child: const Icon(
+                        CupertinoIcons.calendar,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

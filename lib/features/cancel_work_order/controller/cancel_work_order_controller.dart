@@ -68,7 +68,11 @@ class CancelWorkOrderController extends GetxController {
     isSubmitting.value = true;
     try {
       await Future.delayed(const Duration(milliseconds: 900));
-      Get.toNamed(Routes.workOrderScreen);
+      //Get.toNamed(Routes.workOrderScreen);
+      Get.offAllNamed(
+        Routes.landingDashboardScreen,
+        arguments: {'tab': 3}, // open Work Orders
+      );
       Get.snackbar(
         'Cancelled',
         'Work order cancelled successfully.',

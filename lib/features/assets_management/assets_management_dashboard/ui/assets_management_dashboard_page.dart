@@ -5,6 +5,7 @@ import 'package:easy_ops/features/assets_management/assets_management_dashboard/
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 /* ─── Colors ─── */
@@ -48,10 +49,10 @@ class AssetsManagementDashboardPage
   @override
   Widget build(BuildContext context) {
     final isTablet = _isTablet(context);
-    final double headerH = isTablet ? 140 : 118;
+    final double headerH = isTablet ? 132 : 108; // mobile-friendly height
 
     return Scaffold(
-      resizeToAvoidBottomInset: false, // prevent bottom overflow on keyboard
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(headerH),
@@ -64,18 +65,18 @@ class AssetsManagementDashboardPage
           Expanded(child: _GroupsList()),
         ],
       ),
-      bottomNavigationBar: const BottomBar(currentIndex: 1),
+      // bottomNavigationBar: const BottomBar(currentIndex: 1),
     );
   }
 }
 
-/* ─── Header ─── */
+/* ─── Header (centered title, rounded back, full blue under status bar) ─── */
 class _GradientHeader extends GetView<AssetsManagementDashboardController>
     implements PreferredSizeWidget {
   const _GradientHeader({super.key});
 
   @override
-  Size get preferredSize => const Size.fromHeight(118);
+  Size get preferredSize => const Size.fromHeight(108);
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -86,50 +87,101 @@ class _GradientHeader extends GetView<AssetsManagementDashboardController>
         Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
-    return SafeArea(
-      bottom: false,
+    // compact spacing (matches earlier header pattern)
+    final slotW = isTablet ? 48.0 : 40.0; // fixed left/right slots
+    final rowH = isTablet ? 44.0 : 36.0;
+    final topPad = isTablet ? 12.0 : 8.0;
+    final bottomPad = isTablet ? 12.0 : 8.0;
+    final gapV = isTablet ? 10.0 : 8.0;
+
+    final canPop = Navigator.of(context).canPop();
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [primary, primary.withOpacity(0.94)],
+            colors: [primary, primary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
-        padding: EdgeInsets.fromLTRB(14, 8, 14, 10 + (isTablet ? 2 : 0)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Center(
-              child: Text(
-                'Assets Management',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.1,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(14, topPad, 14, bottomPad),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Expanded(child: _SearchField()),
-                const SizedBox(width: 10),
-                _IconSquare(
-                  onTap: () {},
-                  bg: Colors.white.withOpacity(0.18),
-                  outline: const Color(0x66FFFFFF),
-                  child: const Icon(
-                    CupertinoIcons.calendar,
-                    color: Colors.white,
-                    size: 18,
+                // Title row with equal-width left/right to keep title perfectly centered
+                SizedBox(
+                  height: rowH,
+                  child: Row(
+                    children: [
+                      // SizedBox(
+                      //   width: slotW,
+                      //   height: rowH,
+                      //   child: canPop
+                      //       ? Material(
+                      //           color: Colors.white.withOpacity(0.15),
+                      //           shape: const CircleBorder(),
+                      //           clipBehavior: Clip.antiAlias,
+                      //           child: InkWell(
+                      //             onTap: Get.back,
+                      //             child: const Center(
+                      //               child: Icon(
+                      //                 CupertinoIcons.chevron_back,
+                      //                 color: Colors.white,
+                      //                 size: 20,
+                      //               ),
+                      //             ),
+                      //           ),
+                      //         )
+                      //       : const SizedBox.shrink(),
+                      // ),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Assets Management',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // right slot mirrors left to keep title centered
+                      SizedBox(width: slotW, height: rowH),
+                    ],
                   ),
+                ),
+                SizedBox(height: gapV),
+                // Search + calendar
+                Row(
+                  children: [
+                    const Expanded(child: _SearchField()),
+                    const SizedBox(width: 10),
+                    _IconSquare(
+                      onTap: () {
+                        // TODO: calendar/filter action
+                      },
+                      bg: Colors.white.withOpacity(0.18),
+                      outline: const Color(0x66FFFFFF),
+                      child: const Icon(
+                        CupertinoIcons.calendar,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -163,7 +215,7 @@ class _TabsWithCounts extends GetView<AssetsManagementDashboardController> {
 
     return Container(
       color: primary,
-      padding: EdgeInsets.only(bottom: 6), // room for underline
+      padding: const EdgeInsets.only(bottom: 6),
       child: Obx(() {
         final groups = controller.groups;
         final selected = controller.selectedTab.value;
@@ -263,7 +315,7 @@ class _GroupsList extends GetView<AssetsManagementDashboardController> {
       return RefreshIndicator(
         onRefresh: () async {
           try {
-            await controller.refreshData(); // implement in controller
+            await controller.refreshData();
           } catch (_) {}
         },
         child: ListView.separated(
@@ -317,8 +369,8 @@ class _GroupSection extends StatelessWidget {
   final AreaGroup group;
   final int currentTab;
   final VoidCallback onToggle;
-  final VoidCallback? onRowTap; // header optional
-  final ValueChanged<AssetItem>? onItemTap; // row press
+  final VoidCallback? onRowTap;
+  final ValueChanged<AssetItem>? onItemTap;
 
   const _GroupSection({
     super.key,
@@ -341,7 +393,6 @@ class _GroupSection extends StatelessWidget {
 
       return Column(
         children: [
-          // Header (expand/collapse)
           Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(14),
@@ -404,8 +455,6 @@ class _GroupSection extends StatelessWidget {
               ),
             ),
           ),
-
-          // Items
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: Padding(
@@ -481,7 +530,6 @@ class _AssetCard extends StatelessWidget {
         onTap: onTap,
         child: Stack(
           children: [
-            // Card
             Container(
               decoration: BoxDecoration(
                 color: _C.surface,
@@ -501,12 +549,10 @@ class _AssetCard extends StatelessWidget {
                 children: [
                   _Avatar(color: item.pillColor, text: item.name),
                   const SizedBox(width: 10),
-                  // Title/desc/state column
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Top line: LEFT = title (ellipsized) | RIGHT = pill (fixed to right)
                         Row(
                           children: [
                             Expanded(
@@ -527,7 +573,6 @@ class _AssetCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        // Description
                         Text(
                           item.description,
                           maxLines: 2,
@@ -539,7 +584,6 @@ class _AssetCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Footer
                         Row(
                           children: [
                             const Spacer(),
@@ -565,8 +609,6 @@ class _AssetCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Accent stripe
             Positioned.fill(
               left: 0,
               child: Align(
@@ -636,7 +678,6 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Max width keeps layout stable and prevents pushing title
     return Container(
       constraints: const BoxConstraints(maxWidth: 120),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

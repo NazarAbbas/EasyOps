@@ -198,7 +198,11 @@ class EditWorkOrderDetailsController extends GetxController {
   }
 
   void create() {
-    Get.offAllNamed(Routes.workOrderScreen);
+    // Get.offAllNamed(Routes.workOrderScreen);
+    Get.offAllNamed(
+      Routes.landingDashboardScreen,
+      arguments: {'tab': 3}, // open Work Orders
+    );
 
     Get.snackbar(
       'Create',

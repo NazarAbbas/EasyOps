@@ -1,19 +1,18 @@
-// closure_controller.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/dashboard_screens/landing_dashboard/controller/landing_dashboard_nav_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:signature/signature.dart';
 
 class ClosureWorkOrderController extends GetxController {
-  // Header basics (mock values)
   final pageTitle = 'Closure'.obs;
 
   final issueTitle = 'Tool misalignment and spindle speed issues in Bay 3.'.obs;
-  final priority = 'High'.obs; // red pill
-  final statusText = 'In Progress'.obs; // right link-like text
+  final priority = 'High'.obs;
+  final statusText = 'In Progress'.obs;
   final duration = '1h 20m'.obs;
 
   final workOrderId = 'BD-102'.obs;
@@ -21,7 +20,6 @@ class ClosureWorkOrderController extends GetxController {
   final date = '09 Aug'.obs;
   final category = 'Mechanical'.obs;
 
-  // Closure form
   final resolutionTypes = const [
     'Belt Problem',
     'Electrical Fix',
@@ -31,12 +29,10 @@ class ClosureWorkOrderController extends GetxController {
   final selectedResolution = 'Belt Problem'.obs;
   final noteCtrl = TextEditingController();
 
-  // Signature
   late final SignatureController signatureCtrl;
   final hasSignature = false.obs;
-  final savedSignaturePath = ''.obs; // optional: where we saved PNG
+  final savedSignaturePath = ''.obs;
 
-  // Spares (dummy)
   final sparesExpanded = false.obs;
   final spares = <_Spare>[
     const _Spare('Belt Type A', 2, 200),
@@ -47,7 +43,6 @@ class ClosureWorkOrderController extends GetxController {
   int get totalQty => spares.fold(0, (a, b) => a + b.qty);
   int get totalCost => spares.fold(0, (a, b) => a + (b.qty * b.unitPrice));
 
-  // Progress
   final isSubmitting = false.obs;
 
   @override
@@ -58,7 +53,6 @@ class ClosureWorkOrderController extends GetxController {
       penStrokeWidth: 3,
       exportBackgroundColor: Colors.transparent,
       onDrawEnd: () => hasSignature.value = true,
-      onDrawStart: () {}, // optional
     );
   }
 
@@ -77,17 +71,9 @@ class ClosureWorkOrderController extends GetxController {
   void toggleSpares() => sparesExpanded.toggle();
 
   Future<void> reopenWorkOrder() async {
-    // Navigate to your Re-open screen route
-    Get.toNamed(
-      Routes.reOpenWorkOrderScreen,
-    ); // replace with Routes.reOpenWorkOrderScreen
+    Get.toNamed(Routes.reOpenWorkOrderScreen);
   }
 
-  /// Simulates an API call:
-  /// - ensures signature exists
-  /// - exports signature to PNG and saves locally
-  /// - shows a blocking progress dialog
-  /// - completes with success + snackbar
   Future<void> closeWorkOrder() async {
     if (!hasSignature.value || signatureCtrl.isEmpty) {
       Get.snackbar(
@@ -98,9 +84,7 @@ class ClosureWorkOrderController extends GetxController {
       return;
     }
 
-    // Export signature to PNG
     final bytes = await signatureCtrl.toPngBytes();
-
     if (bytes == null || bytes.isEmpty) {
       Get.snackbar(
         'Error',
@@ -110,28 +94,26 @@ class ClosureWorkOrderController extends GetxController {
       return;
     }
 
-    // Save PNG to app documents (optional, to show persistence)
     final path = await _saveBytes(bytes);
     savedSignaturePath.value = path ?? '';
 
-    // Dummy API call with blocking progress
     isSubmitting.value = true;
-
-    await Future.delayed(const Duration(seconds: 2)); // pretend network call
-
+    await Future.delayed(const Duration(seconds: 2));
     isSubmitting.value = false;
-    // if (Get.isDialogOpen ?? false) Get.back(); // close loader
 
-    Get.snackbar(
-      'Closed',
-      'Work order closed successfully.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green.shade100,
-      colorText: const Color(0xFF111827),
+    // If the controller already exists (you’re still in the app shell),
+    // set the tab immediately so PageView updates.
+    // if (Get.isRegistered<LandingRootNavController>()) {
+    //   Get.find<LandingRootNavController>().select(3, animate: false);
+    // }
+
+    // // Also pass the target tab as a route argument so it works even if the shell is rebuilt.
+    // Get.offAllNamed(Routes.landingDashboardScreen, arguments: 3);
+
+    Get.offAllNamed(
+      Routes.landingDashboardScreen,
+      arguments: {'tab': 3}, // open Work Orders
     );
-
-    // Navigate where you need (listing, details, etc.)
-    Get.offAllNamed(Routes.workOrderScreen);
   }
 
   Future<String?> _saveBytes(Uint8List data) async {
