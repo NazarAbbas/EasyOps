@@ -10,12 +10,14 @@ import 'package:easy_ops/features/assets_management/pm_schedular/ui/pm_schedular
 import 'package:easy_ops/features/cancel_work_order/ui/cancel_work_order_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/alerts/ui/alerts_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/my_dashboard/ui/my_dashboard_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/profile/ui/profile_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/ui/suggestion_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/support/ui/support_page.dart';
 import 'package:easy_ops/features/dashboard_screens/landing_dashboard/ui/landing_dashboard_page.dart';
+import 'package:easy_ops/features/staff/ui/staff_tabs_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_detail/ui/work_order_detail_page.dart';
@@ -251,6 +253,18 @@ class AllPages {
         page: () => LandingDashboardTabShell(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
+      ),
+      GetPage(
+        name: Routes.staffScreen,
+        page: () => StaffTabsPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.myDashboardScreen,
+        page: () => MyDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
       ),
     ];
   }

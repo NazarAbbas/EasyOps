@@ -1,9 +1,7 @@
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/controller/home_dashboard_controller.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HomeDashboardPage extends GetView<HomeDashboardController> {
@@ -12,14 +10,12 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
   @override
   Widget build(BuildContext context) {
     final c = controller;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       body: Column(
         children: [
           // ======= HEADER =======
           _Header(
-            // height is optional; phones will render a compact size regardless.
             height: 150,
             onBellTap: () {
               Get.toNamed(Routes.alertScreen);
@@ -90,7 +86,7 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Dashboard (chart)
+                    // ==== NEW: Dashboard (chart image) ====
                     _DashboardCard(
                       title: 'Dashboard',
                       image: _BreakdownBarChart(
@@ -99,12 +95,13 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
                         avgLine: c.breakdownAvg,
                       ),
                     ),
+
                     const SizedBox(height: 12),
 
-                    // My Team
+                    // ==== NEW: My Team section ====
                     Obx(
                       () => _SectionCard(
-                        title: c.myTeam.value.title,
+                        title: c.myTeam.value.title, // "My Team"
                         stats: c.myTeam.value,
                         onTap: (item) => c.onTileTap(c.myTeam.value, item),
                       ),
@@ -116,21 +113,21 @@ class HomeDashboardPage extends GetView<HomeDashboardController> {
           ),
         ],
       ),
-      // bottomNavigationBar: const BottomBar(currentIndex: 0),
+      //bottomNavigationBar: const BottomBar(currentIndex: 0),
     );
   }
 }
 
 // ==================== HEADER ====================
 
+// ==================== HEADER (drop-in replacement) ====================
 class _Header extends StatelessWidget {
-  // Optional; on phones we keep things compact anyway.
-  final double? height;
+  final double height;
   final VoidCallback onBellTap;
   final void Function(String value) onMenuSelect;
 
   const _Header({
-    this.height,
+    required this.height,
     required this.onBellTap,
     required this.onMenuSelect,
   });
@@ -139,101 +136,124 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary =
+        Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.primary;
+
+    final top = MediaQuery.of(context).padding.top;
     final isTablet = _isTablet(context);
 
-    // Compact, mobile-first sizing
-    final slotW = isTablet ? 48.0 : 40.0; // left/right fixed slots
-    final rowH = isTablet ? 44.0 : 36.0; // title row height
-    final gapV = isTablet ? 10.0 : 6.0; // space below title row
-    final topPad = isTablet ? 16.0 : 10.0;
-    final bottomPad = isTablet ? 12.0 : 8.0;
+    // Compact, consistent sizing
+    const double hPad = 16;
+    const double vPadTop = 8;
+    const double vPadBottom = 12;
+    final double btnSize = isTablet ? 40 : 36;
+    const double gap = 10;
 
-    // Overall min height (inside SafeArea). Phones stay tight.
-    final minHPhone = 92.0;
-    final minHTab = 120.0;
-    final targetMinHeight = isTablet ? (height ?? minHTab) : minHPhone;
+    // final canPop = Navigator.of(context).canPop();
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2F6BFF), Color(0xFF5C8CFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 16,
-              offset: Offset(0, 8),
-              color: Color(0x33000000),
-            ),
-          ],
+    return Container(
+      height: height,
+      padding: const EdgeInsets.fromLTRB(
+        hPad,
+        vPadTop,
+        hPad,
+        vPadBottom,
+      ).copyWith(top: top + vPadTop),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primary, primary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: SafeArea(
-          bottom: false,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: targetMinHeight),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16, topPad, 16, bottomPad),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Equal-width slots keep the title perfectly centered.
-                  SizedBox(
-                    height: rowH,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: slotW,
-                          height: rowH,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: _ProfileMenu(onSelected: onMenuSelect),
-                          ),
-                        ),
-                        const Expanded(
-                          child: Center(
-                            child: Text(
-                              'Dashboard',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: slotW,
-                          height: rowH,
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                              onPressed: onBellTap,
-                              icon: const Icon(
-                                Icons.notifications_none_rounded,
-                                color: Colors.white,
-                              ),
-                              tooltip: 'Notifications',
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 40,
-                                minHeight: 36,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: gapV),
-                ],
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(0)),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 16,
+            offset: Offset(0, 8),
+            color: Color(0x33000000),
+          ),
+        ],
+      ),
+      // Stack prevents horizontal overflow while keeping the title centered.
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // LEFT: (optional back) + profile menu
+          Align(
+            alignment: Alignment.centerLeft,
+
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [_ProfileMenu(onSelected: onMenuSelect)],
+            ),
+          ),
+
+          // CENTER: Title (ellipsized)
+          const Center(
+            child: Text(
+              'Maintenance Engineer',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.5,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
+
+          // RIGHT: Notification bell
+          Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: btnSize,
+              height: btnSize,
+              child: IconButton(
+                onPressed: onBellTap,
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints.tightFor(
+                  width: btnSize,
+                  height: btnSize,
+                ),
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.white,
+                ),
+                tooltip: 'Notifications',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Reusable circular icon button with ripple
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final double size;
+
+  const _CircleButton({
+    required this.icon,
+    required this.onTap,
+    this.size = 36,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.15),
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
       ),
     );
@@ -258,10 +278,10 @@ class _ProfileMenu extends StatelessWidget {
         const PopupMenuDivider(),
         _menuItem('signout', Icons.logout, 'Sign Out', danger: true),
       ],
-      child: const CircleAvatar(
+      child: CircleAvatar(
         radius: 18,
-        backgroundColor: Color(0xFFEAF2FF),
-        child: Icon(Icons.person, color: Color(0xFF2F6BFF), size: 20),
+        backgroundColor: const Color(0xFFEAF2FF),
+        child: const Icon(Icons.person, color: Color(0xFF2F6BFF), size: 20),
       ),
     );
   }
@@ -292,8 +312,7 @@ class _ProfileMenu extends StatelessWidget {
 }
 
 // ==================== SECTION + TILES ====================
-
-class _SectionCard extends StatelessWidget {
+class _SectionCard extends GetView<HomeDashboardController> {
   final String? title;
   final SectionStats stats;
   final void Function(StatItem item) onTap;
@@ -322,12 +341,20 @@ class _SectionCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          if (title != null && title!.isNotEmpty) _SectionHeader(title: title!),
+          if (title != null && title!.isNotEmpty)
+            _SectionHeader(
+              title: title!,
+              onTap: () {
+                controller.onSummeryHeaderTap(title!);
+                // your navigation or action here
+              },
+            ),
+          // _SectionHeader(title: title!),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                const gap = 10.0; // spacing between tiles
+                const gap = 10.0; // breathing room between tiles
                 final w = (constraints.maxWidth - (gap * 3)) / 4; // 4 per row
                 return Wrap(
                   spacing: gap,
@@ -350,34 +377,51 @@ class _SectionCard extends StatelessWidget {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  const _SectionHeader({required this.title});
+  final VoidCallback? onTap; // <-- pass from caller
+  final bool showChevron;
+
+  const _SectionHeader({
+    required this.title,
+    this.onTap,
+    this.showChevron = true,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE9EEF5))),
-      ),
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14.5,
-              color: Color(0xFF2D2F39),
-            ),
+    // Material + InkWell for ripple on both iOS/Android
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Color(0xFFE9EEF5))),
           ),
-          const Spacer(),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: Color(0xFF7C8698),
-            size: 22,
+          child: Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14.5,
+                  color: Color(0xFF2D2F39),
+                ),
+              ),
+              const Spacer(),
+              if (showChevron)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: onTap == null
+                      ? const Color(0xFFBFC6D2)
+                      : const Color(0xFF7C8698),
+                  size: 22,
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -459,11 +503,10 @@ class _StatTile extends StatelessWidget {
   }
 }
 
-// ==================== DASHBOARD CHART CARD ====================
-
-class _DashboardCard extends StatelessWidget {
+// ==================== DASHBOARD CHART CARD (NEW) ====================
+class _DashboardCard extends GetView<HomeDashboardController> {
   final String title;
-  final Widget image;
+  final Widget image; // pass any chart widget or image
 
   const _DashboardCard({required this.title, required this.image});
 
@@ -485,7 +528,14 @@ class _DashboardCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _SectionHeader(title: title),
+          _SectionHeader(
+            title: title!,
+            onTap: () {
+              controller.onSummeryHeaderTap(title);
+              // your navigation or action here
+            },
+          ),
+          //_SectionHeader(title: title),
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(14),
@@ -516,7 +566,7 @@ class _BreakdownBarChart extends StatelessWidget {
 
     return Stack(
       children: [
-        // Space for in-chart title
+        // leave space on top for the in-chart title
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 28, 16, 12),
           child: BarChart(
@@ -566,8 +616,8 @@ class _BreakdownBarChart extends StatelessWidget {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 36,
-                    interval: 1,
+                    reservedSize: 36, // make room for all labels
+                    interval: 1, // <-- show every month
                     getTitlesWidget: (value, meta) {
                       final i = value.toInt();
                       if (i < 0 || i >= months.length) {
@@ -577,7 +627,7 @@ class _BreakdownBarChart extends StatelessWidget {
                         axisSide: meta.axisSide,
                         space: 6,
                         child: Transform.rotate(
-                          angle: -0.7, // ~ -40°
+                          angle: -0.7, // ~ -40°, fits all months neatly
                           child: Text(
                             months[i],
                             style: const TextStyle(
@@ -598,7 +648,7 @@ class _BreakdownBarChart extends StatelessWidget {
                   barRods: [
                     BarChartRodData(
                       toY: i < values.length ? values[i] : 0,
-                      width: 12,
+                      width: 12, // a bit slimmer so 12 bars + labels fit
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(6),
                       ),
@@ -627,7 +677,7 @@ class _BreakdownBarChart extends StatelessWidget {
           ),
         ),
 
-        // In-chart title
+        // In-chart title like the screenshot
         const Positioned(
           top: 6,
           left: 0,

@@ -1,4 +1,5 @@
 // ==================== CONTROLLER (update) ====================
+import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:get/get.dart';
 
 enum StatTone { neutral, critical, warning, success, info }
@@ -95,6 +96,38 @@ class HomeDashboardController extends GetxController {
     if (item.isAction) {
       // Get.toNamed(Routes.createWorkOrder);
       return;
+    }
+    // Get.toNamed(Routes.workOrders, arguments: {'section': section.title, 'filter': item.label});
+  }
+
+  void onSummeryHeaderTap(String title) {
+    if (title == 'Work Orders') {
+    } else if (title == 'Preventive') {
+      //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
+      //Get.toNamed(Routes.preventiveDashboardScreen);
+    } else if (title == 'My Team') {
+      //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
+      Get.toNamed(Routes.staffScreen);
+    } else if (title == 'Dashboard') {
+      //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
+      Get.toNamed(Routes.myDashboardScreen);
+    } else if (title == 'Dashboard') {
+      //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
+      Get.toNamed(Routes.myDashboardScreen);
+    } else if (title == 'Breakdown') {
+      //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
+      //Get.toNamed(Routes.myDashboardScreen);
+      Get.offAllNamed(
+        Routes.landingDashboardScreen,
+        arguments: {'tab': 3}, // open Work Orders
+      );
+    } else if (title == 'Assets') {
+      //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
+      //Get.toNamed(Routes.myDashboardScreen);
+      Get.offAllNamed(
+        Routes.landingDashboardScreen,
+        arguments: {'tab': 2}, // open Work Orders
+      );
     }
     // Get.toNamed(Routes.workOrders, arguments: {'section': section.title, 'filter': item.label});
   }
