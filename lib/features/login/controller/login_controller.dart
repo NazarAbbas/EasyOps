@@ -31,6 +31,8 @@ class LoginPageController extends GetxController {
   }
 
   Future<void> login() async {
+    Get.toNamed(Routes.landingDashboardScreen);
+    return;
 // somewhere in an async function
     final db = await AppDatabase.open();
 // insert returns the generated row id (if your @primaryKey has autoGenerate: true)

@@ -8,12 +8,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:get/get.dart';
 
-class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
+class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
   const WorkOrderDetailsPage({super.key});
 
   @override
-  EditWorkOrderDetailsController get controller =>
-      Get.put(EditWorkOrderDetailsController());
+  WorkOrderDetailsController get controller =>
+      Get.put(WorkOrderDetailsController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

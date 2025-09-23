@@ -12,7 +12,7 @@ class WorkOrderBag extends GetxService {
   /// Read ALL values and clear the bag in a single call.
   Map<String, dynamic> takeAll() {
     final snap = snapshot();
-    clear();
+    // clear();
     return snap;
   }
 }

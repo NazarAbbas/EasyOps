@@ -1,12 +1,10 @@
-// work_order_details_controller.dart
-// ignore: file_names
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class EditWorkOrderDetailsController extends GetxController {
+class WorkOrderDetailsController extends GetxController {
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
   late final WorkOrderDetailVM vm;
 
@@ -53,8 +51,8 @@ class EditWorkOrderDetailsController extends GetxController {
     super.onInit();
 
     // Optionally merge args -> bag
-    final args = Get.arguments;
-    if (args is Map<String, dynamic>) _bag.merge(args);
+    // final args = Get.arguments;
+    // if (args is Map<String, dynamic>) _bag.merge(args);
 
     // Build VM from bag
     vm = WorkOrderDetailVM.fromBag(_bag);
@@ -113,6 +111,7 @@ class EditWorkOrderDetailsController extends GetxController {
       Routes.landingDashboardScreen,
       arguments: {'tab': 3},
     );
+    _bag.clear();
 
     Get.snackbar(
       'Create',

@@ -1,32 +1,25 @@
-// lib/features/work_order_management/create_work_order/tabs/controller/operator_info_controller.dart
-import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class OperatorInfoController extends GetxController {
-  // Single source of default truth (replace with server JSON later)
+  // Defaults (can be replaced later with server JSON)
   final OperatorInfoConfig cfg = OperatorInfoConfig.demo;
 
-  // Shared bag across tabs
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
-  // Reactive fields (initialized from cfg, then hydrated from bag)
+  // Text fields
   late final TextEditingController operatorCtrl;
   late final TextEditingController reporterCtrl;
 
+  // Reactive fields
   final sameAsOperator = false.obs;
-  late final RxString employeeId;
-  late final RxString phoneNumber;
-  late final RxString location;
-  late final RxString plant;
-  late final RxString shift;
-  late final RxString reporter;
+  late final RxString employeeId, phoneNumber, location, plant, shift;
   final reportedTime = Rxn<TimeOfDay>();
   final reportedDate = Rxn<DateTime>();
 
-  // Lookups (read via bag with cfg fallback)
+  // Lookups (bag override, else cfg)
   List<String> get locations =>
       _bag.get<List<String>>('locations', cfg.locations);
   List<String> get plantsOpt =>
@@ -38,10 +31,9 @@ class OperatorInfoController extends GetxController {
   String get timeText {
     final t = reportedTime.value;
     if (t == null) return 'hh:mm';
-    final h = t.hourOfPeriod.toString().padLeft(2, '0');
+    final h = (t.hourOfPeriod).toString().padLeft(2, '0');
     final m = t.minute.toString().padLeft(2, '0');
-    final ampm = t.period == DayPeriod.am ? 'AM' : 'PM';
-    return '$h:$m $ampm';
+    return '$h:$m ${t.period == DayPeriod.am ? 'AM' : 'PM'}';
   }
 
   String get dateText {
@@ -54,7 +46,7 @@ class OperatorInfoController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // init from model defaults
+    // init from cfg
     operatorCtrl = TextEditingController(text: cfg.operatorName);
     reporterCtrl = TextEditingController(text: cfg.reporter);
     employeeId = cfg.employeeId.obs;
@@ -66,8 +58,15 @@ class OperatorInfoController extends GetxController {
     reportedTime.value = _decodeTime(cfg.reportedTime);
     reportedDate.value = _decodeDate(cfg.reportedDate);
 
-    // then hydrate from bag (may overwrite the above)
+    // hydrate from bag (overwrites cfg values when present)
     _hydrateFromBag();
+
+    // ensure lookups exist in bag for other tabs
+    _bag.merge({
+      'locations': locations,
+      'plantsOpt': plantsOpt,
+      'shiftsOpt': shiftsOpt
+    });
   }
 
   @override
@@ -77,9 +76,8 @@ class OperatorInfoController extends GetxController {
     super.onClose();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Hydrate from bag (fallback to current values, which came from cfg)
-  // ─────────────────────────────────────────────────────────────────────────
+  /* ───────────────────────── Hydration & Save ───────────────────────── */
+
   void _hydrateFromBag() {
     operatorCtrl.text = _bag.get<String>('operatorName', operatorCtrl.text);
     reporterCtrl.text = _bag.get<String>('reporter', reporterCtrl.text);
@@ -89,7 +87,6 @@ class OperatorInfoController extends GetxController {
     location.value = _bag.get<String>('location', location.value);
     plant.value = _bag.get<String>('plant', plant.value);
     shift.value = _bag.get<String>('shift', shift.value);
-
     sameAsOperator.value =
         _bag.get<bool>('sameAsOperator', sameAsOperator.value);
 
@@ -97,25 +94,15 @@ class OperatorInfoController extends GetxController {
         _bag.get<String?>('reportedTime', _encodeTime(reportedTime.value)));
     reportedDate.value = _decodeDate(
         _bag.get<String?>('reportedDate', _encodeDate(reportedDate.value)));
-
-    // Seed lookups into bag if not present (so UI elsewhere can read them by key)
-    _bag.merge({
-      'locations': locations,
-      'plantsOpt': plantsOpt,
-      'shiftsOpt': shiftsOpt,
-    });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Save ONLY when navigating away
-  // ─────────────────────────────────────────────────────────────────────────
   void saveToBag() {
-    final reporter =
+    final reporterFinal =
         sameAsOperator.value ? operatorCtrl.text : reporterCtrl.text;
 
     _bag.merge({
       'operatorName': operatorCtrl.text,
-      'reporter': reporter,
+      'reporter': reporterFinal,
       'employeeId': employeeId.value,
       'phoneNumber': phoneNumber.value,
       'location': location.value,
@@ -124,26 +111,23 @@ class OperatorInfoController extends GetxController {
       'sameAsOperator': sameAsOperator.value,
       'reportedTime': _encodeTime(reportedTime.value),
       'reportedDate': _encodeDate(reportedDate.value),
-
-      // keep lookups in bag too
+      // keep lookups in bag for any other readers
       'locations': locations,
       'plantsOpt': plantsOpt,
       'shiftsOpt': shiftsOpt,
-      "reporter": reporterCtrl.text
     });
   }
 
-  void beforeNavigate(VoidCallback navigate) {
+  void beforeNavigate(VoidCallback go) {
     saveToBag();
-    navigate();
+    go();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Actions
-  // ─────────────────────────────────────────────────────────────────────────
+  /* ───────────────────────── Actions ───────────────────────── */
+
   void discard() {
-    operatorCtrl.text = '';
-    reporterCtrl.text = '';
+    operatorCtrl.clear();
+    reporterCtrl.clear();
     employeeId.value = '';
     phoneNumber.value = '';
     location.value = '';
@@ -175,9 +159,8 @@ class OperatorInfoController extends GetxController {
   void saveAndBack() =>
       beforeNavigate(() => Get.find<WorkTabsController>().goTo(0));
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Encode/Decode helpers
-  // ─────────────────────────────────────────────────────────────────────────
+  /* ───────────────────────── Encode/Decode ───────────────────────── */
+
   String? _encodeTime(TimeOfDay? t) => t == null
       ? null
       : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -186,8 +169,7 @@ class OperatorInfoController extends GetxController {
     if (s == null || s.isEmpty) return null;
     final parts = s.split(':');
     if (parts.length != 2) return null;
-    final h = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
+    final h = int.tryParse(parts[0]), m = int.tryParse(parts[1]);
     if (h == null || m == null) return null;
     return TimeOfDay(hour: h, minute: m);
   }
