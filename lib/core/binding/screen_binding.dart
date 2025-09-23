@@ -18,6 +18,7 @@ import 'package:easy_ops/features/dashboard_screens/landing_dashboard/controller
 import 'package:easy_ops/features/staff/controller/current_shift_controller.dart';
 import 'package:easy_ops/features/staff/controller/staff_search_controller.dart';
 import 'package:easy_ops/features/work_order_management/common_models/work_draft_model.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/mc_history/controller/mc_history_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
@@ -84,6 +85,14 @@ class ScreenBindings implements Bindings {
       () => LandingRootNavController(),
       fenix: true,
     );
+
+    Get.lazyPut<WorkOrderBag>(
+      () => WorkOrderBag(),
+      fenix: false,
+    );
+
+    //Get.find<WorkOrderBag>().clear();
+
     // Get.lazyPut(() => LandingRootNavController());
 
     //  Get.lazyPut(() => AlertsController());

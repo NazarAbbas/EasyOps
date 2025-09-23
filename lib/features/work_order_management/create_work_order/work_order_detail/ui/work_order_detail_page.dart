@@ -56,13 +56,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // _SuccessBanner(
-                  //   title: controller.successTitle.value,
-                  //   sub: controller.successSub.value,
-                  // ),
-                  // const SizedBox(height: 12),
-
-                  // Reporter
+                  // Reporter (your original content)
                   _KVBlock(
                     rows: [
                       _KV(
@@ -75,8 +69,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                   ),
                   const SizedBox(height: 8),
 
-                  // ── Replace your current "Operator" KVBlock with this:
-                  // Operator (left-aligned)
+                  // Operator (your original content)
                   _OperatorSection(
                     name: controller.operatorName.value,
                     phone: controller.operatorPhoneNumber.value,
@@ -85,7 +78,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
 
                   const _DividerPad(),
 
-                  // Issue summary + priority pill + category
+                  // Issue summary + priority (your original content)
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -105,23 +98,18 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _Pill(
-                            text: controller.priority.value.isEmpty
-                                ? '—'
-                                : controller.priority.value,
-                            color: pillColor,
-                          ),
-                        ],
+                      _Pill(
+                        text: controller.priority.value.isEmpty
+                            ? '—'
+                            : controller.priority.value,
+                        color: pillColor,
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 8),
 
-                  // Time | Date (only render the separator if both present)
+                  // Time | Date | Issue type (your original content)
                   Row(
                     children: [
                       Text(
@@ -163,7 +151,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                         child: Text(
                           controller.cnc_1.value,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -174,7 +162,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                   ),
                   const SizedBox(height: 6),
 
-                  // Line (render only if non-empty)
+                  // Line (your original optional block)
                   if (controller.line.value.isNotEmpty) ...[
                     Row(
                       children: [
@@ -198,7 +186,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                     const SizedBox(height: 6),
                   ],
 
-                  // Location
+                  // Location (your original)
                   if (controller.location.value.isNotEmpty)
                     Text(
                       controller.location.value,
@@ -210,7 +198,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
 
                   const _DividerPad(),
 
-                  // Headline & Description
+                  // Headline & Description (your original)
                   Text(
                     controller.descriptionText.value.isEmpty
                         ? '—'
@@ -230,34 +218,36 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Media row
-                  Row(
+                  // ───────────────── MEDIA (new polished UI ONLY) ─────────────────
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Thumbnails
-                      Expanded(
-                        child: controller.photoPaths.isEmpty
-                            ? const SizedBox()
-                            : Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: controller.photoPaths
-                                    .where((p) => p.isNotEmpty)
-                                    .map((p) => _Thumb(path: p))
-                                    .toList(),
-                              ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Audio on the right (no Flexible)
-                      _AudioTile(path: controller.voiceNotePath.value),
+                      // Photos
+                      if (controller.photoPaths.isEmpty)
+                        const _EmptyHint(text: 'No photos attached')
+                      else
+                        _PhotoGrid(paths: controller.photoPaths),
+
+                      const SizedBox(height: 12),
+
+                      // Audio
+                      if (controller.voiceNotePath.value.isEmpty)
+                        const _EmptyHint(text: 'No audio attached')
+                      else
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 320),
+                          child:
+                              _AudioCard(path: controller.voiceNotePath.value),
+                        ),
                     ],
-                  ),
+                  )
+
+                  // ────────────────────────────────────────────────────────────────
                 ],
               );
             }),
           ),
         ),
-        //  ),
       ),
       bottomNavigationBar: SafeArea(
         top: false,
@@ -268,12 +258,12 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
             width: double.infinity,
             child: Row(
               children: [
-                // Left button (Go Back with border only)
+                // Left button (Go Back)
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _C.primary,
-                      side: BorderSide(color: _C.primary, width: 1.5),
+                      side: const BorderSide(color: _C.primary, width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -288,8 +278,8 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12), // spacing between buttons
-                // Right button (with background)
+                const SizedBox(width: 12),
+                // Right button (Create)
                 Expanded(
                   child: FilledButton(
                     style: FilledButton.styleFrom(
@@ -318,7 +308,7 @@ class WorkOrderDetailsPage extends GetView<EditWorkOrderDetailsController> {
   }
 }
 
-/* ───────────────────────── Helpers ───────────────────────── */
+/* ───────────────────────── Original helpers you already had ───────────────────────── */
 
 Color _priorityColor(String s) {
   switch (s.toLowerCase()) {
@@ -332,8 +322,6 @@ Color _priorityColor(String s) {
       return const Color(0xFF9CA3AF);
   }
 }
-
-/* ───────────────────────── Widgets ───────────────────────── */
 
 class _GradientHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -405,8 +393,9 @@ class _KVBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const labelStyle = TextStyle(color: _C.muted, fontWeight: FontWeight.w800);
-    const valueStyle = TextStyle(color: _C.text, fontWeight: FontWeight.w800);
+    const labelStyle =
+        TextStyle(color: Colors.black, fontWeight: FontWeight.w800);
+    const valueStyle = TextStyle(color: Colors.black);
 
     return Column(
       children: rows
@@ -434,9 +423,9 @@ class _DividerPad extends StatelessWidget {
   const _DividerPad();
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 12),
-    child: Divider(color: _C.line, height: 1),
-  );
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Divider(color: _C.line, height: 1),
+      );
 }
 
 class _Pill extends StatelessWidget {
@@ -463,39 +452,147 @@ class _Pill extends StatelessWidget {
   }
 }
 
+class _OperatorSection extends StatelessWidget {
+  final String name;
+  final String phone;
+  final String info;
+  const _OperatorSection({
+    required this.name,
+    required this.phone,
+    required this.info,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const labelStyle =
+        TextStyle(color: Colors.black, fontWeight: FontWeight.w800);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Operator', style: labelStyle),
+        const SizedBox(height: 6),
+        _LineWithIcon(
+            icon: CupertinoIcons.person, text: name.isEmpty ? '—' : name),
+        const SizedBox(height: 4),
+        _LineWithIcon(
+            icon: CupertinoIcons.phone, text: phone.isEmpty ? '—' : phone),
+        const SizedBox(height: 4),
+        _LineWithIcon(
+            icon: CupertinoIcons.location, text: info.isEmpty ? '—' : info),
+      ],
+    );
+  }
+}
+
+class _LineWithIcon extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _LineWithIcon({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    const valueStyle = TextStyle(color: Colors.black);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 14, color: _C.muted),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: valueStyle,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/* ───────────────────────── Media (polished only) ───────────────────────── */
+
+class _PhotoGrid extends StatelessWidget {
+  final List<String> paths;
+  const _PhotoGrid({required this.paths});
+
+  @override
+  Widget build(BuildContext context) {
+    final valid =
+        paths.where((p) => p.isNotEmpty && File(p).existsSync()).toList();
+    if (valid.isEmpty) return const _EmptyHint(text: 'No photos attached');
+
+    return LayoutBuilder(
+      builder: (ctx, c) {
+        final maxW = c.maxWidth;
+        final cross = maxW > 520 ? 4 : (maxW > 380 ? 3 : 2);
+        return GridView.builder(
+          itemCount: valid.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cross,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 4 / 3,
+          ),
+          itemBuilder: (_, i) => _Thumb(path: valid[i]),
+        );
+      },
+    );
+  }
+}
+
 class _Thumb extends StatelessWidget {
   final String path;
   const _Thumb({required this.path});
   @override
   Widget build(BuildContext context) {
-    final file = File(path);
-    if (!file.existsSync()) {
-      // Skip invalid paths quietly
-      return const SizedBox(width: 0, height: 0);
-    }
-    return Container(
-      width: 88,
-      height: 64,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
+    final f = File(path);
+    if (!f.existsSync()) return const SizedBox();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.file(f, fit: BoxFit.cover),
+          Positioned(
+            right: 8,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Photo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          )
+        ],
       ),
     );
   }
 }
 
-class _AudioTile extends StatefulWidget {
+class _AudioCard extends StatefulWidget {
   final String path;
-  const _AudioTile({required this.path});
+  const _AudioCard({required this.path});
 
   @override
-  State<_AudioTile> createState() => _AudioTileState();
+  State<_AudioCard> createState() => _AudioCardState();
 }
 
-class _AudioTileState extends State<_AudioTile> {
+class _AudioCardState extends State<_AudioCard> {
   late final AudioPlayer _player;
   bool _isPlaying = false;
-
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
 
@@ -503,15 +600,12 @@ class _AudioTileState extends State<_AudioTile> {
   void initState() {
     super.initState();
     _player = AudioPlayer();
-
-    // Keep duration/position in sync with the actual audio
     _player.onDurationChanged.listen((d) {
       if (!mounted) return;
       setState(() => _duration = d);
     });
     _player.onPositionChanged.listen((p) {
       if (!mounted) return;
-      // Clamp to duration to avoid weird overflows from some backends
       if (_duration != Duration.zero && p > _duration) p = _duration;
       setState(() => _position = p);
     });
@@ -522,20 +616,16 @@ class _AudioTileState extends State<_AudioTile> {
         _position = _duration;
       });
     });
-
-    // Preload so total time is known before first play
-    _preloadDuration();
+    _preload();
   }
 
-  Future<void> _preloadDuration() async {
+  Future<void> _preload() async {
     if (widget.path.isEmpty || !File(widget.path).existsSync()) return;
     try {
       await _player.setSource(DeviceFileSource(widget.path));
       final d = await _player.getDuration();
       if (mounted && d != null) setState(() => _duration = d);
-    } catch (_) {
-      // ignore preload errors
-    }
+    } catch (_) {}
   }
 
   @override
@@ -546,12 +636,10 @@ class _AudioTileState extends State<_AudioTile> {
 
   Future<void> _toggle() async {
     if (widget.path.isEmpty || !File(widget.path).existsSync()) return;
-
     if (_isPlaying) {
       await _player.pause();
       setState(() => _isPlaying = false);
     } else {
-      // Resume if paused mid-way, otherwise start from the beginning
       if (_position > Duration.zero && _position < _duration) {
         await _player.resume();
       } else {
@@ -571,126 +659,113 @@ class _AudioTileState extends State<_AudioTile> {
   @override
   Widget build(BuildContext context) {
     if (widget.path.isEmpty || !File(widget.path).existsSync()) {
-      return const SizedBox(); // nothing to play
+      return const _EmptyHint(text: 'No voice note');
     }
 
-    const blue = _C.primary;
     final totalText = _duration == Duration.zero ? '--:--' : _fmt(_duration);
     final pos = (_duration != Duration.zero && _position > _duration)
         ? _duration
         : _position;
     final posText = _fmt(pos);
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 64, minWidth: 88),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFF3FF),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        // Use a Row (not Stack) + Flexible text to avoid overflow
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: _toggle,
-              icon: Icon(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF3FF),
+        border: Border.all(color: const Color(0xFFDCE5FF)),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: _toggle,
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: _C.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
                 _isPlaying
                     ? CupertinoIcons.pause_fill
                     : CupertinoIcons.play_fill,
-                color: blue,
-                size: 28,
+                color: Colors.white,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                '$posText / $totalText',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: blue,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Voice note',
+                    style: TextStyle(
+                      color: _C.text,
+                      fontWeight: FontWeight.w800,
+                    )),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    minHeight: 6,
+                    value: _duration == Duration.zero
+                        ? 0
+                        : pos.inMilliseconds / _duration.inMilliseconds,
+                    backgroundColor: Colors.white,
+                    valueColor: const AlwaysStoppedAnimation(_C.primary),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text('$posText / $totalText',
+                    style: const TextStyle(
+                      color: _C.muted,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
+                    )),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/* ---------- tiny helpers ---------- */
-
-class _OperatorSection extends StatelessWidget {
-  final String name;
-  final String phone;
-  final String info;
-  const _OperatorSection({
-    required this.name,
-    required this.phone,
-    required this.info,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const labelStyle = TextStyle(color: _C.muted, fontWeight: FontWeight.w800);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // ← hard left
-      children: [
-        const Text('Operator', style: labelStyle),
-        const SizedBox(height: 6),
-
-        // Name (full width, left aligned)
-        _LineWithIcon(
-          icon: CupertinoIcons.person,
-          text: name.isEmpty ? '—' : name,
-        ),
-        const SizedBox(height: 4),
-
-        // Phone (full width, left aligned)
-        _LineWithIcon(
-          icon: CupertinoIcons.phone,
-          text: phone.isEmpty ? '—' : phone,
-        ),
-        const SizedBox(height: 4),
-
-        // Info (full width, left aligned)
-        _LineWithIcon(
-          icon: CupertinoIcons.location,
-          text: info.isEmpty ? '—' : info,
-        ),
-      ],
-    );
-  }
-}
-
-class _LineWithIcon extends StatelessWidget {
-  final IconData icon;
+class _EmptyHint extends StatelessWidget {
   final String text;
-  const _LineWithIcon({required this.icon, required this.text});
+  const _EmptyHint({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    const valueStyle = TextStyle(color: _C.text, fontWeight: FontWeight.w800);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 14, color: _C.muted),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: valueStyle,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F6FD),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE3EAFB)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // <- shrink wrap
+        children: [
+          const Icon(CupertinoIcons.info, color: _C.muted, size: 18),
+          const SizedBox(width: 8),
+          Flexible(
+            // <- instead of Expanded
+            fit: FlexFit.loose,
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _C.muted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

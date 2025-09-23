@@ -124,18 +124,11 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
       c.isRecording.value = false;
       if (saved != null) {
         c.setVoiceNote(saved);
-        Get.snackbar(
-          'Voice note',
-          'Recording has been saved successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.primaryBlue,
-          colorText: Colors.white,
-        );
       }
     }
   }
 
-  // NEW: stop button logic (stops & saves if recording)
+  // Stop & save if recording
   Future<void> _stopAndSaveRecording(WorkorderInfoController c) async {
     if (!c.isRecording.value) {
       Get.snackbar(
@@ -266,10 +259,9 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                             onTap: () => pickFromList(
                               context: context,
                               title: 'Select Issue Type',
-                              items: controller.issueTypes,
+                              items: controller.issueTypes, // from cfg
                               onSelected: (v) {
                                 controller.issueType.value = v;
-                                controller.saveDraft();
                               },
                             ),
                           ),
@@ -282,10 +274,9 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                             onTap: () => pickFromList(
                               context: context,
                               title: 'Select Impact',
-                              items: controller.impacts,
+                              items: controller.impacts, // from cfg
                               onSelected: (v) {
                                 controller.impact.value = v;
-                                controller.saveDraft();
                               },
                             ),
                           ),
@@ -296,7 +287,6 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       const _Hr(),
 
                       // Assets Number | Type + clock square
-                      // const double _fieldH = 48;
                       _Row2(
                         left: _Label(
                           'Assets Number',
@@ -305,10 +295,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                             child: TextField(
                               controller: controller.assetsCtrl,
                               onChanged: (txt) {
-                                controller.saveDraft();
-                                controller.applyAssetMetaFor(
-                                  txt,
-                                ); // auto bind type + description
+                                controller.applyAssetMetaFor(txt); // local bind
                               },
                               decoration: _D.field(
                                 hint: 'Search / type number',
@@ -350,11 +337,9 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       const _Hr(),
 
                       // Description (read-only tile)
-                      // Description (read-only tile)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 👇 Flex horizontally at Row level (safe)
                           Expanded(
                             child: _Label(
                               'Description',
@@ -368,7 +353,10 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                           const SizedBox(width: 8),
                           _IconSquare(
                             tooltip: 'Edit',
-                            onTap: () => Get.find<WorkTabsController>().goTo(2),
+                            // IMPORTANT: save-on-navigation
+                            onTap: () => controller.beforeNavigate(() {
+                              Get.find<WorkTabsController>().goTo(2);
+                            }),
                             child: const Icon(
                               CupertinoIcons.clock,
                               color: _C.primary,
@@ -384,7 +372,6 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                         'Problem Description',
                         TextField(
                           controller: controller.problemCtrl,
-                          onChanged: (_) => controller.saveDraft(),
                           minLines: 5,
                           maxLines: 8,
                           decoration: _D.field(hint: 'Write here'),
@@ -601,9 +588,10 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                     const SizedBox(width: 10),
                     _IconSquare(
                       tooltip: 'Edit',
-                      onTap: () {
+                      // IMPORTANT: save-on-navigation
+                      onTap: () => controller.beforeNavigate(() {
                         Get.find<WorkTabsController>().goTo(1);
-                      },
+                      }),
                       child: const Icon(
                         CupertinoIcons.pencil,
                         color: _C.primary,
@@ -820,7 +808,7 @@ class _UploadPhotosBox extends StatelessWidget {
                 Icon(CupertinoIcons.upload_circle, color: _C.primary),
                 SizedBox(width: 8),
                 Text(
-                  maxLines: 3, // tweak as you like
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   'Upload photos',
                   style: TextStyle(
@@ -873,9 +861,9 @@ class _Hr extends StatelessWidget {
   const _Hr();
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 6),
-    child: Divider(color: _C.line, height: 1),
-  );
+        padding: EdgeInsets.symmetric(vertical: 6),
+        child: Divider(color: _C.line, height: 1),
+      );
 }
 
 class _Row2 extends StatelessWidget {

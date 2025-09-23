@@ -2,11 +2,14 @@
 // ignore: file_names
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 
 class EditWorkOrderDetailsController extends GetxController {
+  WorkOrderBag get _bag => Get.find<WorkOrderBag>();
+  late final WorkOrderDetailVM vm;
+
   // Header
   final title = 'Work Order Details'.obs;
 
@@ -19,28 +22,27 @@ class EditWorkOrderDetailsController extends GetxController {
   final successTitle = 'Work Order Created\nSuccessfully'.obs;
   final successSub = 'Work Order ID - BD265'.obs;
 
-  // Reporter / Operator (will be overridden from operator draft if present)
+  // Reporter
   final reportedBy = ''.obs;
 
-  // Summary (from work order info)
-  final descriptionText =
-      ''.obs; // descriptionText (fallback: problemDescription)
+  // Summary
+  final descriptionText = ''.obs; // falls back to problemDescription
   final priority = ''.obs; // impact
   final issueType = ''.obs; // issueType
 
-  // Time / Date (from operator draft)
+  // Time / Date (from operator tab)
   final time = ''.obs; // HH:mm
   final date = ''.obs; // dd MMM
 
-  // Location line under summary (you can join location + plant)
-  final line = ''.obs; // keep for your own line text if needed
+  // Location line
+  final line = ''.obs;
   final location = ''.obs; // "Location | Plant"
 
   // Body
   final headline = ''.obs; // typeText
   final problemDescription = ''.obs; // problemDescription
 
-  // Media (from work order info)
+  // Media
   final photoPaths = <String>[].obs;
   final voiceNotePath = ''.obs;
 
@@ -50,115 +52,78 @@ class EditWorkOrderDetailsController extends GetxController {
   void onInit() {
     super.onInit();
 
-    final box = GetStorage();
+    // Optionally merge args -> bag
+    final args = Get.arguments;
+    if (args is Map<String, dynamic>) _bag.merge(args);
 
-    /* ---------- 1) Load from Work Order Info draft ---------- */
-    final woRaw = box.read('work_order_info_draft_v1');
-    if (woRaw is Map) {
-      final json = Map<String, dynamic>.from(woRaw);
+    // Build VM from bag
+    vm = WorkOrderDetailVM.fromBag(_bag);
 
-      final String issueType = (json['issueType'] ?? '') as String;
-      final String impact = (json['impact'] ?? '') as String;
-      final String assetsNumber = (json['assetsNumber'] ?? '') as String;
-      final String problemDesc = (json['problemDescription'] ?? '') as String;
-      final String typeTextStr = (json['typeText'] ?? '-') as String;
-      final String descTextStr = (json['descriptionText'] ?? '-') as String;
-
-      // media
-      final List<String> photos = (json['photos'] is List)
-          ? (json['photos'] as List).map((e) => e.toString()).toList()
-          : <String>[];
-      final String voicePath = (json['voiceNotePath'] ?? '') as String;
-
-      final String operatorName = (json['operatorName'] ?? '-') as String;
-      final String operatorPhoneNumber =
-          (json['operatorMobileNumber'] ?? '-') as String;
-      final String operatorInfo = (json['operatorInfo'] ?? '-') as String;
-
-      // map to observables
-
-      this.operatorInfo.value = operatorInfo;
-      this.operatorPhoneNumber.value = operatorPhoneNumber;
-      this.operatorName.value = operatorName;
-
-      this.issueType.value = issueType;
-      priority.value = impact;
-      headline.value = typeTextStr;
-      problemDescription.value = problemDesc;
-      descriptionText.value = descTextStr.isNotEmpty ? descTextStr : '-';
-
-      photoPaths.assignAll(photos);
-      voiceNotePath.value = voicePath;
-
-      if (assetsNumber.isNotEmpty) {
-        successSub.value = 'Asset: $assetsNumber';
-      }
-    }
-
-    /* ---------- 2) Load from Operator Info draft ---------- */
-    final opRaw = box.read('operator_info_draft_v1');
-    if (opRaw is Map) {
-      final json = Map<String, dynamic>.from(opRaw);
-
-      final String reporter = (json['reporter'] ?? '') as String;
-      final String operator = (json['operator'] ?? '') as String;
-      final String employeeId = (json['employeeId'] ?? '-') as String;
-      final String phone = (json['phoneNumber'] ?? '-') as String;
-      final String locStr = (json['location'] ?? '') as String;
-      final String plantStr = (json['plant'] ?? '') as String;
-      final TimeOfDay? rt = _decodeTime(json['reportedTime'] as String?);
-      final DateTime? rd = _decodeDate(json['reportedDate'] as String?);
-      final String shiftStr = (json['shift'] ?? '') as String;
-
-      // Reporter / Operator
-      if (reporter.isNotEmpty) {
-        reportedBy.value = reporter;
-      }
-      if (operator.isNotEmpty) {
-        operatorName.value = operator;
-      }
-
-      // No explicit operator name saved in draft; best-effort using reporter + employeeId
-      // final hasEmp = employeeId.trim().isNotEmpty && employeeId.trim() != '-';
-      // operatorName.value = reporter.isNotEmpty
-      //     ? (hasEmp ? '$reporter ($employeeId)' : reporter)
-      //     : (hasEmp ? 'Employee ($employeeId)' : 'Operator');
-
-      // operatorMobileNumber.value = phone;
-
-      // Build org string like: "Assets Shop | Plant A | A"
-      final parts = <String>[];
-      if (locStr.isNotEmpty) parts.add(locStr);
-      if (plantStr.isNotEmpty) parts.add(plantStr);
-      if (shiftStr.isNotEmpty) parts.add(shiftStr);
-      //operatorInfo.value = parts.join(' | ');
-
-      // Show location line under summary (Location | Plant)
-      final locParts = <String>[];
-      if (locStr.isNotEmpty) locParts.add(locStr);
-      if (plantStr.isNotEmpty) locParts.add(plantStr);
-      location.value = locParts.join(' | ');
-
-      // Time / Date formatting
-      if (rt != null) time.value = _formatTime(rt);
-      if (rd != null) date.value = _formatDate(rd);
-    }
-
-    // Fallbacks in case drafts were empty
-    // reportedBy.value = reportedBy.value.isNotEmpty ? reportedBy.value : '—';
-    // operatorName.value = operatorName.value.isNotEmpty
-    //     ? operatorName.value
-    //     : '—';
-    // operatorMobileNumber.value = operatorMobileNumber.value.isNotEmpty
-    //     ? operatorMobileNumber.value
-    //     : '—';
-    // operatorInfo.value = operatorInfo.value.isNotEmpty
-    //     ? operatorInfo.value
-    //     : '—';
-    if (time.value.isEmpty) time.value = '—';
-    if (date.value.isEmpty) date.value = '—';
-    if (location.value.isEmpty) location.value = '—';
+    // Bind all page-facing values
+    _bindFromVMAndBag();
   }
+
+  void _bindFromVMAndBag() {
+    // Operator footer
+    operatorName.value = vm.operatorName;
+    operatorPhoneNumber.value = vm.operatorMobileNumber;
+    operatorInfo.value = vm.operatorInfo;
+
+    // Reporter
+    reportedBy.value = _bag.get<String>(WOKeys.reporter, '');
+
+    // Summary
+    issueType.value = vm.issueType;
+    priority.value = vm.impact;
+    descriptionText.value = vm.descriptionText.isNotEmpty
+        ? vm.descriptionText
+        : vm.problemDescription;
+
+    // Body
+    headline.value = vm.typeText;
+    problemDescription.value = vm.problemDescription;
+
+    // Media
+    photoPaths.assignAll(vm.photos);
+    voiceNotePath.value = vm.voiceNotePath;
+
+    // Location | Plant
+    final loc = _bag.get<String>(WOKeys.location, '');
+    final plant = _bag.get<String>(WOKeys.plant, '');
+    location.value = _joinNonEmpty([loc, plant], ' | ');
+
+    // Time (stored HH:mm) and Date (stored ISO-8601) -> strings
+    final tStr = _bag.get<String?>(WOKeys.reportedTime, null);
+    final dStr = _bag.get<String?>(WOKeys.reportedDate, null);
+
+    final t = _decodeTime(tStr);
+    final d = _decodeDate(dStr);
+
+    time.value = t == null ? '' : _formatTime(t); // "HH:mm"
+    date.value = d == null ? '' : _formatDate(d); // "dd MMM"
+  }
+
+  String _joinNonEmpty(List<String> parts, String sep) {
+    final filtered = parts.where((p) => p.trim().isNotEmpty).toList();
+    return filtered.join(sep);
+  }
+
+  void create() {
+    Get.offAllNamed(
+      Routes.landingDashboardScreen,
+      arguments: {'tab': 3},
+    );
+
+    Get.snackbar(
+      'Create',
+      'Work Order Created Successfully',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.successGreen,
+      colorText: AppColors.white,
+    );
+  }
+
+  void goBack() => Get.back();
 
   // --------- Helpers ---------
 
@@ -172,7 +137,8 @@ class EditWorkOrderDetailsController extends GetxController {
     return TimeOfDay(hour: h, minute: m);
   }
 
-  DateTime? _decodeDate(String? s) => s == null ? null : DateTime.tryParse(s);
+  DateTime? _decodeDate(String? s) =>
+      (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
 
   String _formatTime(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -196,22 +162,56 @@ class EditWorkOrderDetailsController extends GetxController {
     final mon = months[d.month - 1];
     return '$dd $mon';
   }
+}
 
-  void create() {
-    // Get.offAllNamed(Routes.workOrderScreen);
-    Get.offAllNamed(
-      Routes.landingDashboardScreen,
-      arguments: {'tab': 3}, // open Work Orders
-    );
+/// A plain VM to hold what the UI will render
+class WorkOrderDetailVM {
+  final String operatorName;
+  final String operatorMobileNumber;
+  final String operatorInfo;
 
-    Get.snackbar(
-      'Create',
-      'Work Order Created Successfully',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: AppColors.successGreen,
-      colorText: AppColors.white,
+  final String issueType;
+  final String impact;
+  final String assetsNumber;
+  final String problemDescription;
+
+  final String typeText;
+  final String descriptionText;
+
+  final List<String> photos;
+  final String voiceNotePath;
+
+  WorkOrderDetailVM({
+    required this.operatorName,
+    required this.operatorMobileNumber,
+    required this.operatorInfo,
+    required this.issueType,
+    required this.impact,
+    required this.assetsNumber,
+    required this.problemDescription,
+    required this.typeText,
+    required this.descriptionText,
+    required this.photos,
+    required this.voiceNotePath,
+  });
+
+  /// Read-by-key from the bag
+  factory WorkOrderDetailVM.fromBag(WorkOrderBag bag) {
+    final rawPhotos = bag.get<List?>(WOKeys.photos, const []) ?? const [];
+    final photos = rawPhotos.map((e) => e.toString()).toList();
+
+    return WorkOrderDetailVM(
+      operatorName: bag.get<String>(WOKeys.operatorName, ''),
+      operatorMobileNumber: bag.get<String>(WOKeys.operatorMobileNumber, ''),
+      operatorInfo: bag.get<String>(WOKeys.operatorInfo, ''),
+      issueType: bag.get<String>(WOKeys.issueType, ''),
+      impact: bag.get<String>(WOKeys.impact, ''),
+      assetsNumber: bag.get<String>(WOKeys.assetsNumber, ''),
+      problemDescription: bag.get<String>(WOKeys.problemDescription, ''),
+      typeText: bag.get<String>(WOKeys.typeText, ''),
+      descriptionText: bag.get<String>(WOKeys.descriptionText, ''),
+      photos: photos,
+      voiceNotePath: bag.get<String>(WOKeys.voiceNotePath, ''),
     );
   }
-
-  void goBack() => Get.back();
 }

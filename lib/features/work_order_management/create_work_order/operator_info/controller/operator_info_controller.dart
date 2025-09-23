@@ -1,38 +1,40 @@
+// lib/features/work_order_management/create_work_order/tabs/controller/operator_info_controller.dart
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/work_order_management/common_models/work_draft_model.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-typedef Json = Map<String, dynamic>;
-
 class OperatorInfoController extends GetxController {
-  final draft = Get.find<WorkOrderDraft>();
+  // Single source of default truth (replace with server JSON later)
+  final OperatorInfoConfig cfg = OperatorInfoConfig.demo;
 
-  // Debounced autosave trigger (kept tiny)
-  final _saveSignal = 0.obs;
-  late final Worker _saveWorker;
-  late final List<Worker> _workers;
+  // Shared bag across tabs
+  WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
-  // Fields
+  // Reactive fields (initialized from cfg, then hydrated from bag)
+  late final TextEditingController operatorCtrl;
+  late final TextEditingController reporterCtrl;
+
   final sameAsOperator = false.obs;
-
-  final operatorCtrl = TextEditingController();
-  final reporterCtrl = TextEditingController();
-  final employeeId = '-'.obs;
-  final phoneNumber = '-'.obs;
-
-  final location = ''.obs;
-  final plant = ''.obs;
+  late final RxString employeeId;
+  late final RxString phoneNumber;
+  late final RxString location;
+  late final RxString plant;
+  late final RxString shift;
+  late final RxString reporter;
   final reportedTime = Rxn<TimeOfDay>();
   final reportedDate = Rxn<DateTime>();
-  final shift = ''.obs;
 
-  // Options
-  final locations = const ['Assets Shop', 'Assembly', 'Bay 1', 'Bay 3'];
-  final plantsOpt = const ['Plant A', 'Plant B', 'Plant C'];
-  final shiftsOpt = const ['A', 'B', 'C'];
+  // Lookups (read via bag with cfg fallback)
+  List<String> get locations =>
+      _bag.get<List<String>>('locations', cfg.locations);
+  List<String> get plantsOpt =>
+      _bag.get<List<String>>('plantsOpt', cfg.plantsOpt);
+  List<String> get shiftsOpt =>
+      _bag.get<List<String>>('shiftsOpt', cfg.shiftsOpt);
 
+  // UI helpers
   String get timeText {
     final t = reportedTime.value;
     if (t == null) return 'hh:mm';
@@ -51,144 +53,135 @@ class OperatorInfoController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _hydrateFromDraft();
-    _bindAutosave();
+
+    // init from model defaults
+    operatorCtrl = TextEditingController(text: cfg.operatorName);
+    reporterCtrl = TextEditingController(text: cfg.reporter);
+    employeeId = cfg.employeeId.obs;
+    phoneNumber = cfg.phoneNumber.obs;
+    location = cfg.location.obs;
+    plant = cfg.plant.obs;
+    shift = cfg.shift.obs;
+    sameAsOperator.value = cfg.sameAsOperator;
+    reportedTime.value = _decodeTime(cfg.reportedTime);
+    reportedDate.value = _decodeDate(cfg.reportedDate);
+
+    // then hydrate from bag (may overwrite the above)
+    _hydrateFromBag();
   }
 
   @override
   void onClose() {
-    for (final w in _workers) {
-      w.dispose();
-    }
-    _saveWorker.dispose();
-    reporterCtrl.dispose();
     operatorCtrl.dispose();
+    reporterCtrl.dispose();
     super.onClose();
   }
 
-  // -------- Draft <-> Rx wiring ----------
-  void _hydrateFromDraft() {
-    reporterCtrl.text = draft.get<String>(WD.reporter, '');
-    operatorCtrl.text = draft.get<String>(
-      WD.operatorName,
-      '',
-    ); // mirrors operator name if you want
-    employeeId.value = draft.get<String>(WD.employeeId, '-');
-    phoneNumber.value = draft.get<String>(WD.phoneNumber, '-');
+  // ─────────────────────────────────────────────────────────────────────────
+  // Hydrate from bag (fallback to current values, which came from cfg)
+  // ─────────────────────────────────────────────────────────────────────────
+  void _hydrateFromBag() {
+    operatorCtrl.text = _bag.get<String>('operatorName', operatorCtrl.text);
+    reporterCtrl.text = _bag.get<String>('reporter', reporterCtrl.text);
 
-    location.value = draft.get<String>(WD.location, '');
-    plant.value = draft.get<String>(WD.plant, '');
-    shift.value = draft.get<String>(WD.shift, '');
-    sameAsOperator.value = draft.get<bool>(WD.sameAsOperator, false);
+    employeeId.value = _bag.get<String>('employeeId', employeeId.value);
+    phoneNumber.value = _bag.get<String>('phoneNumber', phoneNumber.value);
+    location.value = _bag.get<String>('location', location.value);
+    plant.value = _bag.get<String>('plant', plant.value);
+    shift.value = _bag.get<String>('shift', shift.value);
 
-    final rt = draft.get<String?>(WD.reportedTime, null);
-    final rd = draft.get<String?>(WD.reportedDate, null);
-    reportedTime.value = _decodeTime(rt);
-    reportedDate.value = _decodeDate(rd);
-  }
+    sameAsOperator.value =
+        _bag.get<bool>('sameAsOperator', sameAsOperator.value);
 
-  void _bindAutosave() {
-    _saveWorker = debounce<int>(
-      _saveSignal,
-      (_) => _saveNow(),
-      time: const Duration(milliseconds: 250),
-    );
+    reportedTime.value = _decodeTime(
+        _bag.get<String?>('reportedTime', _encodeTime(reportedTime.value)));
+    reportedDate.value = _decodeDate(
+        _bag.get<String?>('reportedDate', _encodeDate(reportedDate.value)));
 
-    _workers = [
-      ever<String>(employeeId, _nudge),
-      ever<String>(phoneNumber, _nudge),
-      ever<String>(location, _nudge),
-      ever<String>(plant, _nudge),
-      ever<TimeOfDay?>(reportedTime, _nudge),
-      ever<DateTime?>(reportedDate, _nudge),
-      ever<String>(shift, _nudge),
-      ever<bool>(sameAsOperator, _onSameAsOperatorChanged),
-    ];
-
-    reporterCtrl.addListener(_nudge);
-    operatorCtrl.addListener(_nudge);
-  }
-
-  void _nudge([dynamic _]) => _saveSignal.value++;
-
-  void _saveNow() {
-    draft.merge({
-      WD.reporter: reporterCtrl.text,
-
-      // Persist operator name here only if you intend this tab to control it:
-      // WD.operatorName: operatorCtrl.text,
-      WD.employeeId: employeeId.value,
-      WD.phoneNumber: phoneNumber.value,
-
-      WD.location: location.value,
-      WD.plant: plant.value,
-      WD.shift: shift.value,
-      WD.sameAsOperator: sameAsOperator.value,
-
-      WD.reportedTime: _encodeTime(reportedTime.value),
-      WD.reportedDate: _encodeDate(reportedDate.value),
+    // Seed lookups into bag if not present (so UI elsewhere can read them by key)
+    _bag.merge({
+      'locations': locations,
+      'plantsOpt': plantsOpt,
+      'shiftsOpt': shiftsOpt,
     });
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Save ONLY when navigating away
+  // ─────────────────────────────────────────────────────────────────────────
+  void saveToBag() {
+    final reporter =
+        sameAsOperator.value ? operatorCtrl.text : reporterCtrl.text;
+
+    _bag.merge({
+      'operatorName': operatorCtrl.text,
+      'reporter': reporter,
+      'employeeId': employeeId.value,
+      'phoneNumber': phoneNumber.value,
+      'location': location.value,
+      'plant': plant.value,
+      'shift': shift.value,
+      'sameAsOperator': sameAsOperator.value,
+      'reportedTime': _encodeTime(reportedTime.value),
+      'reportedDate': _encodeDate(reportedDate.value),
+
+      // keep lookups in bag too
+      'locations': locations,
+      'plantsOpt': plantsOpt,
+      'shiftsOpt': shiftsOpt,
+      "reporter": reporterCtrl.text
+    });
+  }
+
+  void beforeNavigate(VoidCallback navigate) {
+    saveToBag();
+    navigate();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Actions
+  // ─────────────────────────────────────────────────────────────────────────
   void discard() {
-    reporterCtrl.clear();
-    // operatorCtrl.clear(); // uncomment if this tab owns operator name
-    employeeId.value = '-';
-    phoneNumber.value = '-';
+    operatorCtrl.text = '';
+    reporterCtrl.text = '';
+    employeeId.value = '';
+    phoneNumber.value = '';
     location.value = '';
     plant.value = '';
-    reportedTime.value = null;
-    reportedDate.value = null;
     shift.value = '';
     sameAsOperator.value = false;
+    reportedTime.value = null;
+    reportedDate.value = null;
 
-    // Clear only this tab’s fields from the map (non-destructive to other tabs)
-    draft.merge({
-      WD.reporter: '',
-      WD.employeeId: '-',
-      WD.phoneNumber: '-',
-      WD.location: '',
-      WD.plant: '',
-      WD.reportedTime: null,
-      WD.reportedDate: null,
-      WD.shift: '',
-      WD.sameAsOperator: false,
+    _bag.merge({
+      'operatorName': '',
+      'reporter': '',
+      'employeeId': '',
+      'phoneNumber': '',
+      'location': '',
+      'plant': '',
+      'shift': '',
+      'sameAsOperator': false,
+      'reportedTime': null,
+      'reportedDate': null,
     });
-
-    Get.snackbar(
-      'Discarded',
-      'All fields cleared.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.primaryBlue,
-      colorText: AppColors.white,
-    );
   }
 
-  void saveAndBack() {
-    _saveNow();
-    // Get.snackbar(
-    //   'Saved',
-    //   'Operator info saved.',
-    //   snackPosition: SnackPosition.BOTTOM,
-    //   backgroundColor: Colors.green.shade100,
-    //   colorText: AppColors.text,
-    // );
-    Get.find<WorkTabsController>().goTo(0);
+  void onSameAsOperatorChanged(bool v) {
+    sameAsOperator.value = v;
+    if (v) reporterCtrl.text = operatorCtrl.text;
   }
 
-  // If toggled, mirror operator name to reporter; untoggle keeps values as-is.
-  void _onSameAsOperatorChanged(bool v) {
-    if (v) {
-      reporterCtrl.text = operatorCtrl.text;
-    }
-    _nudge();
-  }
+  void saveAndBack() =>
+      beforeNavigate(() => Get.find<WorkTabsController>().goTo(0));
 
-  // Encode/Decode
+  // ─────────────────────────────────────────────────────────────────────────
+  // Encode/Decode helpers
+  // ─────────────────────────────────────────────────────────────────────────
   String? _encodeTime(TimeOfDay? t) => t == null
       ? null
       : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
   TimeOfDay? _decodeTime(String? s) {
     if (s == null || s.isEmpty) return null;
     final parts = s.split(':');
@@ -202,4 +195,57 @@ class OperatorInfoController extends GetxController {
   String? _encodeDate(DateTime? d) => d?.toIso8601String();
   DateTime? _decodeDate(String? s) =>
       (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
+}
+
+// lib/features/work_order_management/create_work_order/models/operator_info_config.dart
+class OperatorInfoConfig {
+  // Lookups
+  final List<String> locations;
+  final List<String> plantsOpt;
+  final List<String> shiftsOpt;
+
+  // Defaults
+  final String operatorName;
+  final String reporter;
+  final String employeeId;
+  final String phoneNumber;
+  final String location;
+  final String plant;
+  final String shift;
+  final bool sameAsOperator;
+  final String? reportedTime; // "HH:mm"
+  final String? reportedDate; // ISO-8601
+
+  const OperatorInfoConfig({
+    required this.locations,
+    required this.plantsOpt,
+    required this.shiftsOpt,
+    required this.operatorName,
+    required this.reporter,
+    required this.employeeId,
+    required this.phoneNumber,
+    required this.location,
+    required this.plant,
+    required this.shift,
+    required this.sameAsOperator,
+    required this.reportedTime,
+    required this.reportedDate,
+  });
+
+  /// Single hard-coded model; replace with parsed JSON later.
+  static const demo = OperatorInfoConfig(
+    locations: ['Assets Shop', 'Assembly', 'Bay 1', 'Bay 3'],
+    plantsOpt: ['Plant A', 'Plant B', 'Plant C'],
+    shiftsOpt: ['A', 'B', 'C'],
+    operatorName: 'Ajay Kumar (MP18292)',
+    reporter: 'Ajay Kumar (MP18292)',
+    employeeId: 'MP18292',
+    phoneNumber: '9876543211',
+    location: 'Assets Shop',
+    plant: 'Plant A',
+    shift: 'A',
+    sameAsOperator: true,
+    reportedTime: '12:20',
+    reportedDate: '2025-09-23',
+  );
 }
