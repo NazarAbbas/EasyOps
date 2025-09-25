@@ -1,10 +1,14 @@
+import 'package:easy_ops/features/login/store/drop_down_store.dart';
+import 'package:easy_ops/features/login/store/shift_data_store.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class OperatorInfoController extends GetxController {
-  // Defaults (can be replaced later with server JSON)
+  // Defaults (scalar only; lists come from stores)
   final OperatorInfoConfig cfg = OperatorInfoConfig.demo;
 
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
@@ -19,19 +23,35 @@ class OperatorInfoController extends GetxController {
   final reportedTime = Rxn<TimeOfDay>();
   final reportedDate = Rxn<DateTime>();
 
-  // Lookups (bag override, else cfg)
-  List<String> get locations =>
-      _bag.get<List<String>>('locations', cfg.locations);
-  List<String> get plantsOpt =>
-      _bag.get<List<String>>('plantsOpt', cfg.plantsOpt);
-  List<String> get shiftsOpt =>
-      _bag.get<List<String>>('shiftsOpt', cfg.shiftsOpt);
+  // Options from stores (reactive)
+  final RxList<String> locationOptions = <String>[].obs; // DEPARTMENT names
+  final RxList<String> plantOptions = <String>[].obs; // PLANT names
+  final RxList<String> shiftOptions = <String>[].obs; // Shift names
+
+  // Shorthand getters used by UI fields
+  List<String> get locations => locationOptions;
+  List<String> get plantsOpt => plantOptions;
+  List<String> get shiftsOpt => shiftOptions;
+
+  // Filtered lists for pickers (exclude placeholder)
+  List<String> get locationsForPicker =>
+      locationOptions.where((e) => e != _placeholder).toList();
+  List<String> get plantsForPicker =>
+      plantOptions.where((e) => e != _placeholder).toList();
+  List<String> get shiftsForPicker =>
+      shiftOptions.where((e) => e != _placeholder).toList();
+
+  // Placeholder helpers
+  static const String _placeholder = 'Select';
+  bool _isPlaceholder(String v) => v.trim().isEmpty || v.trim() == _placeholder;
+  String _valueOf(String v) =>
+      _isPlaceholder(v) ? '' : v; // what we save to bag
 
   // UI helpers
   String get timeText {
     final t = reportedTime.value;
     if (t == null) return 'hh:mm';
-    final h = (t.hourOfPeriod).toString().padLeft(2, '0');
+    final h = t.hourOfPeriod.toString().padLeft(2, '0');
     final m = t.minute.toString().padLeft(2, '0');
     return '$h:$m ${t.period == DayPeriod.am ? 'AM' : 'PM'}';
   }
@@ -46,26 +66,55 @@ class OperatorInfoController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // init from cfg
+    // Stores
+    final dropDownStore = Get.find<DropDownStore>();
+    final shiftStore = Get.find<ShiftDataStore>();
+
+    // ---------- Build option lists from stores (NO hardcode) ----------
+    locationOptions.assignAll(
+      dropDownStore.ofType(LookupType.department).map((e) => e.displayName),
+    );
+    plantOptions.assignAll(
+      dropDownStore.ofType(LookupType.plant).map((e) => e.displayName),
+    );
+    shiftOptions.assignAll(
+      shiftStore.sorted().map((s) => s.name),
+    );
+
+    // Prepend "Select" for field placeholders
+    locationOptions.insert(0, _placeholder);
+    plantOptions.insert(0, _placeholder);
+    shiftOptions.insert(0, _placeholder);
+
+    // ---------- init from cfg ----------
     operatorCtrl = TextEditingController(text: cfg.operatorName);
     reporterCtrl = TextEditingController(text: cfg.reporter);
     employeeId = cfg.employeeId.obs;
     phoneNumber = cfg.phoneNumber.obs;
-    location = cfg.location.obs;
-    plant = cfg.plant.obs;
-    shift = cfg.shift.obs;
+
+    location =
+        (locations.contains(cfg.location) && !_isPlaceholder(cfg.location))
+            ? cfg.location.obs
+            : _placeholder.obs;
+    plant = (plantsOpt.contains(cfg.plant) && !_isPlaceholder(cfg.plant))
+        ? cfg.plant.obs
+        : _placeholder.obs;
+    shift = (shiftsOpt.contains(cfg.shift) && !_isPlaceholder(cfg.shift))
+        ? cfg.shift.obs
+        : _placeholder.obs;
+
     sameAsOperator.value = cfg.sameAsOperator;
     reportedTime.value = _decodeTime(cfg.reportedTime);
     reportedDate.value = _decodeDate(cfg.reportedDate);
 
-    // hydrate from bag (overwrites cfg values when present)
+    // Hydrate from bag (may override cfg)
     _hydrateFromBag();
 
-    // ensure lookups exist in bag for other tabs
+    // Persist current options to bag (optional; for other tabs)
     _bag.merge({
       'locations': locations,
       'plantsOpt': plantsOpt,
-      'shiftsOpt': shiftsOpt
+      'shiftsOpt': shiftsOpt,
     });
   }
 
@@ -84,16 +133,30 @@ class OperatorInfoController extends GetxController {
 
     employeeId.value = _bag.get<String>('employeeId', employeeId.value);
     phoneNumber.value = _bag.get<String>('phoneNumber', phoneNumber.value);
-    location.value = _bag.get<String>('location', location.value);
-    plant.value = _bag.get<String>('plant', plant.value);
-    shift.value = _bag.get<String>('shift', shift.value);
+
+    final bagLocation = _bag.get<String>('location', _valueOf(location.value));
+    final bagPlant = _bag.get<String>('plant', _valueOf(plant.value));
+    final bagShift = _bag.get<String>('shift', _valueOf(shift.value));
+
+    location.value = (bagLocation.isNotEmpty && locations.contains(bagLocation))
+        ? bagLocation
+        : _placeholder;
+    plant.value = (bagPlant.isNotEmpty && plantsOpt.contains(bagPlant))
+        ? bagPlant
+        : _placeholder;
+    shift.value = (bagShift.isNotEmpty && shiftsOpt.contains(bagShift))
+        ? bagShift
+        : _placeholder;
+
     sameAsOperator.value =
         _bag.get<bool>('sameAsOperator', sameAsOperator.value);
 
     reportedTime.value = _decodeTime(
-        _bag.get<String?>('reportedTime', _encodeTime(reportedTime.value)));
+      _bag.get<String?>('reportedTime', _encodeTime(reportedTime.value)),
+    );
     reportedDate.value = _decodeDate(
-        _bag.get<String?>('reportedDate', _encodeDate(reportedDate.value)));
+      _bag.get<String?>('reportedDate', _encodeDate(reportedDate.value)),
+    );
   }
 
   void saveToBag() {
@@ -105,17 +168,81 @@ class OperatorInfoController extends GetxController {
       'reporter': reporterFinal,
       'employeeId': employeeId.value,
       'phoneNumber': phoneNumber.value,
-      'location': location.value,
-      'plant': plant.value,
-      'shift': shift.value,
+      'location': _valueOf(location.value), // '' if placeholder
+      'plant': _valueOf(plant.value), // '' if placeholder
+      'shift': _valueOf(shift.value), // '' if placeholder
       'sameAsOperator': sameAsOperator.value,
       'reportedTime': _encodeTime(reportedTime.value),
       'reportedDate': _encodeDate(reportedDate.value),
-      // keep lookups in bag for any other readers
+
+      // Option lists exposed for other readers (optional)
       'locations': locations,
       'plantsOpt': plantsOpt,
       'shiftsOpt': shiftsOpt,
     });
+  }
+
+  /* ───────────────────────── Validation ───────────────────────── */
+
+  /// Returns a list of human-readable error messages (empty = valid).
+  List<String> validateAll() {
+    final errors = <String>[];
+
+    // Reporter required
+    if (reporterCtrl.text.trim().isEmpty) {
+      errors.add('Reporter');
+    }
+
+    // Operator required only when not sameAsOperator
+    if (!sameAsOperator.value && operatorCtrl.text.trim().isEmpty) {
+      errors.add('Operator');
+    }
+
+    // Employee ID required
+    if (employeeId.value.trim().isEmpty) {
+      errors.add('Employee ID');
+    }
+
+    // Phone number: required & digits 10–15 (tweak as needed)
+    final phone = phoneNumber.value.trim();
+    final phoneOk = RegExp(r'^\d{10,15}$').hasMatch(phone);
+    if (phone.isEmpty || !phoneOk) {
+      errors.add('Phone Number (10–15 digits)');
+    }
+
+    // Dropdowns cannot be placeholder
+    if (_isPlaceholder(location.value)) errors.add('Location');
+    if (_isPlaceholder(plant.value)) errors.add('Plant');
+    if (_isPlaceholder(shift.value)) errors.add('Shift');
+
+    // Reported time/date required
+    if (reportedTime.value == null) errors.add('Reported At (Time)');
+    if (reportedDate.value == null) errors.add('Reported On (Date)');
+
+    return errors;
+  }
+
+  void _showValidationErrors(List<String> errors) {
+    if (errors.isEmpty) return;
+    Get.snackbar(
+      'Missing / Invalid',
+      'Please fill: ${errors.join(', ')}',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+      margin: const EdgeInsets.all(12),
+    );
+  }
+
+  /// Validate, save, and navigate back to tab 0 if valid.
+  void saveAndBack() {
+    final errors = validateAll();
+    if (errors.isNotEmpty) {
+      _showValidationErrors(errors);
+      return;
+    }
+    beforeNavigate(() => Get.find<WorkTabsController>().goTo(0));
   }
 
   void beforeNavigate(VoidCallback go) {
@@ -130,9 +257,9 @@ class OperatorInfoController extends GetxController {
     reporterCtrl.clear();
     employeeId.value = '';
     phoneNumber.value = '';
-    location.value = '';
-    plant.value = '';
-    shift.value = '';
+    location.value = _placeholder;
+    plant.value = _placeholder;
+    shift.value = _placeholder;
     sameAsOperator.value = false;
     reportedTime.value = null;
     reportedDate.value = null;
@@ -156,9 +283,6 @@ class OperatorInfoController extends GetxController {
     if (v) reporterCtrl.text = operatorCtrl.text;
   }
 
-  void saveAndBack() =>
-      beforeNavigate(() => Get.find<WorkTabsController>().goTo(0));
-
   /* ───────────────────────── Encode/Decode ───────────────────────── */
 
   String? _encodeTime(TimeOfDay? t) => t == null
@@ -179,29 +303,20 @@ class OperatorInfoController extends GetxController {
       (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
 }
 
-// lib/features/work_order_management/create_work_order/models/operator_info_config.dart
+/// Scalar defaults only (no hardcoded option lists)
 class OperatorInfoConfig {
-  // Lookups
-  final List<String> locations;
-  final List<String> plantsOpt;
-  final List<String> shiftsOpt;
-
-  // Defaults
   final String operatorName;
   final String reporter;
   final String employeeId;
   final String phoneNumber;
-  final String location;
-  final String plant;
-  final String shift;
+  final String location; // initial selection name
+  final String plant; // initial selection name
+  final String shift; // initial selection name
   final bool sameAsOperator;
   final String? reportedTime; // "HH:mm"
   final String? reportedDate; // ISO-8601
 
   const OperatorInfoConfig({
-    required this.locations,
-    required this.plantsOpt,
-    required this.shiftsOpt,
     required this.operatorName,
     required this.reporter,
     required this.employeeId,
@@ -214,18 +329,14 @@ class OperatorInfoConfig {
     required this.reportedDate,
   });
 
-  /// Single hard-coded model; replace with parsed JSON later.
   static const demo = OperatorInfoConfig(
-    locations: ['Assets Shop', 'Assembly', 'Bay 1', 'Bay 3'],
-    plantsOpt: ['Plant A', 'Plant B', 'Plant C'],
-    shiftsOpt: ['A', 'B', 'C'],
     operatorName: 'Ajay Kumar (MP18292)',
     reporter: 'Ajay Kumar (MP18292)',
     employeeId: 'MP18292',
     phoneNumber: '9876543211',
-    location: 'Assets Shop',
-    plant: 'Plant A',
-    shift: 'A',
+    location: '', // validated against store; shows "Select" if not found
+    plant: '',
+    shift: '',
     sameAsOperator: true,
     reportedTime: '12:20',
     reportedDate: '2025-09-23',

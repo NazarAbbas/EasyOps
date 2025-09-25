@@ -39,4 +39,14 @@ class Routes {
   static String landingDashboardScreen = '/LANDING_DASHBOARD_SCREEN';
   static String staffScreen = '/STAFF_SCREEN';
   static String myDashboardScreen = '/MY_DASHBOARD_SCREEN';
+  static String preventiveDashboardScreen = '/PREVENTIVE_DASHBOARD_SCREEN';
+
+  static String preventiveAssetsManagementDashboardScreen =
+      '/PREVENTIVE_ASSETS_MANAGEMENT_DASHBOARD_SCREEN';
+
+  static String preventiveWorkOrderListScreen =
+      '/PREVENTIVE_WORK_ORDER_LIST_SCREEN';
+
+  static String preventivePurposeNewSlotScreen =
+      '/PREVENTIVE_PURPOSE_NEW_SLOT_SCREEN';
 }

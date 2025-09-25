@@ -1,5 +1,9 @@
 // lib/network/rest_client.dart
 import 'package:dio/dio.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
 
@@ -13,7 +17,21 @@ abstract class RestClient {
   @POST('/user-login')
   Future<LoginResponse> loginBasic(@Header('Authorization') String auth);
 
-  // raw body GET — avoid Type.fromJson problems
-  @GET('/history-work-order-activity/{code}')
-  Future<dynamic> getHistoryWorkOrderActivityById(@Path('code') String code);
+  @GET('/client-lookup/')
+  Future<DropDownData> getDropDownData({
+    @Query('page') int page = 0,
+    @Query('size') int size = 20,
+    @Query('sort') String sort = 'sort_order,asc',
+  });
+
+  @POST('/work-order/with-media/')
+  Future<dynamic> createWorkOrderRequest(
+    @Body() CreateWorkOrderRequest body,
+  );
+
+  @GET('/shift/')
+  Future<ShiftData> getShiftData();
+
+  @GET('/asset/')
+  Future<AssetsData> getAssetsData();
 }

@@ -5,6 +5,9 @@ import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/entity/db_todo.dart';
 import 'package:easy_ops/features/login/domain/repository_impl.dart';
 import 'package:easy_ops/core/utils/app_snackbar.dart';
+import 'package:easy_ops/features/login/store/assets_data_store.dart';
+import 'package:easy_ops/features/login/store/drop_down_store.dart';
+import 'package:easy_ops/features/login/store/shift_data_store.dart';
 import 'package:easy_ops/features/login/validator/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,8 +34,8 @@ class LoginPageController extends GetxController {
   }
 
   Future<void> login() async {
-    Get.toNamed(Routes.landingDashboardScreen);
-    return;
+    //  Get.toNamed(Routes.landingDashboardScreen);
+    //return;
 // somewhere in an async function
     final db = await AppDatabase.open();
 // insert returns the generated row id (if your @primaryKey has autoGenerate: true)
@@ -68,23 +71,40 @@ class LoginPageController extends GetxController {
       debugPrint('Login HTTP code: ${result.httpCode}');
 
       if (result.isSuccess && result.data != null) {
-        // optional: theme based on role/authorities
-        // themeController.setThemeByRole('user');
+        final dropDownData =
+            await repositoryImpl.dropDownData(0, 20, 'sort_order,asc');
+        final shiftData = await repositoryImpl.shiftData();
 
-        // Get.toNamed(Routes.workOrderScreen);
-        Get.toNamed(Routes.landingDashboardScreen);
-        AppSnackbar.success(
-          'Logged in successfully)',
-          duration: Duration(seconds: Constant.snackbarSmallDuration),
-        );
+        final assetsData = await repositoryImpl.assetsData();
+
+        final dropDownStore = Get.find<DropDownStore>();
+        final shiftStore = Get.find<ShiftDataStore>();
+        final assetsStore = Get.find<AssetDataStore>();
+        if (dropDownData.data != null &&
+            shiftData.data != null &&
+            assetsData.data != null) {
+          dropDownStore.data.value = dropDownData.data;
+          shiftStore.data.value = shiftData.data;
+          assetsStore.data.value = assetsData.data;
+          Get.toNamed(Routes.landingDashboardScreen);
+          AppSnackbar.success(
+            'Logged in successfully)',
+            duration: Duration(seconds: Constant.snackbarSmallDuration),
+          );
+        } else {
+          AppSnackbar.error(
+            result.message ?? 'Login failed (HTTP ${result.httpCode})',
+            duration: Duration(seconds: Constant.snackbarLongDuration),
+          );
+        }
       } else {
         AppSnackbar.error(
-          result.message ?? 'Login failed (HTTP ${result.httpCode})',
+          'OOPS! something went wrong',
           duration: Duration(seconds: Constant.snackbarLongDuration),
         );
       }
     } finally {
-      //isLoading.value = false;
+      isLoading.value = false;
     }
   }
 

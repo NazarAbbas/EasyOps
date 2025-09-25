@@ -1,14 +1,16 @@
 // lib/.../work_order_info/controller/workorder_info_controller.dart
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/login/store/assets_data_store.dart';
+import 'package:easy_ops/features/login/store/drop_down_store.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkorderInfoController extends GetxController {
-  // Read all hard-coded defaults/lookups from ONE place
-  // Later, replace WorkOrderConfig.demo with what you parse from server JSON.
+  // Config (only used for initial UI text defaults; binding comes from store)
   final WorkOrderConfig cfg = WorkOrderConfig.demo;
 
   // Operator footer (editable)
@@ -16,38 +18,87 @@ class WorkorderInfoController extends GetxController {
   late final RxString operatorMobileNumber;
   late final RxString operatorInfo;
 
-  // Media (local; saved to bag only when moving)
+  // Media (local only; saved to bag when navigating)
   final photos = <String>[].obs;
   final voiceNotePath = ''.obs;
-  final isRecording = false.obs; // UI flag only
+  final isRecording = false.obs;
 
-  // Dropdowns / inputs
-  final issueType = ''.obs; // Electrical / Mechanical / Instrumentation
-  final impact = ''.obs; // Low / Medium / High
+  // Inputs
   final assetsCtrl = TextEditingController();
   final problemCtrl = TextEditingController();
 
-  // Derived from asset
-  late final RxString typeText;
-  late final RxString descriptionText;
+  // Derived from selected asset (BOUND to store data)
+  late final RxString typeText; // ← asset.criticality
+  late final RxString descriptionText; // ← asset.description
 
-  // Options (come from cfg)
-  List<String> get issueTypes => cfg.issueTypes;
-  List<String> get impacts => cfg.impacts;
+  // Store-backed options
+  final RxList<DropDownValues> issueTypeOptions = <DropDownValues>[].obs;
+  final RxList<DropDownValues> impactOptions = <DropDownValues>[].obs;
+
+  // Selected (IDs)
+  final RxString selectedIssueTypeId = ''.obs;
+  final RxString selectedImpactId = ''.obs;
+
+  // Legacy labels (kept for compatibility with existing bag keys)
+  final issueType = ''.obs;
+  final impact = ''.obs;
 
   late final VoidCallback _assetListener;
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
-  // Quick index for assets (for fast lookups)
-  late final Map<String, AssetConfig> _assetIndex = {
-    for (final a in cfg.assets) a.number.toUpperCase(): a,
-  };
+  // ── Fast lookup by serialNumber (uppercase key) built from AssetDataStore
+  final Map<String, AssetItem> _assetBySerial = {};
+
+  // Convenience to get current assets list from store
+  List<AssetItem> get _storeAssets =>
+      Get.find<AssetDataStore>().data.value?.content ?? const <AssetItem>[];
 
   @override
   void onInit() {
     super.onInit();
 
-    // Initialize reactive fields from the single model
+    // Load dropdown options from global store and prepend placeholders
+    final dd = Get.find<DropDownStore>();
+    final it = dd.ofType(LookupType.issuetype);
+    final im = dd.ofType(LookupType.impact);
+
+    issueTypeOptions.assignAll([
+      DropDownValues(
+        id: '',
+        code: '',
+        displayName: 'Select Issue Type',
+        description: '',
+        lookupType: LookupType.issuetype,
+        sortOrder: -1,
+        recordStatus: 1,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+        tenantId: '',
+        clientId: '',
+      ),
+      ...it,
+    ]);
+
+    impactOptions.assignAll([
+      DropDownValues(
+        id: '',
+        code: '',
+        displayName: 'Select Impact Type',
+        description: '',
+        lookupType: LookupType.impact,
+        sortOrder: -1,
+        recordStatus: 1,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+        tenantId: '',
+        clientId: '',
+      ),
+      ...im,
+    ]);
+
+    // Keep selected IDs empty initially so placeholder shows
+    selectedIssueTypeId.value = '';
+    selectedImpactId.value = '';
+
+    // Reactive fields defaults (will be overridden by store binding when chosen)
     operatorName = cfg.operatorName.obs;
     operatorMobileNumber = cfg.operatorMobileNumber.obs;
     operatorInfo = cfg.operatorInfo.obs;
@@ -55,11 +106,14 @@ class WorkorderInfoController extends GetxController {
     typeText = cfg.typeText.obs;
     descriptionText = cfg.descriptionText.obs;
 
-    // If revisiting this tab, hydrate from bag (may overwrite defaults)
+    // Build index from store assets (serialNumber -> AssetItem)
+    _rebuildAssetSerialIndex();
+
+    // Hydrate from bag (may overwrite defaults)
     _hydrateFromBag();
 
-    // Keep derived fields in sync locally (no persistence yet)
-    _assetListener = () => applyAssetMetaFor(assetsCtrl.text);
+    // Keep derived fields in sync while typing: try exact serial match
+    _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
   }
 
@@ -73,16 +127,57 @@ class WorkorderInfoController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Hydrate from bag (when coming back to this screen)
-  // (If bag is empty, UI keeps the defaults from cfg)
+  // Build fast index from store assets
+  // ─────────────────────────────────────────────────────────────────────────
+  void _rebuildAssetSerialIndex() {
+    _assetBySerial.clear();
+    for (final it in _storeAssets) {
+      final key = (it.serialNumber ?? '').trim().toUpperCase();
+      if (key.isNotEmpty) _assetBySerial[key] = it;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Hydrate from bag (prefers IDs, falls back to labels)
   // ─────────────────────────────────────────────────────────────────────────
   void _hydrateFromBag() {
-    // If you still use WOKeys (from your bag impl), keep as-is; otherwise
-    // you can switch the bag to store the typed WorkOrderDraft directly.
-    // Keeping your existing pattern here:
+    // Prefer IDs if present
+    final bagIssueTypeId = _bag.get<String>('issueTypeId', '');
+    final bagImpactId = _bag.get<String>('impactId', '');
 
-    issueType.value = _bag.get<String>('issueType', issueType.value);
-    impact.value = _bag.get<String>('impact', impact.value);
+    if (bagIssueTypeId.isNotEmpty) selectedIssueTypeId.value = bagIssueTypeId;
+    if (bagImpactId.isNotEmpty) selectedImpactId.value = bagImpactId;
+
+    // Legacy labels
+    final issueTypeLabel = _bag.get<String>('issueType', issueType.value);
+    final impactLabel = _bag.get<String>('impact', impact.value);
+
+    // If ID not found, try to map label -> ID
+    if (selectedIssueTypeId.value.isEmpty && issueTypeLabel.isNotEmpty) {
+      final itHit = _firstWhereOrNull<DropDownValues>(
+        issueTypeOptions,
+        (e) =>
+            e.displayName.trim().toLowerCase() ==
+            issueTypeLabel.trim().toLowerCase(),
+      );
+      if (itHit != null) selectedIssueTypeId.value = itHit.id;
+    }
+
+    if (selectedImpactId.value.isEmpty && impactLabel.isNotEmpty) {
+      final imHit = _firstWhereOrNull<DropDownValues>(
+        impactOptions,
+        (e) =>
+            e.displayName.trim().toLowerCase() ==
+            impactLabel.trim().toLowerCase(),
+      );
+      if (imHit != null) selectedImpactId.value = imHit.id;
+    }
+
+    // Keep legacy labels too
+    issueType.value = issueTypeLabel;
+    impact.value = impactLabel;
+
+    // Other fields
     assetsCtrl.text = _bag.get<String>('assetsNumber', assetsCtrl.text);
     problemCtrl.text = _bag.get<String>('problemDescription', problemCtrl.text);
 
@@ -99,15 +194,33 @@ class WorkorderInfoController extends GetxController {
     operatorMobileNumber.value =
         _bag.get<String>('operatorMobileNumber', operatorMobileNumber.value);
     operatorInfo.value = _bag.get<String>('operatorInfo', operatorInfo.value);
+
+    // If an asset serial is already in the bag, try to bind meta from store now
+    _applyMetaIfSerialMatch(assetsCtrl.text);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Save ONLY when moving screens/tabs
   // ─────────────────────────────────────────────────────────────────────────
   void saveToBag() {
+    final it = _firstWhereOrNull<DropDownValues>(
+      issueTypeOptions,
+      (e) => e.id == selectedIssueTypeId.value,
+    );
+    final im = _firstWhereOrNull<DropDownValues>(
+      impactOptions,
+      (e) => e.id == selectedImpactId.value,
+    );
+
     _bag.merge({
-      'issueType': issueType.value,
-      'impact': impact.value,
+      // New IDs (authoritative)
+      'issueTypeId': selectedIssueTypeId.value,
+      'impactId': selectedImpactId.value,
+
+      // Legacy labels (store displayName for readability)
+      'issueType': it?.displayName ?? issueType.value,
+      'impact': im?.displayName ?? impact.value,
+
       'assetsNumber': assetsCtrl.text.trim(),
       'problemDescription': problemCtrl.text.trim(),
       'typeText': typeText.value,
@@ -127,7 +240,7 @@ class WorkorderInfoController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Local mutations (NOT persisted until saveToBag/beforeNavigate)
+  // Local mutations
   // ─────────────────────────────────────────────────────────────────────────
   void updateOperatorFooter({String? name, String? mobile, String? info}) {
     if (name != null) operatorName.value = name;
@@ -135,17 +248,33 @@ class WorkorderInfoController extends GetxController {
     if (info != null) operatorInfo.value = info;
   }
 
+  // Bind UI with these two values
   void setAssetMeta({required String type, required String description}) {
     typeText.value = type;
     descriptionText.value = description;
   }
 
-  void applyAssetMetaFor(String input) {
+  // When user types in the serial number field
+  void _applyMetaIfSerialMatch(String input) {
     final key = input.trim().toUpperCase();
-    final hit = _assetIndex[key];
-    if (hit != null) {
-      setAssetMeta(type: hit.type, description: hit.description);
+    final item = _assetBySerial[key];
+    if (item != null) {
+      _applyAssetFromItem(item);
     }
+  }
+
+  // Centralized mapping when an asset is chosen
+  void _applyAssetFromItem(AssetItem item) {
+    // Ensure the input shows the authoritative serialNumber
+    final sn = (item.serialNumber ?? '').trim();
+    if (sn.isNotEmpty && assetsCtrl.text.trim() != sn) {
+      assetsCtrl.text = sn;
+    }
+    // Bind from store data
+    setAssetMeta(
+      type: item.criticality,
+      description: item.description ?? '',
+    );
   }
 
   // Media (local only)
@@ -157,17 +286,32 @@ class WorkorderInfoController extends GetxController {
   }
 
   void clearPhotos() => photos.clear();
+
   void setVoiceNote(String path) => voiceNotePath.value = path;
   void clearVoiceNote() => voiceNotePath.value = '';
 
-  // ───────── Validate & Navigate (no route args; next screen reads WorkOrderBag)
-  void goToWorkOrderDetailScreen() {
+  // ───────── Validation (ALL required, including media)
+  List<String> _validate() {
     final missing = <String>[];
-    if (issueType.value.isEmpty) missing.add('Issue Type');
-    if (impact.value.isEmpty) missing.add('Impact');
+
+    if (selectedIssueTypeId.value.isEmpty) missing.add('Issue Type');
+    if (selectedImpactId.value.isEmpty) missing.add('Impact');
+
     if (assetsCtrl.text.trim().isEmpty) missing.add('Assets Number');
     if (problemCtrl.text.trim().isEmpty) missing.add('Problem Description');
 
+    // Require at least 1 photo
+    if (photos.isEmpty) missing.add('At least one Photo');
+
+    // Require a voice note
+    if (voiceNotePath.value.isEmpty) missing.add('Voice Note');
+
+    return missing;
+  }
+
+  // ───────── Validate & Navigate
+  void goToWorkOrderDetailScreen() {
+    final missing = _validate();
     if (missing.isNotEmpty) {
       Get.snackbar(
         'Missing Info',
@@ -183,40 +327,166 @@ class WorkorderInfoController extends GetxController {
     Get.toNamed(Routes.workOrderDetailScreen);
   }
 
-  // Picker wrapper
-  Future<void> openAssetPicker(BuildContext context) async {
-    await pickFromList(
+  // ───────── Asset picker using STORE (search by serial no.)
+  Future<void> openAssetPickerFromStore(BuildContext context) async {
+    _rebuildAssetSerialIndex(); // refresh index in case store changed
+
+    final picked = await showModalBottomSheet<AssetItem>(
       context: context,
-      title: 'Select Asset Number',
-      items: cfg.assets.map((e) => e.number).toList(),
-      onSelected: (selectedNumber) {
-        assetsCtrl.text = selectedNumber;
-        applyAssetMetaFor(selectedNumber);
-        // Not saving here — saved on navigate
-      },
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => _AssetSerialSearchSheet(items: _storeAssets),
+    );
+
+    if (picked != null) {
+      _applyAssetFromItem(picked);
+    }
+  }
+
+  // helper (local)
+  T? _firstWhereOrNull<T>(Iterable<T> it, bool Function(T) test) {
+    for (final e in it) {
+      if (test(e)) return e;
+    }
+    return null;
+  }
+}
+
+/* -------------------------- ASSET PICKER UI -------------------------- */
+
+class _AssetSerialSearchSheet extends StatefulWidget {
+  const _AssetSerialSearchSheet({required this.items});
+  final List<AssetItem> items;
+
+  @override
+  State<_AssetSerialSearchSheet> createState() =>
+      _AssetSerialSearchSheetState();
+}
+
+class _AssetSerialSearchSheetState extends State<_AssetSerialSearchSheet> {
+  final _searchCtrl = TextEditingController();
+  late List<AssetItem> _filtered;
+
+  @override
+  void initState() {
+    super.initState();
+    _filtered = _sorted(widget.items);
+    _searchCtrl.addListener(_onQuery);
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl
+      ..removeListener(_onQuery)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onQuery() {
+    final q = _searchCtrl.text.trim().toLowerCase();
+    setState(() {
+      if (q.isEmpty) {
+        _filtered = _sorted(widget.items);
+      } else {
+        _filtered = _sorted(
+          widget.items.where((e) {
+            final sn = (e.serialNumber ?? '').toLowerCase();
+            final nm = e.name.toLowerCase();
+            return sn.contains(q) || nm.contains(q);
+          }).toList(),
+        );
+      }
+    });
+  }
+
+  List<AssetItem> _sorted(List<AssetItem> list) {
+    final copy = List<AssetItem>.from(list);
+    copy.sort((a, b) {
+      final asn = (a.serialNumber ?? '').toLowerCase();
+      final bsn = (b.serialNumber ?? '').toLowerCase();
+      final by = asn.compareTo(bsn);
+      return by != 0
+          ? by
+          : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+    return copy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + viewInsets),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const Text('Select Asset by Serial No.',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _searchCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Search by serial no. or name',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: _filtered.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No matching assets'),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _filtered.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final it = _filtered[i];
+                        final sn = it.serialNumber ?? '-';
+                        return ListTile(
+                          title: Text(sn,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700)),
+                          subtitle: Text(it.name,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          onTap: () => Navigator.of(context).pop(it),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-// DUMMY DATA
-//==============================
+/* ------------------------------ DUMMY CONFIG (for initial text only) ------------------------------ */
 
 class WorkOrderConfig {
-  // Operator defaults
   final String operatorName;
   final String operatorMobileNumber;
   final String operatorInfo;
-
-  // Derived defaults
   final String typeText;
   final String descriptionText;
-
-  // Lookups
-  final List<String> issueTypes;
-  final List<String> impacts;
-
-  // Asset catalog
-  final List<AssetConfig> assets;
 
   const WorkOrderConfig({
     required this.operatorName,
@@ -224,55 +494,13 @@ class WorkOrderConfig {
     required this.operatorInfo,
     required this.typeText,
     required this.descriptionText,
-    required this.issueTypes,
-    required this.impacts,
-    required this.assets,
   });
 
-  /// A single, hard-coded instance (you can later replace this with server JSON)
   static const demo = WorkOrderConfig(
     operatorName: 'Ajay Kumar (MP18292)',
     operatorMobileNumber: '9876543211',
     operatorInfo: 'Assets Shop | 12:20 | 03 Sept | A',
-    typeText: 'Critical for testing',
-    descriptionText:
-        'CNC Vertical Assets Center where we make housing for testing',
-    issueTypes: ['Electrical', 'Mechanical', 'Instrumentation'],
-    impacts: ['Low', 'Medium', 'High'],
-    assets: [
-      AssetConfig(
-        number: '1001',
-        type: 'High',
-        description: 'High - CNC Vertical Assets Center where we make housing',
-      ),
-      AssetConfig(
-        number: '1002',
-        type: 'Critical',
-        description:
-            'Critical - CNC Vertical Assets Center where we make housing',
-      ),
-      AssetConfig(
-        number: '1003',
-        type: 'Medium',
-        description:
-            'Medium - CNC Vertical Assets Center where we make housing',
-      ),
-      AssetConfig(
-        number: '1004',
-        type: 'Low',
-        description: 'Low CNC Vertical Assets Center where we make housing',
-      ),
-    ],
+    typeText: '—', // replaced when asset selected
+    descriptionText: '—', // replaced when asset selected
   );
-}
-
-class AssetConfig {
-  final String number;
-  final String type;
-  final String description;
-  const AssetConfig({
-    required this.number,
-    required this.type,
-    required this.description,
-  });
 }

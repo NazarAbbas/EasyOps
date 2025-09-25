@@ -14,10 +14,6 @@ String _formatDdMmYyyy(DateTime d) {
 class OperatorInfoPage extends GetView<OperatorInfoController> {
   const OperatorInfoPage({super.key});
 
-  // @override
-  // OperatorInfoController get controller =>
-  //     Get.put<OperatorInfoController>(OperatorInfoController());
-
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   String _timeText(BuildContext context) {
@@ -52,9 +48,9 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          colorScheme: Theme.of(
-            ctx,
-          ).colorScheme.copyWith(primary: AppColors.primaryBlue),
+          colorScheme: Theme.of(ctx)
+              .colorScheme
+              .copyWith(primary: AppColors.primaryBlue),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(foregroundColor: AppColors.primaryBlue),
           ),
@@ -75,11 +71,11 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: Theme.of(ctx).colorScheme.copyWith(
-            primary: AppColors.primaryBlue,
-            onPrimary: Colors.white,
-            surface: Colors.white,
-            onSurface: AppColors.text,
-          ),
+                primary: AppColors.primaryBlue,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: AppColors.text,
+              ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(foregroundColor: AppColors.primaryBlue),
           ),
@@ -96,6 +92,11 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
     required List<String> options,
     required ValueChanged<String> onSelected,
   }) async {
+    if (options.isEmpty) {
+      Get.snackbar('Not ready', 'Options are still loading',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -129,7 +130,6 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -140,20 +140,15 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     minimumSize: Size.fromHeight(btnH),
-                    side: const BorderSide(
-                      color: AppColors.primary,
-                      width: 1.4,
-                    ),
+                    side:
+                        const BorderSide(color: AppColors.primary, width: 1.4),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     foregroundColor: AppColors.primary,
                   ),
                   onPressed: () => controller.discard(),
-                  child: const Text(
-                    'Discard',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
+                  child: const Text('Discard',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -164,22 +159,18 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 1.5,
                   ),
                   onPressed: () => controller.saveAndBack(),
-                  child: const Text(
-                    'Save and Back',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
+                  child: const Text('Save and Back',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
           ),
         ),
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
@@ -201,17 +192,13 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                           hintText: "Enter Reporter's Name",
                           prefixIcon: const Padding(
                             padding: EdgeInsets.only(left: 10, right: 4),
-                            child: Icon(
-                              CupertinoIcons.person,
-                              color: AppColors.muted,
-                            ),
+                            child: Icon(CupertinoIcons.person,
+                                color: AppColors.muted),
                           ),
                           suffixIcon: const Padding(
                             padding: EdgeInsets.only(right: 8),
-                            child: Icon(
-                              CupertinoIcons.search,
-                              color: AppColors.muted,
-                            ),
+                            child: Icon(CupertinoIcons.search,
+                                color: AppColors.muted),
                           ),
                         ),
                       ),
@@ -219,18 +206,10 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                     SizedBox(height: vGap - 2),
                     _Row2(
                       spacing: 12,
-                      left: Obx(
-                        () => _LabelValuePlain(
-                          'Employee ID',
-                          controller.employeeId.value,
-                        ),
-                      ),
-                      right: Obx(
-                        () => _LabelValuePlain(
-                          'Phone Number',
-                          controller.phoneNumber.value,
-                        ),
-                      ),
+                      left: Obx(() => _LabelValuePlain(
+                          'Employee ID', controller.employeeId.value)),
+                      right: Obx(() => _LabelValuePlain(
+                          'Phone Number', controller.phoneNumber.value)),
                     ),
                   ],
                 ),
@@ -255,19 +234,14 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             text: controller.location.value.isEmpty
                                 ? 'Select'
                                 : controller.location.value,
-                            leading: const Icon(
-                              CupertinoIcons.placemark,
-                              size: 18,
-                              color: AppColors.muted,
-                            ),
-                            trailing: const Icon(
-                              CupertinoIcons.chevron_down,
-                              color: AppColors.muted,
-                            ),
+                            leading: const Icon(CupertinoIcons.placemark,
+                                size: 18, color: AppColors.muted),
+                            trailing: const Icon(CupertinoIcons.chevron_down,
+                                color: AppColors.muted),
                             onTap: () => _pickFromList(
                               context,
                               title: 'Select Location',
-                              options: controller.locations,
+                              options: controller.locationsForPicker,
                               onSelected: (v) => controller.location.value = v,
                             ),
                           ),
@@ -278,19 +252,15 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             text: controller.plant.value.isEmpty
                                 ? 'Select'
                                 : controller.plant.value,
-                            leading: const Icon(
-                              CupertinoIcons.building_2_fill,
-                              size: 18,
-                              color: AppColors.muted,
-                            ),
-                            trailing: const Icon(
-                              CupertinoIcons.chevron_down,
-                              color: AppColors.muted,
-                            ),
+                            leading: const Icon(CupertinoIcons.building_2_fill,
+                                size: 18, color: AppColors.muted),
+                            trailing: const Icon(CupertinoIcons.chevron_down,
+                                color: AppColors.muted),
                             onTap: () => _pickFromList(
                               context,
                               title: 'Select Plant',
-                              options: controller.plantsOpt,
+                              options: controller.plantsForPicker
+                                  .toList(), // from DropDownStore
                               onSelected: (v) => controller.plant.value = v,
                             ),
                           ),
@@ -303,11 +273,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                           'Reported At',
                           child: _TapField(
                             text: timeText,
-                            leading: const Icon(
-                              CupertinoIcons.time,
-                              size: 18,
-                              color: AppColors.muted,
-                            ),
+                            leading: const Icon(CupertinoIcons.time,
+                                size: 18, color: AppColors.muted),
                             onTap: () => _pickTime(context),
                           ),
                         ),
@@ -315,11 +282,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                           'Reported On',
                           child: _TapField(
                             text: dateText,
-                            leading: const Icon(
-                              CupertinoIcons.calendar,
-                              size: 18,
-                              color: AppColors.muted,
-                            ),
+                            leading: const Icon(CupertinoIcons.calendar,
+                                size: 18, color: AppColors.muted),
                             onTap: () => _pickDate(context),
                           ),
                         ),
@@ -329,21 +293,20 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         'Shift',
                         child: _TapField(
                           text: controller.shift.value.isEmpty
-                              ? 'Select Shift'
-                              : 'Shift ${controller.shift.value}',
+                              ? 'Select'
+                              : controller.shift.value,
                           leading: const Icon(
                             CupertinoIcons.square_stack_3d_down_dottedline,
                             size: 18,
                             color: AppColors.muted,
                           ),
-                          trailing: const Icon(
-                            CupertinoIcons.chevron_down,
-                            color: AppColors.muted,
-                          ),
+                          trailing: const Icon(CupertinoIcons.chevron_down,
+                              color: AppColors.muted),
                           onTap: () => _pickFromList(
                             context,
                             title: 'Select Shift',
-                            options: controller.shiftsOpt,
+                            options: controller.shiftsForPicker
+                                .toList(), // from ShiftDataStore
                             onSelected: (v) => controller.shift.value = v,
                           ),
                         ),
@@ -368,7 +331,6 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         value: controller.sameAsOperator.value,
                         onChanged: (v) {
                           controller.sameAsOperator.value = v;
-                          // if checked, mirror reporter name into operator
                           if (v) {
                             controller.operatorCtrl.text =
                                 controller.reporterCtrl.text;
@@ -380,25 +342,20 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         _Label(
                           'Operator',
                           child: TextField(
-                            controller:
-                                controller.operatorCtrl, // <-- dedicated
-                            enabled: !controller.sameAsOperator.value, // safety
+                            controller: controller.operatorCtrl,
+                            enabled: !controller.sameAsOperator.value,
                             textInputAction: TextInputAction.next,
                             decoration: AppInput.bordered(
                               hintText: "Enter operator's name",
                               prefixIcon: const Padding(
                                 padding: EdgeInsets.only(left: 10, right: 4),
-                                child: Icon(
-                                  CupertinoIcons.person,
-                                  color: AppColors.muted,
-                                ),
+                                child: Icon(CupertinoIcons.person,
+                                    color: AppColors.muted),
                               ),
                               suffixIcon: const Padding(
                                 padding: EdgeInsets.only(right: 8),
-                                child: Icon(
-                                  CupertinoIcons.search,
-                                  color: AppColors.muted,
-                                ),
+                                child: Icon(CupertinoIcons.search,
+                                    color: AppColors.muted),
                               ),
                             ),
                           ),
@@ -406,18 +363,10 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         SizedBox(height: vGap - 2),
                         _Row2(
                           spacing: 12,
-                          left: Obx(
-                            () => _LabelValuePlain(
-                              'Employee ID',
-                              controller.employeeId.value,
-                            ),
-                          ),
-                          right: Obx(
-                            () => _LabelValuePlain(
-                              'Phone Number',
-                              controller.phoneNumber.value,
-                            ),
-                          ),
+                          left: Obx(() => _LabelValuePlain(
+                              'Employee ID', controller.employeeId.value)),
+                          right: Obx(() => _LabelValuePlain(
+                              'Phone Number', controller.phoneNumber.value)),
                         ),
                       ],
                     ],
@@ -555,8 +504,7 @@ class _TapField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPlaceholder =
-        text == 'Select' ||
+    final isPlaceholder = text == 'Select' ||
         text == 'Select Shift' ||
         text == 'hh:mm' ||
         text == 'dd/mm/yyyy';
@@ -685,9 +633,8 @@ class _PickerContent extends StatelessWidget {
               ),
               const Spacer(),
               IconButton(
-                onPressed: Get.back,
-                icon: const Icon(CupertinoIcons.xmark, size: 18),
-              ),
+                  onPressed: Get.back,
+                  icon: const Icon(CupertinoIcons.xmark, size: 18)),
             ],
           ),
         ),
@@ -703,9 +650,7 @@ class _PickerContent extends StatelessWidget {
               title: Text(
                 options[i],
                 style: const TextStyle(
-                  color: AppColors.text,
-                  fontWeight: FontWeight.w600,
-                ),
+                    color: AppColors.text, fontWeight: FontWeight.w600),
               ),
               onTap: () {
                 onSelected(options[i]);

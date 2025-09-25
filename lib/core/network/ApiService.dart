@@ -6,6 +6,10 @@ import 'package:easy_ops/core/network/basic_auth_header.dart';
 import 'package:easy_ops/core/network/network_exception.dart';
 import 'package:easy_ops/core/network/rest_client.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 
 class ApiService {
   late final RestClient _api;
@@ -30,9 +34,46 @@ class ApiService {
     }
   }
 
-  Future<dynamic> historyWorkOrderActivityById(String code) async {
+  Future<DropDownData> dropDownData({
+    int page = 0,
+    int size = 100,
+    String sort = 'sort_order,asc',
+  }) async {
     try {
-      return await _api.getHistoryWorkOrderActivityById(code);
+      return await _api.getDropDownData(
+        page: page,
+        size: size,
+        sort: sort,
+      );
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<ShiftData> shiftData({
+    int page = 0,
+    int size = 100,
+    String sort = 'sort_order,asc',
+  }) async {
+    try {
+      return await _api.getShiftData();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<AssetsData> assetsData() async {
+    try {
+      return await _api.getAssetsData();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<dynamic> createWorkOrder(
+      CreateWorkOrderRequest createWorkOrderRequest) async {
+    try {
+      return await _api.createWorkOrderRequest(createWorkOrderRequest);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

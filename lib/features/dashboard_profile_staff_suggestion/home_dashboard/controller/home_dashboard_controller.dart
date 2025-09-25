@@ -21,7 +21,7 @@ class SectionStats {
   final String title;
   final RxList<StatItem> items;
   SectionStats({required this.title, required List<StatItem> initial})
-    : items = RxList<StatItem>(initial);
+      : items = RxList<StatItem>(initial);
 }
 
 class HomeDashboardController extends GetxController {
@@ -104,7 +104,7 @@ class HomeDashboardController extends GetxController {
     if (title == 'Work Orders') {
     } else if (title == 'Preventive') {
       //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
-      //Get.toNamed(Routes.preventiveDashboardScreen);
+      Get.toNamed(Routes.preventiveDashboardScreen);
     } else if (title == 'My Team') {
       //Get.toNamed(Routes.preventiveMaintenanceDashboardScreen);
       Get.toNamed(Routes.staffScreen);

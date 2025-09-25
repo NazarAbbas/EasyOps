@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 class PreventiveRootNavController extends GetxController {
-  final index = 3.obs; // starts on Work Orders
+  final index = 2.obs; // starts on Work Orders
   late final PageController pageController;
 
   @override

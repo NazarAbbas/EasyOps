@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -249,56 +250,54 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       const _CardTitle('Work Order Info'),
                       const SizedBox(height: 12),
 
-                      // Issue Type | Impact
+                      // Issue Type | Impact (store-backed)
                       _Row2(
                         left: _Label(
                           'Issue Type',
-                          _TapField(
-                            textRx: controller.issueType,
-                            placeholder: 'Select',
-                            onTap: () => pickFromList(
-                              context: context,
-                              title: 'Select Issue Type',
-                              items: controller.issueTypes, // from cfg
-                              onSelected: (v) {
-                                controller.issueType.value = v;
-                              },
-                            ),
-                          ),
+                          Obx(() {
+                            final label = _labelFor(
+                              controller.issueTypeOptions,
+                              controller.selectedIssueTypeId.value,
+                              'Select Issue Type',
+                            );
+                            return _TapFieldSimple(
+                              text: label,
+                              placeholder: 'Select',
+                              onTap: () => _openIssueTypeSheet(context),
+                            );
+                          }),
                         ),
                         right: _Label(
                           'Impact',
-                          _TapField(
-                            textRx: controller.impact,
-                            placeholder: 'Select',
-                            onTap: () => pickFromList(
-                              context: context,
-                              title: 'Select Impact',
-                              items: controller.impacts, // from cfg
-                              onSelected: (v) {
-                                controller.impact.value = v;
-                              },
-                            ),
-                          ),
+                          Obx(() {
+                            final label = _labelFor(
+                              controller.impactOptions,
+                              controller.selectedImpactId.value,
+                              'Select Impact Type',
+                            );
+                            return _TapFieldSimple(
+                              text: label,
+                              placeholder: 'Select',
+                              onTap: () => _openImpactSheet(context),
+                            );
+                          }),
                         ),
                       ),
 
                       const SizedBox(height: 12),
                       const _Hr(),
 
-                      // Assets Number | Type + clock square
+                      // Assets Serial No. | Type (Criticality)
                       _Row2(
                         left: _Label(
-                          'Assets Number',
+                          'Asset Serial No.',
                           SizedBox(
                             height: 48,
                             child: TextField(
                               controller: controller.assetsCtrl,
-                              onChanged: (txt) {
-                                controller.applyAssetMetaFor(txt); // local bind
-                              },
+                              // NOTE: no onChanged here; controller already listens to assetsCtrl
                               decoration: _D.field(
-                                hint: 'Search / type number',
+                                hint: 'Enter or pick serial no.',
                                 prefix: const Padding(
                                   padding: EdgeInsets.only(left: 12, right: 6),
                                   child: Icon(
@@ -308,8 +307,8 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                                   ),
                                 ),
                                 suffix: GestureDetector(
-                                  onTap: () =>
-                                      controller.openAssetPicker(context),
+                                  onTap: () => controller
+                                      .openAssetPickerFromStore(context),
                                   child: const Padding(
                                     padding: EdgeInsets.only(right: 8),
                                     child: Icon(
@@ -323,7 +322,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                           ),
                         ),
                         right: _Label(
-                          'Type',
+                          'Criticality',
                           SizedBox(
                             height: 48,
                             child: Obx(
@@ -638,6 +637,148 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
 }
 
 /* ─────────────── pieces ─────────────── */
+// Open bottom sheet for Issue Type
+Future<void> _openIssueTypeSheet(BuildContext context) async {
+  final c = Get.find<WorkorderInfoController>();
+  final items = c.issueTypeOptions
+      .where((e) => e.id.isNotEmpty) // hide placeholder rows if any
+      .map((e) => e.displayName)
+      .toList();
+
+  await pickFromList(
+    context: context,
+    title: 'Select Issue Type',
+    items: items,
+    onSelected: (name) {
+      final hit = _firstWhereOrNull(
+        c.issueTypeOptions,
+        (DropDownValues e) => e.displayName == name,
+      );
+      if (hit != null) c.selectedIssueTypeId.value = hit.id;
+    },
+  );
+}
+
+// Open bottom sheet for Impact
+Future<void> _openImpactSheet(BuildContext context) async {
+  final c = Get.find<WorkorderInfoController>();
+  final items = c.impactOptions
+      .where((e) => e.id.isNotEmpty)
+      .map((e) => e.displayName)
+      .toList();
+
+  await pickFromList(
+    context: context,
+    title: 'Select Impact Type',
+    items: items,
+    onSelected: (name) {
+      final hit = _firstWhereOrNull(
+        c.impactOptions,
+        (DropDownValues e) => e.displayName == name,
+      );
+      if (hit != null) c.selectedImpactId.value = hit.id;
+    },
+  );
+}
+
+// Map selected ID -> readable label
+String _labelFor(
+  List<DropDownValues> options,
+  String selectedId,
+  String placeholder,
+) {
+  if (selectedId.isEmpty) return placeholder;
+  final hit = _firstWhereOrNull(
+    options,
+    (DropDownValues e) => e.id == selectedId,
+  );
+  return hit?.displayName ?? placeholder;
+}
+
+// Tiny util (no extra deps)
+T? _firstWhereOrNull<T>(Iterable<T> it, bool Function(T) test) {
+  for (final e in it) {
+    if (test(e)) return e;
+  }
+  return null;
+}
+
+// A simple tap-to-open field for bottom sheets
+class _TapFieldSimple extends StatelessWidget {
+  final String text;
+  final String placeholder;
+  final VoidCallback onTap;
+  final double? height; // null => use default/intrinsic height
+  final bool compact;
+
+  const _TapFieldSimple({
+    required this.text,
+    required this.placeholder,
+    required this.onTap,
+    this.height, // no fixed default; lets InputDecorator size itself
+    this.compact = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isPlaceholder = text.trim().isEmpty || text == placeholder;
+    final display = isPlaceholder ? placeholder : text;
+
+    final deco = compact
+        ? _D.fieldCompact(
+            hint: placeholder,
+            suffix: const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child:
+                  Icon(CupertinoIcons.chevron_down, size: 18, color: _C.muted),
+            ),
+          )
+        : _D.field(
+            hint: placeholder,
+            suffix: const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Icon(CupertinoIcons.chevron_down, color: _C.muted),
+            ),
+          );
+
+    Widget content = InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: InputDecorator(
+        decoration: deco,
+        isEmpty: isPlaceholder,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            display,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13.5,
+              color: isPlaceholder ? _C.muted : _C.text,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (height != null) {
+      content = SizedBox(height: height, child: content);
+    }
+
+    return content;
+  }
+}
+
+List<DropdownMenuItem<String>> _dropdownItems(List<DropDownValues> list) {
+  return list
+      .map((e) => DropdownMenuItem<String>(
+            value: e.id, // use ID; keep label for display
+            child: Text(e.displayName, overflow: TextOverflow.ellipsis),
+          ))
+      .toList();
+}
 
 class _CardTitle extends StatelessWidget {
   final String text;
@@ -798,7 +939,7 @@ class _UploadPhotosBox extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Color(0xFFE1E6EF), width: 1.4),
+          border: Border.all(color: const Color(0xFFE1E6EF), width: 1.4),
         ),
         child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -808,9 +949,9 @@ class _UploadPhotosBox extends StatelessWidget {
                 Icon(CupertinoIcons.upload_circle, color: _C.primary),
                 SizedBox(width: 8),
                 Text(
+                  'Upload photos', // <-- FIXED (string first)
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  'Upload photos',
                   style: TextStyle(
                     color: _C.primary,
                     fontWeight: FontWeight.w800,
@@ -847,7 +988,7 @@ class _IconSquare extends StatelessWidget {
           width: 48,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: Color(0xFFE1E6EF), width: 1.4),
+            border: Border.all(color: const Color(0xFFE1E6EF), width: 1.4),
           ),
           child: Center(child: child),
         ),
@@ -892,6 +1033,26 @@ class _C {
 }
 
 class _D {
+  static InputDecoration fieldCompact(
+      {String? hint, Widget? prefix, Widget? suffix}) {
+    return const InputDecoration(
+      isDense: true,
+      hintText: null,
+      hintStyle:
+          TextStyle(fontSize: 13, color: _C.muted, fontWeight: FontWeight.w600),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding:
+          EdgeInsets.symmetric(horizontal: 10, vertical: 6), // tighter
+      border:
+          OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE1E6EF))),
+      enabledBorder:
+          OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE1E6EF))),
+      focusedBorder:
+          OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE1E6EF))),
+    ).copyWith(hintText: hint, prefixIcon: prefix, suffixIcon: suffix);
+  }
+
   static InputDecoration field({String? hint, Widget? prefix, Widget? suffix}) {
     return const InputDecoration(
       isDense: true,
@@ -930,11 +1091,17 @@ Future<void> pickFromList({
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
     builder: (ctx) {
-      final maxH = MediaQuery.of(ctx).size.height * 0.60;
+      final size = MediaQuery.of(ctx).size;
+      const rowH = 52.0; // each ListTile height-ish
+      const chromeH = 96.0; // header + drag handle + divider
+      final wanted = chromeH + (items.length * rowH);
+      final cap = size.height * 0.45; // <= 45% of screen
+      final height = wanted.clamp(0.0, cap);
+
       return SafeArea(
         top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxH),
+        child: SizedBox(
+          height: height,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -943,7 +1110,7 @@ Future<void> pickFromList({
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Color(0xFFE9EEF6),
+                  color: const Color(0xFFE9EEF6),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

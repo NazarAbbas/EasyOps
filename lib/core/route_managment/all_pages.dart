@@ -17,6 +17,9 @@ import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/support/ui/support_page.dart';
 import 'package:easy_ops/features/dashboard_screens/landing_dashboard/ui/landing_dashboard_page.dart';
+import 'package:easy_ops/features/dashboard_screens/preventive_dashboard/ui/preventive_dashboard_page.dart';
+import 'package:easy_ops/features/feature_preventive_maintenance/preventive_work_order_list/ui/preventive_work_order_list_page.dart';
+import 'package:easy_ops/features/feature_preventive_maintenance/puposed_new_slot/ui/purposed_new_slot_page.dart';
 import 'package:easy_ops/features/staff/ui/staff_tabs_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/mc_history/ui/mc_history_page.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
@@ -72,7 +75,6 @@ class AllPages {
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
-
       GetPage(
         name: Routes.homeDashboardScreen,
         page: () => HomeDashboardPage(),
@@ -217,7 +219,6 @@ class AllPages {
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
-
       GetPage(
         name: Routes.editWorkOrderInfoScreen,
         page: () => EditWorkOrderInfoPage(),
@@ -263,6 +264,24 @@ class AllPages {
       GetPage(
         name: Routes.myDashboardScreen,
         page: () => MyDashboardPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.preventivePurposeNewSlotScreen,
+        page: () => PurposedNewSlotPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.preventiveWorkOrderListScreen,
+        page: () => PreventiveWorkOrderListPage(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+      GetPage(
+        name: Routes.preventiveDashboardScreen,
+        page: () => PreventiveDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
