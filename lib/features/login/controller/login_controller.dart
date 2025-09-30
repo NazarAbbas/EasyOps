@@ -1,21 +1,20 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/theme_controller.dart';
-import 'package:easy_ops/database/app_database.dart';
-import 'package:easy_ops/database/entity/db_todo.dart';
+import 'package:easy_ops/database/db_repository/assets_repository.dart';
+import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
 import 'package:easy_ops/features/login/domain/repository_impl.dart';
 import 'package:easy_ops/core/utils/app_snackbar.dart';
-import 'package:easy_ops/features/login/store/assets_data_store.dart';
-import 'package:easy_ops/features/login/store/drop_down_store.dart';
-import 'package:easy_ops/features/login/store/shift_data_store.dart';
 import 'package:easy_ops/features/login/validator/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginPageController extends GetxController {
-  // DI: register AuthRepository in your bindings -> Get.put(AuthRepository(Get.find()));
   final RepositoryImpl repositoryImpl = RepositoryImpl();
-
+  final lookupRepository = Get.find<LookupRepository>();
+  final assetRepository = Get.find<AssetRepository>();
+  final shiftRepository = Get.find<ShiftRepository>();
   // Inputs
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -27,22 +26,14 @@ class LoginPageController extends GetxController {
   final themeController = Get.find<ThemeController>();
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
+    //db = await AppDatabase.open();
     emailController.text = "satya.eazysaas@gmail.com";
     passwordController.text = "r@Iv2Zi8iu?M";
   }
 
   Future<void> login() async {
-    //  Get.toNamed(Routes.landingDashboardScreen);
-    //return;
-// somewhere in an async function
-    final db = await AppDatabase.open();
-// insert returns the generated row id (if your @primaryKey has autoGenerate: true)
-    final newId = await db.todoDao.insertOne(Todo(title: 'Nazar'));
-    // read it back
-    final todo = await db.todoDao.findById(newId);
-
     if (isLoading.value) return;
 
     final userName = emailController.text.trim();
@@ -74,18 +65,13 @@ class LoginPageController extends GetxController {
         final dropDownData =
             await repositoryImpl.dropDownData(0, 20, 'sort_order,asc');
         final shiftData = await repositoryImpl.shiftData();
-
         final assetsData = await repositoryImpl.assetsData();
-
-        final dropDownStore = Get.find<DropDownStore>();
-        final shiftStore = Get.find<ShiftDataStore>();
-        final assetsStore = Get.find<AssetDataStore>();
         if (dropDownData.data != null &&
             shiftData.data != null &&
             assetsData.data != null) {
-          dropDownStore.data.value = dropDownData.data;
-          shiftStore.data.value = shiftData.data;
-          assetsStore.data.value = assetsData.data;
+          await lookupRepository.upsertLookupData(dropDownData.data!);
+          await assetRepository.upsertAssetData(assetsData.data!);
+          await shiftRepository.upsertAllShift(shiftData.data!);
           Get.toNamed(Routes.landingDashboardScreen);
           AppSnackbar.success(
             'Logged in successfully)',

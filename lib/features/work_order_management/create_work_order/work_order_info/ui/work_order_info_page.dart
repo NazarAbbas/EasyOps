@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:easy_ops/core/theme/app_colors.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -322,7 +323,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                           ),
                         ),
                         right: _Label(
-                          'Criticality',
+                          'Type',
                           SizedBox(
                             height: 48,
                             child: Obx(
@@ -652,7 +653,7 @@ Future<void> _openIssueTypeSheet(BuildContext context) async {
     onSelected: (name) {
       final hit = _firstWhereOrNull(
         c.issueTypeOptions,
-        (DropDownValues e) => e.displayName == name,
+        (LookupValues e) => e.displayName == name,
       );
       if (hit != null) c.selectedIssueTypeId.value = hit.id;
     },
@@ -674,7 +675,7 @@ Future<void> _openImpactSheet(BuildContext context) async {
     onSelected: (name) {
       final hit = _firstWhereOrNull(
         c.impactOptions,
-        (DropDownValues e) => e.displayName == name,
+        (LookupValues e) => e.displayName == name,
       );
       if (hit != null) c.selectedImpactId.value = hit.id;
     },
@@ -683,14 +684,14 @@ Future<void> _openImpactSheet(BuildContext context) async {
 
 // Map selected ID -> readable label
 String _labelFor(
-  List<DropDownValues> options,
+  List<LookupValues> options,
   String selectedId,
   String placeholder,
 ) {
   if (selectedId.isEmpty) return placeholder;
   final hit = _firstWhereOrNull(
     options,
-    (DropDownValues e) => e.id == selectedId,
+    (LookupValues e) => e.id == selectedId,
   );
   return hit?.displayName ?? placeholder;
 }
@@ -771,7 +772,7 @@ class _TapFieldSimple extends StatelessWidget {
   }
 }
 
-List<DropdownMenuItem<String>> _dropdownItems(List<DropDownValues> list) {
+List<DropdownMenuItem<String>> _dropdownItems(List<LookupValues> list) {
   return list
       .map((e) => DropdownMenuItem<String>(
             value: e.id, // use ID; keep label for display
@@ -1164,4 +1165,128 @@ Future<void> pickFromList({
       );
     },
   );
+}
+
+class AssetSerialSearchSheet extends StatefulWidget {
+  const AssetSerialSearchSheet({required this.items});
+  final List<AssetItem> items;
+
+  @override
+  State<AssetSerialSearchSheet> createState() => _AssetSerialSearchSheetState();
+}
+
+class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
+  final _searchCtrl = TextEditingController();
+  late List<AssetItem> _filtered;
+
+  @override
+  void initState() {
+    super.initState();
+    _filtered = _sorted(widget.items);
+    _searchCtrl.addListener(_onQuery);
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl
+      ..removeListener(_onQuery)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onQuery() {
+    final q = _searchCtrl.text.trim().toLowerCase();
+    setState(() {
+      _filtered = q.isEmpty
+          ? _sorted(widget.items)
+          : _sorted(widget.items.where((e) {
+              final sn = (e.serialNumber ?? '').toLowerCase();
+              final nm = e.name.toLowerCase();
+              return sn.contains(q) || nm.contains(q);
+            }).toList());
+    });
+  }
+
+  List<AssetItem> _sorted(List<AssetItem> list) {
+    final copy = List<AssetItem>.from(list);
+    copy.sort((a, b) {
+      final asn = (a.serialNumber ?? '').toLowerCase();
+      final bsn = (b.serialNumber ?? '').toLowerCase();
+      final by = asn.compareTo(bsn);
+      return by != 0
+          ? by
+          : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+    return copy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + viewInsets),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const Text(
+              'Select Asset by Serial No.',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _searchCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Search by serial no. or name',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: _filtered.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No matching assets'),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _filtered.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final it = _filtered[i];
+                        final sn = it.serialNumber ?? '-';
+                        return ListTile(
+                          title: Text(
+                            sn,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(
+                            it.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => Navigator.of(context).pop(it),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

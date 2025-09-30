@@ -4,7 +4,7 @@ import 'package:easy_ops/core/network/api_result.dart';
 import 'package:easy_ops/core/network/network_exception.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/domain/repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:get/get.dart';
 
 class RepositoryImpl implements Repository {
@@ -22,9 +22,9 @@ class RepositoryImpl implements Repository {
     } on DioException catch (e) {
       final code = e.response?.statusCode ?? 0;
       final msg = NetworkExceptions.getMessage(e);
-      return ApiResult<DropDownData>(httpCode: code, data: null, message: msg);
+      return ApiResult<LookupData>(httpCode: code, data: null, message: msg);
     } catch (e) {
-      return ApiResult<DropDownData>(
+      return ApiResult<LookupData>(
         httpCode: 0,
         data: null,
         message: e.toString(),

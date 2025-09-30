@@ -1,12 +1,16 @@
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkOrderDetailsController extends GetxController {
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
   late final WorkOrderDetailVM vm;
+
+  // Built request (after binding)
+  late final CreateWorkOrderRequest request;
 
   // Header
   final title = 'Work Order Details'.obs;
@@ -40,7 +44,7 @@ class WorkOrderDetailsController extends GetxController {
   final headline = ''.obs; // typeText
   final problemDescription = ''.obs; // problemDescription
 
-  // Media
+  // Media (for UI preview)
   final photoPaths = <String>[].obs;
   final voiceNotePath = ''.obs;
 
@@ -49,19 +53,78 @@ class WorkOrderDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
-    // Optionally merge args -> bag
-    // final args = Get.arguments;
-    // if (args is Map<String, dynamic>) _bag.merge(args);
-
-    // Build VM from bag
     vm = WorkOrderDetailVM.fromBag(_bag);
-
-    // Bind all page-facing values
     _bindFromVMAndBag();
   }
 
+  // ---------- MEDIA HELPERS ----------
+
+  MediaFile _mediaFromPath(String path) {
+    final p = path.trim();
+    final lower = p.toLowerCase();
+
+    String mime = 'application/octet-stream';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      mime = 'image/jpeg';
+    } else if (lower.endsWith('.png')) {
+      mime = 'image/png';
+    } else if (lower.endsWith('.webp')) {
+      mime = 'image/webp';
+    } else if (lower.endsWith('.heic')) {
+      mime = 'image/heic';
+    } else if (lower.endsWith('.mp4')) {
+      mime = 'video/mp4';
+    } else if (lower.endsWith('.mov')) {
+      mime = 'video/quicktime';
+    } else if (lower.endsWith('.m4a')) {
+      mime = 'audio/m4a';
+    } else if (lower.endsWith('.aac')) {
+      mime = 'audio/aac';
+    } else if (lower.endsWith('.mp3')) {
+      mime = 'audio/mpeg';
+    } else if (lower.endsWith('.wav')) {
+      mime = 'audio/wav';
+    }
+
+    return MediaFile(filePath: p, fileType: mime);
+  }
+
+  List<MediaFile> _buildMediaFiles(WorkOrderDetailVM vm) {
+    final files = <MediaFile>[];
+
+    // Photos
+    for (final p in vm.photos) {
+      if (p.trim().isNotEmpty) files.add(_mediaFromPath(p));
+    }
+
+    // Voice note
+    if (vm.voiceNotePath.trim().isNotEmpty) {
+      files.add(_mediaFromPath(vm.voiceNotePath));
+    }
+
+    return files;
+  }
+
+  // ---------- BINDING ----------
+
   void _bindFromVMAndBag() {
+    // Build request with media correctly mapped
+    request = CreateWorkOrderRequest(
+      type: 'Breakdown Management',
+      priority: vm.typeText,
+      status: 'OPEN',
+      title: 'Conveyor belt noise',
+      description: vm.problemDescription,
+      remark: vm.descriptionText,
+      scheduledStart: DateTime.now(), // will be converted to UTC by model
+      scheduledEnd: DateTime.now().add(const Duration(hours: 2)),
+      assetId: 'AST-000001',
+      reportedById: 'USR-000001',
+      plantId: 1,
+      departmentId: 2,
+      mediaFiles: _buildMediaFiles(vm), // <-- photos + voice bound properly
+    );
+
     // Operator footer
     operatorName.value = vm.operatorName;
     operatorPhoneNumber.value = vm.operatorMobileNumber;
@@ -81,7 +144,7 @@ class WorkOrderDetailsController extends GetxController {
     headline.value = vm.typeText;
     problemDescription.value = vm.problemDescription;
 
-    // Media
+    // Media (for UI preview)
     photoPaths.assignAll(vm.photos);
     voiceNotePath.value = vm.voiceNotePath;
 
@@ -90,15 +153,13 @@ class WorkOrderDetailsController extends GetxController {
     final plant = _bag.get<String>(WOKeys.plant, '');
     location.value = _joinNonEmpty([loc, plant], ' | ');
 
-    // Time (stored HH:mm) and Date (stored ISO-8601) -> strings
+    // Time & Date
     final tStr = _bag.get<String?>(WOKeys.reportedTime, null);
     final dStr = _bag.get<String?>(WOKeys.reportedDate, null);
-
     final t = _decodeTime(tStr);
     final d = _decodeDate(dStr);
-
-    time.value = t == null ? '' : _formatTime(t); // "HH:mm"
-    date.value = d == null ? '' : _formatDate(d); // "dd MMM"
+    time.value = t == null ? '' : _formatTime(t);
+    date.value = d == null ? '' : _formatDate(d!);
   }
 
   String _joinNonEmpty(List<String> parts, String sep) {
@@ -107,6 +168,7 @@ class WorkOrderDetailsController extends GetxController {
   }
 
   void create() {
+    // You can use `request` here to POST to API before navigation.
     Get.offAllNamed(
       Routes.landingDashboardScreen,
       arguments: {'tab': 3},

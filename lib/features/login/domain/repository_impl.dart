@@ -5,7 +5,7 @@ import 'package:easy_ops/core/network/network_exception.dart';
 import 'package:easy_ops/features/login/domain/repository.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:get/get.dart';
 
@@ -41,7 +41,7 @@ class RepositoryImpl implements Repository {
   }
 
   @override
-  Future<ApiResult<DropDownData>> dropDownData(
+  Future<ApiResult<LookupData>> dropDownData(
     int page,
     int size,
     String sort,
@@ -53,7 +53,7 @@ class RepositoryImpl implements Repository {
         sort: sort,
       );
 
-      return ApiResult<DropDownData>(
+      return ApiResult<LookupData>(
         httpCode: 200,
         data: dropDownData,
         message: 'Success',
@@ -61,13 +61,13 @@ class RepositoryImpl implements Repository {
     } on DioException catch (e) {
       final code = e.response?.statusCode ?? 0;
       final msg = NetworkExceptions.getMessage(e);
-      return ApiResult<DropDownData>(
+      return ApiResult<LookupData>(
         httpCode: code,
         data: null,
         message: msg,
       );
     } catch (e) {
-      return ApiResult<DropDownData>(
+      return ApiResult<LookupData>(
         httpCode: 0,
         data: null,
         message: e.toString(),

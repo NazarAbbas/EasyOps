@@ -2,7 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
@@ -18,7 +18,7 @@ abstract class RestClient {
   Future<LoginResponse> loginBasic(@Header('Authorization') String auth);
 
   @GET('/client-lookup/')
-  Future<DropDownData> getDropDownData({
+  Future<LookupData> getDropDownData({
     @Query('page') int page = 0,
     @Query('size') int size = 20,
     @Query('sort') String sort = 'sort_order,asc',

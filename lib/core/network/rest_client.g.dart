@@ -58,7 +58,7 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<DropDownData> getDropDownData({
+  Future<LookupData> getDropDownData({
     int page = 0,
     int size = 20,
     String sort = 'sort_order,asc',
@@ -71,7 +71,7 @@ class _RestClient implements RestClient {
     };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<DropDownData>(Options(
+    final _options = _setStreamType<LookupData>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -88,9 +88,9 @@ class _RestClient implements RestClient {
           baseUrl,
         )));
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late DropDownData _value;
+    late LookupData _value;
     try {
-      _value = DropDownData.fromJson(_result.data!);
+      _value = LookupData.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

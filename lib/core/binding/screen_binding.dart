@@ -18,9 +18,6 @@ import 'package:easy_ops/features/dashboard_screens/landing_dashboard/controller
 import 'package:easy_ops/features/dashboard_screens/preventive_dashboard/controller/preventive_dashboard_controller.dart';
 import 'package:easy_ops/features/feature_preventive_maintenance/preventive_work_order_list/controller/preventive_work_order_list_controller.dart';
 import 'package:easy_ops/features/feature_preventive_maintenance/puposed_new_slot/controller/purposed_new_slot_controller.dart';
-import 'package:easy_ops/features/login/store/assets_data_store.dart';
-import 'package:easy_ops/features/login/store/drop_down_store.dart';
-import 'package:easy_ops/features/login/store/shift_data_store.dart';
 import 'package:easy_ops/features/staff/controller/current_shift_controller.dart';
 import 'package:easy_ops/features/staff/controller/staff_search_controller.dart';
 import 'package:easy_ops/features/work_order_management/common_models/work_draft_model.dart';
@@ -88,11 +85,6 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => PreventiveWorkOrderListController());
     Get.lazyPut(() => PurposedNewSlotController());
     Get.lazyPut(() => PreventiveRootNavController());
-    Get.put(DropDownStore(), permanent: true); // global singleton
-    Get.put(ShiftDataStore(), permanent: true);
-    Get.put(AssetDataStore(), permanent: true);
-    // e.g. in main() or a Binding of the root shell
-    // Get.put(LandingRootNavController(), permanent: true);
     Get.lazyPut<LandingRootNavController>(
       () => LandingRootNavController(),
       fenix: true,
@@ -102,16 +94,5 @@ class ScreenBindings implements Bindings {
       () => WorkOrderBag(),
       fenix: false,
     );
-
-    //Get.find<WorkOrderBag>().clear();
-
-    // Get.lazyPut(() => LandingRootNavController());
-
-    //  Get.lazyPut(() => AlertsController());
-    //   Get.lazyPut(() => AlertsController());
-    //    Get.lazyPut(() => AlertsController());
-    //     Get.lazyPut(() => AlertsController());
-    //      Get.lazyPut(() => AlertsController());
-    //       Get.lazyPut(() => AlertsController());
   }
 }

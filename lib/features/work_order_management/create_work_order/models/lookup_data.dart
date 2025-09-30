@@ -1,19 +1,19 @@
 import 'dart:convert';
 
 /// Top-level wrapper
-class DropDownData {
-  final List<DropDownValues> content;
+class LookupData {
+  final List<LookupValues> content;
   final PageMeta page;
 
-  const DropDownData({
+  const LookupData({
     required this.content,
     required this.page,
   });
 
-  factory DropDownData.fromJson(Map<String, dynamic> json) {
-    return DropDownData(
+  factory LookupData.fromJson(Map<String, dynamic> json) {
+    return LookupData(
       content: (json['content'] as List<dynamic>? ?? [])
-          .map((e) => DropDownValues.fromJson(e as Map<String, dynamic>))
+          .map((e) => LookupValues.fromJson(e as Map<String, dynamic>))
           .toList(),
       page: PageMeta.fromJson(json['page'] as Map<String, dynamic>),
     );
@@ -25,13 +25,13 @@ class DropDownData {
       };
 
   /// Convenience
-  static DropDownData fromJsonString(String s) =>
-      DropDownData.fromJson(json.decode(s) as Map<String, dynamic>);
+  static LookupData fromJsonString(String s) =>
+      LookupData.fromJson(json.decode(s) as Map<String, dynamic>);
   String toJsonString() => json.encode(toJson());
 }
 
 /// Single lookup row
-class DropDownValues {
+class LookupValues {
   final String id;
   final String code;
   final String displayName;
@@ -43,7 +43,7 @@ class DropDownValues {
   final String tenantId;
   final String clientId;
 
-  const DropDownValues({
+  const LookupValues({
     required this.id,
     required this.code,
     required this.displayName,
@@ -56,8 +56,8 @@ class DropDownValues {
     required this.clientId,
   });
 
-  factory DropDownValues.fromJson(Map<String, dynamic> json) {
-    return DropDownValues(
+  factory LookupValues.fromJson(Map<String, dynamic> json) {
+    return LookupValues(
       id: json['id'] as String,
       code: json['code'] as String,
       displayName: json['displayName'] as String,
@@ -84,7 +84,7 @@ class DropDownValues {
         'clientId': clientId,
       };
 
-  DropDownValues copyWith({
+  LookupValues copyWith({
     String? id,
     String? code,
     String? displayName,
@@ -96,7 +96,7 @@ class DropDownValues {
     String? tenantId,
     String? clientId,
   }) {
-    return DropDownValues(
+    return LookupValues(
       id: id ?? this.id,
       code: code ?? this.code,
       displayName: displayName ?? this.displayName,

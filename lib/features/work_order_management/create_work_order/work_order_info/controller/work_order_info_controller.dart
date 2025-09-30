@@ -1,118 +1,78 @@
 // lib/.../work_order_info/controller/workorder_info_controller.dart
-import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/features/login/store/assets_data_store.dart';
-import 'package:easy_ops/features/login/store/drop_down_store.dart';
+import 'package:easy_ops/core/theme/app_colors.dart';
+import 'package:easy_ops/database/db_repository/assets_repository.dart';
+import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkorderInfoController extends GetxController {
-  // Config (only used for initial UI text defaults; binding comes from store)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Dependencies & config
+  // ─────────────────────────────────────────────────────────────────────────
+  final lookupRepository = Get.find<LookupRepository>();
+  final assetRepository = Get.find<AssetRepository>();
+  WorkOrderBag get _bag => Get.find<WorkOrderBag>();
+
   final WorkOrderConfig cfg = WorkOrderConfig.demo;
 
-  // Operator footer (editable)
-  late final RxString operatorName;
-  late final RxString operatorMobileNumber;
-  late final RxString operatorInfo;
+  // ─────────────────────────────────────────────────────────────────────────
+  // UI state: operator footer (editable)
+  // ─────────────────────────────────────────────────────────────────────────
+  final operatorName = '-'.obs;
+  final operatorMobileNumber = '-'.obs;
+  final operatorInfo = '-'.obs;
 
-  // Media (local only; saved to bag when navigating)
+  // ─────────────────────────────────────────────────────────────────────────
+  // UI state: media
+  // ─────────────────────────────────────────────────────────────────────────
   final photos = <String>[].obs;
   final voiceNotePath = ''.obs;
   final isRecording = false.obs;
 
+  // ─────────────────────────────────────────────────────────────────────────
   // Inputs
+  // ─────────────────────────────────────────────────────────────────────────
   final assetsCtrl = TextEditingController();
   final problemCtrl = TextEditingController();
 
-  // Derived from selected asset (BOUND to store data)
-  late final RxString typeText; // ← asset.criticality
-  late final RxString descriptionText; // ← asset.description
+  // Derived from selected asset
+  final typeText = '—'.obs; // asset.criticality
+  final descriptionText = '—'.obs; // asset.description
 
-  // Store-backed options
-  final RxList<DropDownValues> issueTypeOptions = <DropDownValues>[].obs;
-  final RxList<DropDownValues> impactOptions = <DropDownValues>[].obs;
+  // ─────────────────────────────────────────────────────────────────────────
+  // Dropdowns: options + selected
+  // ─────────────────────────────────────────────────────────────────────────
+  final issueTypeOptions = <LookupValues>[].obs;
+  final impactOptions = <LookupValues>[].obs;
 
-  // Selected (IDs)
-  final RxString selectedIssueTypeId = ''.obs;
-  final RxString selectedImpactId = ''.obs;
+  final selectedIssueTypeId = ''.obs;
+  final selectedImpactId = ''.obs;
 
-  // Legacy labels (kept for compatibility with existing bag keys)
+  // legacy labels (kept for compatibility with existing bag keys)
   final issueType = ''.obs;
   final impact = ''.obs;
 
+  // assets cache + serial index
+  final List<AssetItem> _storeAssets = <AssetItem>[];
+  final Map<String, AssetItem> _assetBySerial = <String, AssetItem>{};
+
   late final VoidCallback _assetListener;
-  WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
-  // ── Fast lookup by serialNumber (uppercase key) built from AssetDataStore
-  final Map<String, AssetItem> _assetBySerial = {};
-
-  // Convenience to get current assets list from store
-  List<AssetItem> get _storeAssets =>
-      Get.find<AssetDataStore>().data.value?.content ?? const <AssetItem>[];
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // Lifecycle
+  // ─────────────────────────────────────────────────────────────────────────
   @override
   void onInit() {
     super.onInit();
+    _initDefaults();
+    _initAsync();
 
-    // Load dropdown options from global store and prepend placeholders
-    final dd = Get.find<DropDownStore>();
-    final it = dd.ofType(LookupType.issuetype);
-    final im = dd.ofType(LookupType.impact);
-
-    issueTypeOptions.assignAll([
-      DropDownValues(
-        id: '',
-        code: '',
-        displayName: 'Select Issue Type',
-        description: '',
-        lookupType: LookupType.issuetype,
-        sortOrder: -1,
-        recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
-        tenantId: '',
-        clientId: '',
-      ),
-      ...it,
-    ]);
-
-    impactOptions.assignAll([
-      DropDownValues(
-        id: '',
-        code: '',
-        displayName: 'Select Impact Type',
-        description: '',
-        lookupType: LookupType.impact,
-        sortOrder: -1,
-        recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
-        tenantId: '',
-        clientId: '',
-      ),
-      ...im,
-    ]);
-
-    // Keep selected IDs empty initially so placeholder shows
-    selectedIssueTypeId.value = '';
-    selectedImpactId.value = '';
-
-    // Reactive fields defaults (will be overridden by store binding when chosen)
-    operatorName = cfg.operatorName.obs;
-    operatorMobileNumber = cfg.operatorMobileNumber.obs;
-    operatorInfo = cfg.operatorInfo.obs;
-
-    typeText = cfg.typeText.obs;
-    descriptionText = cfg.descriptionText.obs;
-
-    // Build index from store assets (serialNumber -> AssetItem)
-    _rebuildAssetSerialIndex();
-
-    // Hydrate from bag (may overwrite defaults)
-    _hydrateFromBag();
-
-    // Keep derived fields in sync while typing: try exact serial match
+    // keep derived fields in sync while typing: try exact serial match
     _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
   }
@@ -127,57 +87,102 @@ class WorkorderInfoController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Build fast index from store assets
+  // Init helpers
   // ─────────────────────────────────────────────────────────────────────────
-  void _rebuildAssetSerialIndex() {
-    _assetBySerial.clear();
-    for (final it in _storeAssets) {
-      final key = (it.serialNumber ?? '').trim().toUpperCase();
-      if (key.isNotEmpty) _assetBySerial[key] = it;
-    }
+  void _initDefaults() {
+    // initial footer text
+    operatorName.value = cfg.operatorName;
+    operatorMobileNumber.value = cfg.operatorMobileNumber;
+    operatorInfo.value = cfg.operatorInfo;
+
+    // initial derived text
+    typeText.value = cfg.typeText;
+    descriptionText.value = cfg.descriptionText;
+
+    // selected dropdown defaults -> placeholders (empty id)
+    selectedIssueTypeId.value = '';
+    selectedImpactId.value = '';
+  }
+
+  Future<void> _initAsync() async {
+    await _loadLookups();
+    await _loadAssets();
+
+    _rebuildAssetSerialIndex();
+    _hydrateFromBag();
+  }
+
+  Future<void> _loadLookups() async {
+    final impact = await lookupRepository.getLookupByType(LookupType.impact);
+    final issue = await lookupRepository.getLookupByType(LookupType.issuetype);
+
+    issueTypeOptions.assignAll([
+      _placeholderOption('Select Issue Type', LookupType.issuetype),
+      ...issue,
+    ]);
+
+    impactOptions.assignAll([
+      _placeholderOption('Select Impact Type', LookupType.impact),
+      ...impact,
+    ]);
+  }
+
+  Future<void> _loadAssets() async {
+    // pulls once; if you want reactive, expose a stream in repository
+    final list = await assetRepository.getAllAssets();
+    _storeAssets
+      ..clear()
+      ..addAll(list);
+  }
+
+  LookupValues _placeholderOption(String label, LookupType t) {
+    return LookupValues(
+      id: '',
+      code: '',
+      displayName: label,
+      description: '',
+      lookupType: t,
+      sortOrder: -1,
+      recordStatus: 1,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      tenantId: '',
+      clientId: '',
+    );
+    // note: we use empty id ("") as placeholder sentinel
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Hydrate from bag (prefers IDs, falls back to labels)
+  // Bag hydration & saving
   // ─────────────────────────────────────────────────────────────────────────
   void _hydrateFromBag() {
-    // Prefer IDs if present
+    // preferred ids
     final bagIssueTypeId = _bag.get<String>('issueTypeId', '');
     final bagImpactId = _bag.get<String>('impactId', '');
 
     if (bagIssueTypeId.isNotEmpty) selectedIssueTypeId.value = bagIssueTypeId;
     if (bagImpactId.isNotEmpty) selectedImpactId.value = bagImpactId;
 
-    // Legacy labels
+    // legacy labels
     final issueTypeLabel = _bag.get<String>('issueType', issueType.value);
     final impactLabel = _bag.get<String>('impact', impact.value);
 
-    // If ID not found, try to map label -> ID
-    if (selectedIssueTypeId.value.isEmpty && issueTypeLabel.isNotEmpty) {
-      final itHit = _firstWhereOrNull<DropDownValues>(
-        issueTypeOptions,
-        (e) =>
-            e.displayName.trim().toLowerCase() ==
-            issueTypeLabel.trim().toLowerCase(),
-      );
-      if (itHit != null) selectedIssueTypeId.value = itHit.id;
-    }
+    // try label->id when id missing
+    _maybeFixSelectedIdFromLabel(
+      selectedIssueTypeId,
+      issueTypeOptions,
+      issueTypeLabel,
+    );
+    _maybeFixSelectedIdFromLabel(
+      selectedImpactId,
+      impactOptions,
+      impactLabel,
+    );
 
-    if (selectedImpactId.value.isEmpty && impactLabel.isNotEmpty) {
-      final imHit = _firstWhereOrNull<DropDownValues>(
-        impactOptions,
-        (e) =>
-            e.displayName.trim().toLowerCase() ==
-            impactLabel.trim().toLowerCase(),
-      );
-      if (imHit != null) selectedImpactId.value = imHit.id;
-    }
-
-    // Keep legacy labels too
+    // keep legacy
     issueType.value = issueTypeLabel;
     impact.value = impactLabel;
 
-    // Other fields
+    // other fields
     assetsCtrl.text = _bag.get<String>('assetsNumber', assetsCtrl.text);
     problemCtrl.text = _bag.get<String>('problemDescription', problemCtrl.text);
 
@@ -195,29 +200,25 @@ class WorkorderInfoController extends GetxController {
         _bag.get<String>('operatorMobileNumber', operatorMobileNumber.value);
     operatorInfo.value = _bag.get<String>('operatorInfo', operatorInfo.value);
 
-    // If an asset serial is already in the bag, try to bind meta from store now
+    // bind asset-derived fields if serial present
     _applyMetaIfSerialMatch(assetsCtrl.text);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Save ONLY when moving screens/tabs
-  // ─────────────────────────────────────────────────────────────────────────
   void saveToBag() {
-    final it = _firstWhereOrNull<DropDownValues>(
+    final it = _firstWhereOrNull<LookupValues>(
       issueTypeOptions,
       (e) => e.id == selectedIssueTypeId.value,
     );
-    final im = _firstWhereOrNull<DropDownValues>(
+    final im = _firstWhereOrNull<LookupValues>(
       impactOptions,
       (e) => e.id == selectedImpactId.value,
     );
 
     _bag.merge({
-      // New IDs (authoritative)
       'issueTypeId': selectedIssueTypeId.value,
       'impactId': selectedImpactId.value,
 
-      // Legacy labels (store displayName for readability)
+      // legacy labels for readability
       'issueType': it?.displayName ?? issueType.value,
       'impact': im?.displayName ?? impact.value,
 
@@ -227,20 +228,53 @@ class WorkorderInfoController extends GetxController {
       'descriptionText': descriptionText.value,
       'photos': photos.toList(),
       'voiceNotePath': voiceNotePath.value,
+
       'operatorName': operatorName.value,
       'operatorMobileNumber': operatorMobileNumber.value,
       'operatorInfo': operatorInfo.value,
+
+      // keep a single key; remove accidental duplication
+      'assetId': assetsCtrl.text.trim(),
     });
   }
 
-  /// Call from UI before leaving this page / switching tab
   void beforeNavigate(VoidCallback navigate) {
     saveToBag();
     navigate();
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Local mutations
+  // Asset helpers
+  // ─────────────────────────────────────────────────────────────────────────
+  void _rebuildAssetSerialIndex() {
+    _assetBySerial.clear();
+    for (final it in _storeAssets) {
+      final key = (it.serialNumber ?? '').trim().toUpperCase();
+      if (key.isNotEmpty) _assetBySerial[key] = it;
+    }
+  }
+
+  void _applyMetaIfSerialMatch(String input) {
+    final key = input.trim().toUpperCase();
+    final item = _assetBySerial[key];
+    if (item != null) _applyAssetFromItem(item);
+  }
+
+  void _applyAssetFromItem(AssetItem item) {
+    final sn = (item.serialNumber ?? '').trim();
+    if (sn.isNotEmpty && assetsCtrl.text.trim() != sn) {
+      assetsCtrl.text = sn;
+    }
+    _setAssetMeta(type: item.criticality, description: item.description ?? '');
+  }
+
+  void _setAssetMeta({required String type, required String description}) {
+    typeText.value = type;
+    descriptionText.value = description;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // UI event helpers
   // ─────────────────────────────────────────────────────────────────────────
   void updateOperatorFooter({String? name, String? mobile, String? info}) {
     if (name != null) operatorName.value = name;
@@ -248,36 +282,6 @@ class WorkorderInfoController extends GetxController {
     if (info != null) operatorInfo.value = info;
   }
 
-  // Bind UI with these two values
-  void setAssetMeta({required String type, required String description}) {
-    typeText.value = type;
-    descriptionText.value = description;
-  }
-
-  // When user types in the serial number field
-  void _applyMetaIfSerialMatch(String input) {
-    final key = input.trim().toUpperCase();
-    final item = _assetBySerial[key];
-    if (item != null) {
-      _applyAssetFromItem(item);
-    }
-  }
-
-  // Centralized mapping when an asset is chosen
-  void _applyAssetFromItem(AssetItem item) {
-    // Ensure the input shows the authoritative serialNumber
-    final sn = (item.serialNumber ?? '').trim();
-    if (sn.isNotEmpty && assetsCtrl.text.trim() != sn) {
-      assetsCtrl.text = sn;
-    }
-    // Bind from store data
-    setAssetMeta(
-      type: item.criticality,
-      description: item.description ?? '',
-    );
-  }
-
-  // Media (local only)
   void addPhoto(String path) => photos.add(path);
   void addPhotos(Iterable<String> paths) => photos.addAll(paths);
   void removePhotoAt(int index) {
@@ -290,7 +294,9 @@ class WorkorderInfoController extends GetxController {
   void setVoiceNote(String path) => voiceNotePath.value = path;
   void clearVoiceNote() => voiceNotePath.value = '';
 
-  // ───────── Validation (ALL required, including media)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Validation & navigation
+  // ─────────────────────────────────────────────────────────────────────────
   List<String> _validate() {
     final missing = <String>[];
 
@@ -300,36 +306,62 @@ class WorkorderInfoController extends GetxController {
     if (assetsCtrl.text.trim().isEmpty) missing.add('Assets Number');
     if (problemCtrl.text.trim().isEmpty) missing.add('Problem Description');
 
-    // Require at least 1 photo
     if (photos.isEmpty) missing.add('At least one Photo');
-
-    // Require a voice note
     if (voiceNotePath.value.isEmpty) missing.add('Voice Note');
 
     return missing;
   }
 
-  // ───────── Validate & Navigate
   void goToWorkOrderDetailScreen() {
     final missing = _validate();
     if (missing.isNotEmpty) {
-      Get.snackbar(
-        'Missing Info',
-        'Please fill: ${missing.join(', ')}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: AppColors.white,
-      );
+      _showError('Missing Info', 'Please fill: ${missing.join(', ')}');
       return;
     }
-
     saveToBag();
     Get.toNamed(Routes.workOrderDetailScreen);
   }
 
-  // ───────── Asset picker using STORE (search by serial no.)
+  void _showError(String title, String message) {
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.red,
+      colorText: AppColors.white,
+      duration: const Duration(seconds: 3),
+      margin: const EdgeInsets.all(12),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Small utilities
+  // ─────────────────────────────────────────────────────────────────────────
+  void _maybeFixSelectedIdFromLabel(
+    RxString selectedId,
+    List<LookupValues> options,
+    String label,
+  ) {
+    if (selectedId.value.isNotEmpty || label.isEmpty) return;
+    final hit = _firstWhereOrNull<LookupValues>(
+      options,
+      (e) => e.displayName.trim().toLowerCase() == label.trim().toLowerCase(),
+    );
+    if (hit != null) selectedId.value = hit.id;
+  }
+
+  T? _firstWhereOrNull<T>(Iterable<T> it, bool Function(T) test) {
+    for (final e in it) {
+      if (test(e)) return e;
+    }
+    return null;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Asset picker
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> openAssetPickerFromStore(BuildContext context) async {
-    _rebuildAssetSerialIndex(); // refresh index in case store changed
+    _rebuildAssetSerialIndex(); // refresh index in case assets changed
 
     final picked = await showModalBottomSheet<AssetItem>(
       context: context,
@@ -337,145 +369,10 @@ class WorkorderInfoController extends GetxController {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => _AssetSerialSearchSheet(items: _storeAssets),
+      builder: (_) => AssetSerialSearchSheet(items: _storeAssets),
     );
 
-    if (picked != null) {
-      _applyAssetFromItem(picked);
-    }
-  }
-
-  // helper (local)
-  T? _firstWhereOrNull<T>(Iterable<T> it, bool Function(T) test) {
-    for (final e in it) {
-      if (test(e)) return e;
-    }
-    return null;
-  }
-}
-
-/* -------------------------- ASSET PICKER UI -------------------------- */
-
-class _AssetSerialSearchSheet extends StatefulWidget {
-  const _AssetSerialSearchSheet({required this.items});
-  final List<AssetItem> items;
-
-  @override
-  State<_AssetSerialSearchSheet> createState() =>
-      _AssetSerialSearchSheetState();
-}
-
-class _AssetSerialSearchSheetState extends State<_AssetSerialSearchSheet> {
-  final _searchCtrl = TextEditingController();
-  late List<AssetItem> _filtered;
-
-  @override
-  void initState() {
-    super.initState();
-    _filtered = _sorted(widget.items);
-    _searchCtrl.addListener(_onQuery);
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl
-      ..removeListener(_onQuery)
-      ..dispose();
-    super.dispose();
-  }
-
-  void _onQuery() {
-    final q = _searchCtrl.text.trim().toLowerCase();
-    setState(() {
-      if (q.isEmpty) {
-        _filtered = _sorted(widget.items);
-      } else {
-        _filtered = _sorted(
-          widget.items.where((e) {
-            final sn = (e.serialNumber ?? '').toLowerCase();
-            final nm = e.name.toLowerCase();
-            return sn.contains(q) || nm.contains(q);
-          }).toList(),
-        );
-      }
-    });
-  }
-
-  List<AssetItem> _sorted(List<AssetItem> list) {
-    final copy = List<AssetItem>.from(list);
-    copy.sort((a, b) {
-      final asn = (a.serialNumber ?? '').toLowerCase();
-      final bsn = (b.serialNumber ?? '').toLowerCase();
-      final by = asn.compareTo(bsn);
-      return by != 0
-          ? by
-          : a.name.toLowerCase().compareTo(b.name.toLowerCase());
-    });
-    return copy;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + viewInsets),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            const Text('Select Asset by Serial No.',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _searchCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Search by serial no. or name',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-                isDense: true,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Flexible(
-              child: _filtered.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No matching assets'),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: _filtered.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (_, i) {
-                        final it = _filtered[i];
-                        final sn = it.serialNumber ?? '-';
-                        return ListTile(
-                          title: Text(sn,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(it.name,
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
-                          onTap: () => Navigator.of(context).pop(it),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (picked != null) _applyAssetFromItem(picked);
   }
 }
 
@@ -500,7 +397,7 @@ class WorkOrderConfig {
     operatorName: 'Ajay Kumar (MP18292)',
     operatorMobileNumber: '9876543211',
     operatorInfo: 'Assets Shop | 12:20 | 03 Sept | A',
-    typeText: '—', // replaced when asset selected
-    descriptionText: '—', // replaced when asset selected
+    typeText: '—',
+    descriptionText: '—',
   );
 }

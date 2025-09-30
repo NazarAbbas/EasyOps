@@ -8,7 +8,7 @@ import 'package:easy_ops/core/network/rest_client.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/drop_down_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 
 class ApiService {
@@ -34,7 +34,7 @@ class ApiService {
     }
   }
 
-  Future<DropDownData> dropDownData({
+  Future<LookupData> dropDownData({
     int page = 0,
     int size = 100,
     String sort = 'sort_order,asc',

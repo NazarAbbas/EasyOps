@@ -1,5 +1,5 @@
 class Constant {
-  static String databaseName = 'gandiv_database.db';
+  static String databaseName = 'easy_ops.db';
   static String selectedLanguage = 'selected_language';
   static String selectedLocation = 'selected_location';
   static String token = 'token';
