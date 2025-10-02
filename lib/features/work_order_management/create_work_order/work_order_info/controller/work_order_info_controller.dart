@@ -18,7 +18,7 @@ class WorkorderInfoController extends GetxController {
   final assetRepository = Get.find<AssetRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
-  final WorkOrderConfig cfg = WorkOrderConfig.demo;
+  //final WorkOrderConfig cfg = WorkOrderConfig.demo;
 
   // ─────────────────────────────────────────────────────────────────────────
   // UI state: operator footer (editable)
@@ -52,6 +52,7 @@ class WorkorderInfoController extends GetxController {
 
   final selectedIssueTypeId = ''.obs;
   final selectedImpactId = ''.obs;
+  final assetsId = ''.obs;
 
   // legacy labels (kept for compatibility with existing bag keys)
   final issueType = ''.obs;
@@ -59,7 +60,7 @@ class WorkorderInfoController extends GetxController {
 
   // assets cache + serial index
   final List<AssetItem> _storeAssets = <AssetItem>[];
-  final Map<String, AssetItem> _assetBySerial = <String, AssetItem>{};
+  final Map<String, AssetItem> _assetId = <String, AssetItem>{};
 
   late final VoidCallback _assetListener;
 
@@ -90,14 +91,12 @@ class WorkorderInfoController extends GetxController {
   // Init helpers
   // ─────────────────────────────────────────────────────────────────────────
   void _initDefaults() {
-    // initial footer text
-    operatorName.value = cfg.operatorName;
-    operatorMobileNumber.value = cfg.operatorMobileNumber;
-    operatorInfo.value = cfg.operatorInfo;
+    operatorName.value = 'Ajay Kumar (MP18292)';
+    operatorMobileNumber.value = '9876543211';
+    operatorInfo.value = 'Assets Shop | 12:20 | 03 Sept | A';
 
-    // initial derived text
-    typeText.value = cfg.typeText;
-    descriptionText.value = cfg.descriptionText;
+    typeText.value = '—';
+    descriptionText.value = '—';
 
     // selected dropdown defaults -> placeholders (empty id)
     selectedIssueTypeId.value = '';
@@ -183,58 +182,47 @@ class WorkorderInfoController extends GetxController {
     impact.value = impactLabel;
 
     // other fields
-    assetsCtrl.text = _bag.get<String>('assetsNumber', assetsCtrl.text);
-    problemCtrl.text = _bag.get<String>('problemDescription', problemCtrl.text);
+    assetsCtrl.text = _bag.get<String>(WOKeys.assetsNumber, assetsCtrl.text);
+    problemCtrl.text =
+        _bag.get<String>(WOKeys.problemDescription, problemCtrl.text);
 
-    typeText.value = _bag.get<String>('typeText', typeText.value);
+    typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
     descriptionText.value =
-        _bag.get<String>('descriptionText', descriptionText.value);
+        _bag.get<String>(WOKeys.descriptionText, descriptionText.value);
 
-    final ph = _bag.get<List?>('photos', const []) ?? const [];
+    final ph = _bag.get<List?>(WOKeys.photos, const []) ?? const [];
     photos.assignAll(ph.map((e) => e.toString()));
     voiceNotePath.value =
-        _bag.get<String>('voiceNotePath', voiceNotePath.value);
+        _bag.get<String>(WOKeys.voiceNotePath, voiceNotePath.value);
 
-    operatorName.value = _bag.get<String>('operatorName', operatorName.value);
-    operatorMobileNumber.value =
-        _bag.get<String>('operatorMobileNumber', operatorMobileNumber.value);
-    operatorInfo.value = _bag.get<String>('operatorInfo', operatorInfo.value);
+    operatorName.value =
+        _bag.get<String>(WOKeys.operatorName, operatorName.value);
+    operatorMobileNumber.value = _bag.get<String>(
+        WOKeys.operatorMobileNumber, operatorMobileNumber.value);
+    operatorInfo.value =
+        _bag.get<String>(WOKeys.operatorInfo, operatorInfo.value);
 
     // bind asset-derived fields if serial present
     _applyMetaIfSerialMatch(assetsCtrl.text);
   }
 
   void saveToBag() {
-    final it = _firstWhereOrNull<LookupValues>(
-      issueTypeOptions,
-      (e) => e.id == selectedIssueTypeId.value,
-    );
-    final im = _firstWhereOrNull<LookupValues>(
-      impactOptions,
-      (e) => e.id == selectedImpactId.value,
-    );
-
     _bag.merge({
-      'issueTypeId': selectedIssueTypeId.value,
-      'impactId': selectedImpactId.value,
-
-      // legacy labels for readability
-      'issueType': it?.displayName ?? issueType.value,
-      'impact': im?.displayName ?? impact.value,
-
-      'assetsNumber': assetsCtrl.text.trim(),
-      'problemDescription': problemCtrl.text.trim(),
-      'typeText': typeText.value,
-      'descriptionText': descriptionText.value,
-      'photos': photos.toList(),
-      'voiceNotePath': voiceNotePath.value,
-
-      'operatorName': operatorName.value,
-      'operatorMobileNumber': operatorMobileNumber.value,
-      'operatorInfo': operatorInfo.value,
-
-      // keep a single key; remove accidental duplication
-      'assetId': assetsCtrl.text.trim(),
+      WOKeys.issueTypeId: selectedIssueTypeId.value,
+      WOKeys.impactId: selectedImpactId.value,
+      WOKeys.assetsId: assetsId.value,
+      WOKeys.issueType: issueType.value,
+      WOKeys.impact: impact.value,
+      WOKeys.assetsNumber: assetsCtrl.text.trim(),
+      WOKeys.problemDescription: problemCtrl.text.trim(),
+      WOKeys.typeText: typeText.value,
+      WOKeys.descriptionText: descriptionText.value,
+      WOKeys.photos: photos.toList(),
+      WOKeys.voiceNotePath: voiceNotePath.value,
+      WOKeys.operatorName: operatorName.value,
+      WOKeys.operatorMobileNumber: operatorMobileNumber.value,
+      WOKeys.operatorInfo: operatorInfo.value,
+      //WOKeys.asset: assetsCtrl.text.trim(),
     });
   }
 
@@ -247,23 +235,25 @@ class WorkorderInfoController extends GetxController {
   // Asset helpers
   // ─────────────────────────────────────────────────────────────────────────
   void _rebuildAssetSerialIndex() {
-    _assetBySerial.clear();
+    _assetId.clear();
     for (final it in _storeAssets) {
       final key = (it.serialNumber ?? '').trim().toUpperCase();
-      if (key.isNotEmpty) _assetBySerial[key] = it;
+      if (key.isNotEmpty) _assetId[key] = it;
     }
   }
 
   void _applyMetaIfSerialMatch(String input) {
     final key = input.trim().toUpperCase();
-    final item = _assetBySerial[key];
+    final item = _assetId[key];
     if (item != null) _applyAssetFromItem(item);
   }
 
   void _applyAssetFromItem(AssetItem item) {
+    final id = (item.id ?? '').trim();
     final sn = (item.serialNumber ?? '').trim();
     if (sn.isNotEmpty && assetsCtrl.text.trim() != sn) {
       assetsCtrl.text = sn;
+      assetsId.value = id;
     }
     _setAssetMeta(type: item.criticality, description: item.description ?? '');
   }
@@ -378,26 +368,26 @@ class WorkorderInfoController extends GetxController {
 
 /* ------------------------------ DUMMY CONFIG (for initial text only) ------------------------------ */
 
-class WorkOrderConfig {
-  final String operatorName;
-  final String operatorMobileNumber;
-  final String operatorInfo;
-  final String typeText;
-  final String descriptionText;
+// class WorkOrderConfig {
+//   final String operatorName;
+//   final String operatorMobileNumber;
+//   final String operatorInfo;
+//   final String typeText;
+//   final String descriptionText;
 
-  const WorkOrderConfig({
-    required this.operatorName,
-    required this.operatorMobileNumber,
-    required this.operatorInfo,
-    required this.typeText,
-    required this.descriptionText,
-  });
+//   const WorkOrderConfig({
+//     required this.operatorName,
+//     required this.operatorMobileNumber,
+//     required this.operatorInfo,
+//     required this.typeText,
+//     required this.descriptionText,
+//   });
 
-  static const demo = WorkOrderConfig(
-    operatorName: 'Ajay Kumar (MP18292)',
-    operatorMobileNumber: '9876543211',
-    operatorInfo: 'Assets Shop | 12:20 | 03 Sept | A',
-    typeText: '—',
-    descriptionText: '—',
-  );
-}
+//   static const demo = WorkOrderConfig(
+//     operatorName: 'Ajay Kumar (MP18292)',
+//     operatorMobileNumber: '9876543211',
+//     operatorInfo: 'Assets Shop | 12:20 | 03 Sept | A',
+//     typeText: '—',
+//     descriptionText: '—',
+//   );
+//}

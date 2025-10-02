@@ -3,6 +3,7 @@
 
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_detail/controller/work_order_details_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
@@ -34,221 +35,230 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE9EEF5)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
-            child: Obx(() {
-              final pillColor = _priorityColor(controller.priority.value);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Reporter (your original content)
-                  _KVBlock(
-                    rows: [
-                      _KV(
-                        label: 'Reported By :',
-                        value: controller.reportedBy.value.isEmpty
-                            ? '—'
-                            : controller.reportedBy.value,
+      body: Obx(() => Stack(
+            children: [
+              SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE9EEF5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-
-                  // Operator (your original content)
-                  _OperatorSection(
-                    name: controller.operatorName.value,
-                    phone: controller.operatorPhoneNumber.value,
-                    info: controller.operatorInfo.value,
-                  ),
-
-                  const _DividerPad(),
-
-                  // Issue summary + priority (your original content)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          controller.problemDescription.value.isEmpty
-                              ? '—'
-                              : controller.problemDescription.value,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: _C.text,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15.5,
-                            height: 1.25,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+                    child: Obx(() {
+                      final pillColor =
+                          _priorityColor(controller.priority.value);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Reporter (your original content)
+                          _KVBlock(
+                            rows: [
+                              _KV(
+                                label: 'Reported By :',
+                                value: controller.reportedBy.value.isEmpty
+                                    ? '—'
+                                    : controller.reportedBy.value,
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _Pill(
-                        text: controller.priority.value.isEmpty
-                            ? '—'
-                            : controller.priority.value,
-                        color: pillColor,
-                      ),
-                    ],
-                  ),
+                          const SizedBox(height: 8),
 
-                  const SizedBox(height: 8),
-
-                  // Time | Date | Issue type (your original content)
-                  Row(
-                    children: [
-                      Text(
-                        [
-                          controller.time.value.isEmpty
-                              ? '—'
-                              : controller.time.value,
-                          controller.date.value.isEmpty
-                              ? '—'
-                              : controller.date.value,
-                        ].join(' | '),
-                        style: const TextStyle(
-                          color: _C.muted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        controller.issueType.value.isEmpty
-                            ? '—'
-                            : controller.issueType.value,
-                        style: const TextStyle(
-                          color: _C.muted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        CupertinoIcons.exclamationmark_triangle_fill,
-                        size: 14,
-                        color: Color(0xFFE25555),
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          controller.cnc_1.value,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                          // Operator (your original content)
+                          _OperatorSection(
+                            name: controller.operatorName.value,
+                            phone: controller.operatorPhoneNumber.value,
+                            info: controller.operatorInfo.value,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
 
-                  // Line (your original optional block)
-                  if (controller.line.value.isNotEmpty) ...[
-                    Row(
-                      children: [
-                        const Icon(
-                          CupertinoIcons.exclamationmark_triangle_fill,
-                          size: 14,
-                          color: Color(0xFFE25555),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            controller.line.value,
+                          const _DividerPad(),
+
+                          // Issue summary + priority (your original content)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  controller.problemDescription.value.isEmpty
+                                      ? '—'
+                                      : controller.problemDescription.value,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: _C.text,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15.5,
+                                    height: 1.25,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _Pill(
+                                text: controller.priority.value.isEmpty
+                                    ? '—'
+                                    : controller.priority.value,
+                                color: pillColor,
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Time | Date | Issue type (your original content)
+                          Row(
+                            children: [
+                              Text(
+                                [
+                                  controller.time.value.isEmpty
+                                      ? '—'
+                                      : controller.time.value,
+                                  controller.date.value.isEmpty
+                                      ? '—'
+                                      : controller.date.value,
+                                ].join(' | '),
+                                style: const TextStyle(
+                                  color: _C.muted,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                controller.issueType.value.isEmpty
+                                    ? '—'
+                                    : controller.issueType.value,
+                                style: const TextStyle(
+                                  color: _C.muted,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(
+                                CupertinoIcons.exclamationmark_triangle_fill,
+                                size: 14,
+                                color: Color(0xFFE25555),
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  controller.cnc_1.value,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Line (your original optional block)
+                          if (controller.line.value.isNotEmpty) ...[
+                            Row(
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.exclamationmark_triangle_fill,
+                                  size: 14,
+                                  color: Color(0xFFE25555),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    controller.line.value,
+                                    style: const TextStyle(
+                                      color: _C.text,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                          ],
+
+                          // Location (your original)
+                          if (controller.location.value.isNotEmpty)
+                            Text(
+                              controller.location.value,
+                              style: const TextStyle(
+                                color: _C.muted,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+
+                          const _DividerPad(),
+
+                          // Headline & Description (your original)
+                          Text(
+                            controller.descriptionText.value.isEmpty
+                                ? '—'
+                                : controller.descriptionText.value,
                             style: const TextStyle(
                               color: _C.text,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15.5,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                  ],
+                          const SizedBox(height: 6),
+                          Text(
+                            controller.problemDescription.value.isEmpty
+                                ? '—'
+                                : controller.problemDescription.value,
+                            style:
+                                const TextStyle(color: _C.text, height: 1.35),
+                          ),
+                          const SizedBox(height: 12),
 
-                  // Location (your original)
-                  if (controller.location.value.isNotEmpty)
-                    Text(
-                      controller.location.value,
-                      style: const TextStyle(
-                        color: _C.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                          // ───────────────── MEDIA (new polished UI ONLY) ─────────────────
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Photos
+                              if (controller.photoPaths.isEmpty)
+                                const _EmptyHint(text: 'No photos attached')
+                              else
+                                _PhotoGrid(paths: controller.photoPaths),
 
-                  const _DividerPad(),
+                              const SizedBox(height: 12),
 
-                  // Headline & Description (your original)
-                  Text(
-                    controller.descriptionText.value.isEmpty
-                        ? '—'
-                        : controller.descriptionText.value,
-                    style: const TextStyle(
-                      color: _C.text,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15.5,
-                    ),
+                              // Audio
+                              if (controller.voiceNotePath.value.isEmpty)
+                                const _EmptyHint(text: 'No audio attached')
+                              else
+                                ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 320),
+                                  child: _AudioCard(
+                                      path: controller.voiceNotePath.value),
+                                ),
+                            ],
+                          )
+
+                          // ────────────────────────────────────────────────────────────────
+                        ],
+                      );
+                    }),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    controller.problemDescription.value.isEmpty
-                        ? '—'
-                        : controller.problemDescription.value,
-                    style: const TextStyle(color: _C.text, height: 1.35),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ───────────────── MEDIA (new polished UI ONLY) ─────────────────
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Photos
-                      if (controller.photoPaths.isEmpty)
-                        const _EmptyHint(text: 'No photos attached')
-                      else
-                        _PhotoGrid(paths: controller.photoPaths),
-
-                      const SizedBox(height: 12),
-
-                      // Audio
-                      if (controller.voiceNotePath.value.isEmpty)
-                        const _EmptyHint(text: 'No audio attached')
-                      else
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 320),
-                          child:
-                              _AudioCard(path: controller.voiceNotePath.value),
-                        ),
-                    ],
-                  )
-
-                  // ────────────────────────────────────────────────────────────────
-                ],
-              );
-            }),
-          ),
-        ),
-      ),
+                ),
+              ),
+              if (controller.isLoading.value)
+                const LoadingOverlay(message: 'Creating work order...'),
+            ],
+          )),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(

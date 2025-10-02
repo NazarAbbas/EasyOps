@@ -13,51 +13,65 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   final LookupRepository lookupRepository = Get.find<LookupRepository>();
   final ShiftRepository shiftRepository = Get.find<ShiftRepository>();
-  final OperatorInfoConfig cfg = OperatorInfoConfig.demo;
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Text fields (init at declaration to avoid LateInitializationError)
+  // Text fields
   // ─────────────────────────────────────────────────────────────────────────
   final TextEditingController operatorCtrl = TextEditingController();
   final TextEditingController reporterCtrl = TextEditingController();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Reactive scalar fields
+  // Reactive scalar fields (names)
   // ─────────────────────────────────────────────────────────────────────────
   final sameAsOperator = false.obs;
   RxString employeeId = '-'.obs;
   RxString phoneNumber = '-'.obs;
-  RxString plant = '-'.obs;
-  RxString shift = '-'.obs;
-  RxString location = '-'.obs;
+
+  // Display names currently selected in UI
+  RxString plant = '-'.obs; // PLANT name
+  RxString location = '-'.obs; // DEPARTMENT name
+  RxString shift = '-'.obs; // SHIFT name
 
   final reportedTime = Rxn<TimeOfDay>();
   final reportedDate = Rxn<DateTime>();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Dropdown data sources (full objects for typed pickers)
+  // Selected IDs (backend identifiers)
+  // ─────────────────────────────────────────────────────────────────────────
+  final RxString plantId = ''.obs;
+  final RxString locationId = ''.obs; // department id
+  final RxString shiftId = ''.obs;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Dropdown data sources (typed) + names
   // ─────────────────────────────────────────────────────────────────────────
   final RxList<LookupValues> locationTypeOptions = <LookupValues>[].obs;
   final RxList<LookupValues> plantTypeOptions = <LookupValues>[].obs;
 
-  // Names-only lists (useful for simple TextFields/Autocomplete)
   final RxList<String> locationOptions = <String>[].obs; // DEPARTMENT names
   final RxList<String> plantOptions = <String>[].obs; // PLANT names
-  final RxList<String> shiftOptions = <String>[].obs; // Shift names
+  final RxList<String> shiftOptions = <String>[].obs; // SHIFT names
 
   // Shorthand getters for UI
   List<String> get locations => locationOptions;
   List<String> get plantsOpt => plantOptions;
   List<String> get shiftsOpt => shiftOptions;
 
-  // For pickers (exclude placeholder)
+  // Filtered (exclude placeholder)
   List<String> get locationsForPicker =>
       locationOptions.where((e) => e != _placeholder).toList();
   List<String> get plantsForPicker =>
       plantOptions.where((e) => e != _placeholder).toList();
   List<String> get shiftsForPicker =>
       shiftOptions.where((e) => e != _placeholder).toList();
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Name → ID maps for quick lookup
+  // ─────────────────────────────────────────────────────────────────────────
+  final Map<String, String> _plantNameToId = {};
+  final Map<String, String> _deptNameToId = {};
+  final Map<String, String> _shiftNameToId = {};
 
   // ─────────────────────────────────────────────────────────────────────────
   // Placeholder helpers
@@ -72,9 +86,9 @@ class OperatorInfoController extends GetxController {
   String get timeText {
     final t = reportedTime.value;
     if (t == null) return 'hh:mm';
-    final h = t.hourOfPeriod.toString().padLeft(2, '0');
+    final h = t.hour.toString().padLeft(2, '0');
     final m = t.minute.toString().padLeft(2, '0');
-    return '$h:$m ${t.period == DayPeriod.am ? 'AM' : 'PM'}';
+    return '$h:$m';
   }
 
   String get dateText {
@@ -90,30 +104,31 @@ class OperatorInfoController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Set text synchronously so widgets reading controllers are safe
-    operatorCtrl.text = cfg.operatorName;
-    reporterCtrl.text = cfg.reporter;
+    // Initial text (example defaults)
+    operatorCtrl.text = 'Ajay Kumar (MP18292)';
+    reporterCtrl.text = 'Ajay Kumar (MP18292)';
 
-    // Scalars from cfg
-    employeeId = cfg.employeeId.obs;
-    phoneNumber = cfg.phoneNumber.obs;
-    sameAsOperator.value = cfg.sameAsOperator;
-    reportedTime.value = _decodeTime(cfg.reportedTime);
-    reportedDate.value = _decodeDate(cfg.reportedDate);
+    // Scalars
+    employeeId.value = 'MP18292';
+    phoneNumber.value = '8860700947';
+    sameAsOperator.value = true;
+    reportedTime.value = _decodeTime('12:20');
+    reportedDate.value = _decodeDate('2025-09-23');
 
-    // Kick off async data fetch (keeps controllers ready)
     _initAsync();
   }
 
+  @override
+  void onClose() {
+    operatorCtrl.dispose();
+    reporterCtrl.dispose();
+    super.onClose();
+  }
+
   Future<void> _initAsync() async {
-    //final shiftStore = Get.find<ShiftDataStore>();
+    // Fetch lists
+    final List<Shift> shiftList = await shiftRepository.getAllShift();
 
-    List<Shift> shiftList = await shiftRepository.getAllShift();
-
-    // final List<DropDownValues> deptList =
-    //     await lookupRepository.getLookupByType(LookupType.department);
-
-    // Fetch lookup values (no variable shadowing)
     final List<LookupValues> deptList =
         await lookupRepository.getLookupByType(LookupType.department);
 
@@ -153,7 +168,7 @@ class OperatorInfoController extends GetxController {
       ...plantsList,
     ]);
 
-    // Names-only lists for simpler pickers
+    // Names lists for simpler dropdowns
     locationOptions
       ..clear()
       ..addAll([_placeholder, ...deptList.map((e) => e.displayName)]);
@@ -166,38 +181,33 @@ class OperatorInfoController extends GetxController {
       ..clear()
       ..addAll([_placeholder, ...shiftList.map((e) => e.name)]);
 
-    // ..addAll([_placeholder, ...shiftList.map(toElement).sorted().map((s) => s.name)]);
+    // Build name → id maps
+    _plantNameToId
+      ..clear()
+      ..addEntries(plantsList.map((e) => MapEntry(e.displayName, e.id)));
 
-    // Initialize selected values from cfg (validated against options)
-    location.value =
-        (locations.contains(cfg.location) && !_isPlaceholder(cfg.location))
-            ? cfg.location
-            : _placeholder;
+    _deptNameToId
+      ..clear()
+      ..addEntries(deptList.map((e) => MapEntry(e.displayName, e.id)));
 
-    plant.value = (plantsOpt.contains(cfg.plant) && !_isPlaceholder(cfg.plant))
-        ? cfg.plant
-        : _placeholder;
+    _shiftNameToId
+      ..clear()
+      ..addEntries(shiftList.map((s) => MapEntry(s.name, s.id)));
 
-    shift.value = (shiftsOpt.contains(cfg.shift) && !_isPlaceholder(cfg.shift))
-        ? cfg.shift
-        : _placeholder;
+    // Defaults in UI
+    location.value = _placeholder;
+    plant.value = _placeholder;
+    shift.value = _placeholder;
 
-    // Hydrate from bag (may override cfg)
+    // Hydrate from bag (sets both names and ids)
     _hydrateFromBag();
 
-    // Share option lists (optional) with other tabs via bag
+    // (Optional) share lists with other tabs
     _bag.merge({
       'locations': locations,
       'plantsOpt': plantsOpt,
       'shiftsOpt': shiftsOpt,
     });
-  }
-
-  @override
-  void onClose() {
-    operatorCtrl.dispose();
-    reporterCtrl.dispose();
-    super.onClose();
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -210,21 +220,62 @@ class OperatorInfoController extends GetxController {
     employeeId.value = _bag.get<String>('employeeId', employeeId.value);
     phoneNumber.value = _bag.get<String>('phoneNumber', phoneNumber.value);
 
-    final bagLocation = _bag.get<String>('location', _valueOf(location.value));
-    final bagPlant = _bag.get<String>('plant', _valueOf(plant.value));
-    final bagShift = _bag.get<String>('shift', _valueOf(shift.value));
+    // Prefer IDs from bag; fallback to names
+    final bagLocationId = _bag.get<String>('locationId', '');
+    final bagPlantId = _bag.get<String>('plantId', '');
+    final bagShiftId = _bag.get<String>('shiftId', '');
 
-    location.value = (bagLocation.isNotEmpty && locations.contains(bagLocation))
-        ? bagLocation
-        : _placeholder;
+    final bagLocationName = _bag.get<String>('location', '');
+    final bagPlantName = _bag.get<String>('plant', '');
+    final bagShiftName = _bag.get<String>('shift', '');
 
-    plant.value = (bagPlant.isNotEmpty && plantsOpt.contains(bagPlant))
-        ? bagPlant
-        : _placeholder;
+    // LOCATION (Department)
+    if (bagLocationId.isNotEmpty) {
+      locationId.value = bagLocationId;
+      final foundName = _deptNameToId.entries
+          .firstWhere((e) => e.value == bagLocationId,
+              orElse: () => const MapEntry('', ''))
+          .key;
+      location.value = locations.contains(foundName) ? foundName : _placeholder;
+    } else {
+      location.value =
+          (bagLocationName.isNotEmpty && locations.contains(bagLocationName))
+              ? bagLocationName
+              : _placeholder;
+      locationId.value = _deptNameToId[location.value] ?? '';
+    }
 
-    shift.value = (bagShift.isNotEmpty && shiftsOpt.contains(bagShift))
-        ? bagShift
-        : _placeholder;
+    // PLANT
+    if (bagPlantId.isNotEmpty) {
+      plantId.value = bagPlantId;
+      final foundName = _plantNameToId.entries
+          .firstWhere((e) => e.value == bagPlantId,
+              orElse: () => const MapEntry('', ''))
+          .key;
+      plant.value = plantsOpt.contains(foundName) ? foundName : _placeholder;
+    } else {
+      plant.value =
+          (bagPlantName.isNotEmpty && plantsOpt.contains(bagPlantName))
+              ? bagPlantName
+              : _placeholder;
+      plantId.value = _plantNameToId[plant.value] ?? '';
+    }
+
+    // SHIFT
+    if (bagShiftId.isNotEmpty) {
+      shiftId.value = bagShiftId;
+      final foundName = _shiftNameToId.entries
+          .firstWhere((e) => e.value == bagShiftId,
+              orElse: () => const MapEntry('', ''))
+          .key;
+      shift.value = shiftsOpt.contains(foundName) ? foundName : _placeholder;
+    } else {
+      shift.value =
+          (bagShiftName.isNotEmpty && shiftsOpt.contains(bagShiftName))
+              ? bagShiftName
+              : _placeholder;
+      shiftId.value = _shiftNameToId[shift.value] ?? '';
+    }
 
     sameAsOperator.value =
         _bag.get<bool>('sameAsOperator', sameAsOperator.value);
@@ -242,22 +293,40 @@ class OperatorInfoController extends GetxController {
         sameAsOperator.value ? operatorCtrl.text : reporterCtrl.text;
 
     _bag.merge({
-      'operatorName': operatorCtrl.text,
-      'reporter': reporterFinal,
-      'employeeId': employeeId.value,
-      'phoneNumber': phoneNumber.value,
-      'location': _valueOf(location.value),
-      'plant': _valueOf(plant.value),
-      'shift': _valueOf(shift.value),
-      'sameAsOperator': sameAsOperator.value,
-      'reportedTime': _encodeTime(reportedTime.value),
-      'reportedDate': _encodeDate(reportedDate.value),
+      // IDs for API
+      WOKeys.departmentId: locationId.value,
+      WOKeys.plantId: plantId.value,
+      WOKeys.shiftId: shiftId.value,
+      WOKeys.location: location.value,
+      WOKeys.plant: plant.value,
 
-      // Option lists for other readers (optional)
-      'locations': locations,
-      'plantsOpt': plantsOpt,
-      'shiftsOpt': shiftsOpt,
+      WOKeys.shift: shift.value,
+      WOKeys.operatorName: operatorCtrl.text,
+      WOKeys.reporter: reporterFinal,
+      WOKeys.employeeId: employeeId.value,
+      WOKeys.phoneNumber: phoneNumber.value,
+      WOKeys.sameAsOperator: sameAsOperator.value,
+      WOKeys.reportedTime: _encodeTime(reportedTime.value),
+      WOKeys.reportedDate: _encodeDate(reportedDate.value),
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Dropdown change handlers (call from UI onChanged)
+  // ─────────────────────────────────────────────────────────────────────────
+  void onPlantChanged(String name) {
+    plant.value = name;
+    plantId.value = _plantNameToId[name] ?? '';
+  }
+
+  void onLocationChanged(String name) {
+    location.value = name;
+    locationId.value = _deptNameToId[name] ?? '';
+  }
+
+  void onShiftChanged(String name) {
+    shift.value = name;
+    shiftId.value = _shiftNameToId[name] ?? '';
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -277,9 +346,12 @@ class OperatorInfoController extends GetxController {
     final phoneOk = RegExp(r'^\d{10,15}$').hasMatch(phone);
     if (phone.isEmpty || !phoneOk) errors.add('Phone Number (10–15 digits)');
 
-    if (_isPlaceholder(location.value)) errors.add('Location');
-    if (_isPlaceholder(plant.value)) errors.add('Plant');
-    if (_isPlaceholder(shift.value)) errors.add('Shift');
+    if (_isPlaceholder(location.value) || locationId.value.isEmpty)
+      errors.add('Location');
+    if (_isPlaceholder(plant.value) || plantId.value.isEmpty)
+      errors.add('Plant');
+    if (_isPlaceholder(shift.value) || shiftId.value.isEmpty)
+      errors.add('Shift');
 
     if (reportedTime.value == null) errors.add('Reported At (Time)');
     if (reportedDate.value == null) errors.add('Reported On (Date)');
@@ -321,6 +393,11 @@ class OperatorInfoController extends GetxController {
     location.value = _placeholder;
     plant.value = _placeholder;
     shift.value = _placeholder;
+
+    plantId.value = '';
+    locationId.value = '';
+    shiftId.value = '';
+
     sameAsOperator.value = false;
     reportedTime.value = null;
     reportedDate.value = null;
@@ -333,6 +410,9 @@ class OperatorInfoController extends GetxController {
       'location': '',
       'plant': '',
       'shift': '',
+      'locationId': '',
+      'plantId': '',
+      'shiftId': '',
       'sameAsOperator': false,
       'reportedTime': null,
       'reportedDate': null,
@@ -363,44 +443,4 @@ class OperatorInfoController extends GetxController {
   String? _encodeDate(DateTime? d) => d?.toIso8601String();
   DateTime? _decodeDate(String? s) =>
       (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
-}
-
-/// Scalar defaults only (no hardcoded option lists)
-class OperatorInfoConfig {
-  final String operatorName;
-  final String reporter;
-  final String employeeId;
-  final String phoneNumber;
-  final String location; // initial selection name
-  final String plant; // initial selection name
-  final String shift; // initial selection name
-  final bool sameAsOperator;
-  final String? reportedTime; // "HH:mm"
-  final String? reportedDate; // ISO-8601
-
-  const OperatorInfoConfig({
-    required this.operatorName,
-    required this.reporter,
-    required this.employeeId,
-    required this.phoneNumber,
-    required this.location,
-    required this.plant,
-    required this.shift,
-    required this.sameAsOperator,
-    required this.reportedTime,
-    required this.reportedDate,
-  });
-
-  static const demo = OperatorInfoConfig(
-    operatorName: 'Ajay Kumar (MP18292)',
-    reporter: 'Ajay Kumar (MP18292)',
-    employeeId: 'MP18292',
-    phoneNumber: '9876543211',
-    location: '', // validated against store; shows "Select" if not found
-    plant: '',
-    shift: '',
-    sameAsOperator: true,
-    reportedTime: '12:20',
-    reportedDate: '2025-09-23',
-  );
 }

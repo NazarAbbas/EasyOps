@@ -2,6 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:retrofit/retrofit.dart';
@@ -24,8 +25,8 @@ abstract class RestClient {
     @Query('sort') String sort = 'sort_order,asc',
   });
 
-  @POST('/work-order/with-media/')
-  Future<dynamic> createWorkOrderRequest(
+  @POST('/work-order/with-media')
+  Future<CreateWorkOrderResponse> createWorkOrderRequest(
     @Body() CreateWorkOrderRequest body,
   );
 

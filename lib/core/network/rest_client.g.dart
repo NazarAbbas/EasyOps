@@ -99,20 +99,21 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> createWorkOrderRequest(CreateWorkOrderRequest body) async {
+  Future<CreateWorkOrderResponse> createWorkOrderRequest(
+      CreateWorkOrderRequest body) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<dynamic>(Options(
+    final _options = _setStreamType<CreateWorkOrderResponse>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
     )
         .compose(
           _dio.options,
-          '/work-order/with-media/',
+          '/work-order/with-media',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -121,8 +122,14 @@ class _RestClient implements RestClient {
           _dio.options.baseUrl,
           baseUrl,
         )));
-    final _result = await _dio.fetch(_options);
-    final _value = _result.data;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CreateWorkOrderResponse _value;
+    try {
+      _value = CreateWorkOrderResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
     return _value;
   }
 

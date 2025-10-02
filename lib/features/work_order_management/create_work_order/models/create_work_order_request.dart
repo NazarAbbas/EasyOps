@@ -1,17 +1,137 @@
-// work_order_request.dart
+import 'dart:convert';
+
+class CreateWorkOrderRequest {
+  final WorkType type;
+  final Priority priority;
+  final WorkStatus status;
+  final String title;
+  final String description;
+  final String remark;
+  final DateTime scheduledStart;
+  final DateTime scheduledEnd;
+  final String assetId;
+  final String plantId;
+  final String departmentId;
+  final String issueTypeId;
+  final String impactId;
+  final String shiftId;
+  final List<MediaFile> mediaFiles;
+
+  const CreateWorkOrderRequest({
+    required this.type,
+    required this.priority,
+    required this.status,
+    required this.title,
+    required this.description,
+    required this.remark,
+    required this.scheduledStart,
+    required this.scheduledEnd,
+    required this.assetId,
+    required this.plantId,
+    required this.departmentId,
+    required this.mediaFiles,
+    required this.issueTypeId,
+    required this.impactId,
+    required this.shiftId,
+  });
+
+  CreateWorkOrderRequest copyWith({
+    WorkType? type,
+    Priority? priority,
+    WorkStatus? status,
+    String? title,
+    String? description,
+    String? remark,
+    DateTime? scheduledStart,
+    DateTime? scheduledEnd,
+    String? assetId,
+    String? plantId,
+    String? departmentId,
+    String? issueTypeId,
+    String? impactId,
+    String? shiftId,
+    List<MediaFile>? mediaFiles,
+  }) {
+    return CreateWorkOrderRequest(
+      type: type ?? this.type,
+      priority: priority ?? this.priority,
+      status: status ?? this.status,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      remark: remark ?? this.remark,
+      scheduledStart: scheduledStart ?? this.scheduledStart,
+      scheduledEnd: scheduledEnd ?? this.scheduledEnd,
+      assetId: assetId ?? this.assetId,
+      plantId: plantId ?? this.plantId,
+      departmentId: departmentId ?? this.departmentId,
+      mediaFiles: mediaFiles ?? this.mediaFiles,
+      issueTypeId: issueTypeId ?? this.issueTypeId,
+      impactId: impactId ?? this.impactId,
+      shiftId: shiftId ?? this.shiftId,
+    );
+  }
+
+  factory CreateWorkOrderRequest.fromJson(Map<String, dynamic> json) {
+    return CreateWorkOrderRequest(
+      type: WorkTypeX.fromApi(json['type'] as String?),
+      priority: PriorityX.fromApi(json['priority'] as String?),
+      status: WorkStatusX.fromApi(json['status'] as String?),
+      title: json['title'] as String,
+      description: json['description'] as String,
+      remark: json['remark'] as String,
+      scheduledStart: DateTime.parse(json['scheduledStart'] as String),
+      scheduledEnd: DateTime.parse(json['scheduledEnd'] as String),
+      assetId: json['assetId'] as String,
+      plantId: json['plantId'] as String,
+      departmentId: json['departmentId'] as String,
+      issueTypeId: (json['issueTypeId'] as String?) ?? '',
+      impactId: (json['impactId'] as String?) ?? '',
+      shiftId: (json['shiftId'] as String?) ?? '',
+      mediaFiles: (json['mediaFiles'] as List<dynamic>? ?? const [])
+          .map((e) => MediaFile.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'type': type.toApi(),
+        'priority': priority.toApi(),
+        'status': status.toApi(),
+        'title': title,
+        'description': description,
+        'remark': remark,
+        // keep schedule in UTC like "Z"
+        'scheduledStart': scheduledStart.toUtc().toIso8601String(),
+        'scheduledEnd': scheduledEnd.toUtc().toIso8601String(),
+        'assetId': assetId,
+        'plantId': plantId,
+        'departmentId': departmentId,
+        'issueTypeId': issueTypeId,
+        'impactId': impactId,
+        'shiftId': shiftId,
+        'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),
+      };
+
+  // Optional helpers
+  String toJsonString() => json.encode(toJson());
+  static CreateWorkOrderRequest fromJsonString(String s) =>
+      CreateWorkOrderRequest.fromJson(json.decode(s) as Map<String, dynamic>);
+}
 
 class MediaFile {
   final String filePath;
-  final String fileType;
+  final String fileType; // MIME type
 
-  const MediaFile({
-    required this.filePath,
-    required this.fileType,
-  });
+  const MediaFile({required this.filePath, required this.fileType});
+
+  MediaFile copyWith({String? filePath, String? fileType}) => MediaFile(
+        filePath: filePath ?? this.filePath,
+        fileType: fileType ?? this.fileType,
+      );
 
   factory MediaFile.fromJson(Map<String, dynamic> json) => MediaFile(
-        filePath: (json['filePath'] ?? '').toString(),
-        fileType: (json['fileType'] ?? '').toString(),
+        filePath: json['filePath'] as String,
+        fileType: json['fileType'] as String,
       );
 
   Map<String, dynamic> toJson() => {
@@ -20,78 +140,98 @@ class MediaFile {
       };
 }
 
-class CreateWorkOrderRequest {
-  final String type; // e.g. "Breakdown Management"
-  final String priority; // e.g. "HIGH"
-  final String status; // e.g. "OPEN"
-  final String title;
-  final String description;
-  final String? remark;
+/// —— Enums & mappers ——
 
-  final DateTime scheduledStart; // parses "2025-02-01T07:00:00Z"
-  final DateTime scheduledEnd;
+enum Priority { low, medium, high }
 
-  final String assetId; // "AST-456789"
-  final String reportedById; // "USR-456789"
-  final int plantId; // 1
-  final int departmentId; // 2
+extension PriorityX on Priority {
+  static Priority fromApi(String? v) {
+    switch ((v ?? '').toUpperCase()) {
+      case 'LOW':
+        return Priority.low;
+      case 'MEDIUM':
+        return Priority.medium;
+      case 'HIGH':
+        return Priority.high;
+      default:
+        return Priority.medium;
+    }
+  }
 
-  final List<MediaFile> mediaFiles;
+  String toApi() {
+    switch (this) {
+      case Priority.low:
+        return 'LOW';
+      case Priority.medium:
+        return 'MEDIUM';
+      case Priority.high:
+        return 'HIGH';
+    }
+  }
+}
 
-  CreateWorkOrderRequest({
-    required this.type,
-    required this.priority,
-    required this.status,
-    required this.title,
-    required this.description,
-    this.remark,
-    required DateTime scheduledStart,
-    required DateTime scheduledEnd,
-    required this.assetId,
-    required this.reportedById,
-    required this.plantId,
-    required this.departmentId,
-    this.mediaFiles = const [],
-  })  : scheduledStart = scheduledStart.toUtc(),
-        scheduledEnd = scheduledEnd.toUtc();
+enum WorkStatus { open, inProgress, onHold, closed, cancelled }
 
-  factory CreateWorkOrderRequest.fromJson(Map<String, dynamic> json) =>
-      CreateWorkOrderRequest(
-        type: (json['type'] ?? '').toString(),
-        priority: (json['priority'] ?? '').toString(),
-        status: (json['status'] ?? '').toString(),
-        title: (json['title'] ?? '').toString(),
-        description: (json['description'] ?? '').toString(),
-        remark: (json['remark'] as String?),
-        scheduledStart: DateTime.parse(json['scheduledStart'].toString()),
-        scheduledEnd: DateTime.parse(json['scheduledEnd'].toString()),
-        assetId: (json['assetId'] ?? '').toString(),
-        reportedById: (json['reportedById'] ?? '').toString(),
-        plantId: json['plantId'] is int
-            ? json['plantId'] as int
-            : int.tryParse(json['plantId'].toString()) ?? 0,
-        departmentId: json['departmentId'] is int
-            ? json['departmentId'] as int
-            : int.tryParse(json['departmentId'].toString()) ?? 0,
-        mediaFiles: (json['mediaFiles'] as List<dynamic>? ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map(MediaFile.fromJson)
-            .toList(),
-      );
+extension WorkStatusX on WorkStatus {
+  static WorkStatus fromApi(String? v) {
+    switch ((v ?? '').toUpperCase()) {
+      case 'OPEN':
+        return WorkStatus.open;
+      case 'IN_PROGRESS':
+        return WorkStatus.inProgress;
+      case 'ON_HOLD':
+        return WorkStatus.onHold;
+      case 'CLOSED':
+        return WorkStatus.closed;
+      case 'CANCELLED':
+        return WorkStatus.cancelled;
+      default:
+        return WorkStatus.open;
+    }
+  }
 
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        'priority': priority,
-        'status': status,
-        'title': title,
-        'description': description,
-        if (remark != null) 'remark': remark,
-        'scheduledStart': scheduledStart.toIso8601String(),
-        'scheduledEnd': scheduledEnd.toIso8601String(),
-        'assetId': assetId,
-        'reportedById': reportedById,
-        'plantId': plantId,
-        'departmentId': departmentId,
-        'mediaFiles': mediaFiles.map((m) => m.toJson()).toList(),
-      };
+  String toApi() {
+    switch (this) {
+      case WorkStatus.open:
+        return 'OPEN';
+      case WorkStatus.inProgress:
+        return 'IN_PROGRESS';
+      case WorkStatus.onHold:
+        return 'ON_HOLD';
+      case WorkStatus.closed:
+        return 'CLOSED';
+      case WorkStatus.cancelled:
+        return 'CANCELLED';
+    }
+  }
+}
+
+enum WorkType {
+  breakdownManagement,
+  preventiveMaintenance,
+  predictiveMaintenance,
+  other
+}
+
+extension WorkTypeX on WorkType {
+  static WorkType fromApi(String? v) {
+    final s = (v ?? '').trim().toUpperCase();
+    if (s == 'BREAKDOWN MANAGEMENT') return WorkType.breakdownManagement;
+    if (s == 'PREVENTIVE MAINTENANCE') return WorkType.preventiveMaintenance;
+    if (s == 'PREDICTIVE MAINTENANCE') return WorkType.predictiveMaintenance;
+    return WorkType.other;
+  }
+
+  String toApi() {
+    switch (this) {
+      case WorkType.breakdownManagement:
+        return 'Breakdown Management';
+      case WorkType.preventiveMaintenance:
+        return 'Preventive Maintenance';
+      case WorkType.predictiveMaintenance:
+        return 'Predictive Maintenance';
+      case WorkType.other:
+        return 'Other';
+    }
+  }
 }

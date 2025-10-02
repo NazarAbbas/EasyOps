@@ -20,6 +20,18 @@ class WorkOrderBag extends GetxService {
 abstract class WOKeys {
   // ---------- Work Order Info (WorkorderInfoController)
 
+  //static const asset = 'asset';
+
+  static const issueTypeId = 'issueTypeId';
+  static const impactId = 'impactId';
+  static const assetsId = 'assetsId';
+
+  static const plantId = 'plantId';
+  static const departmentId = 'departmentId';
+  static const reportedAt = 'reportedAt';
+  static const reportedOn = 'reportedOn';
+  static const shiftId = 'shiftId';
+
   static const issueType = 'issueType';
   static const impact = 'impact';
   static const assetsNumber = 'assetsNumber';

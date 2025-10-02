@@ -241,12 +241,16 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             onTap: () => _pickFromList(
                               context,
                               title: 'Select Location',
-                              options: controller.locationsForPicker,
-                              onSelected: (v) => controller.location.value = v,
+                              // ⬇️ use controller.locations (no placeholders)
+                              options: controller.locations,
+                              // ⬇️ update both name and id via controller handler
+                              onSelected: (v) =>
+                                  controller.onLocationChanged(v),
                             ),
                           ),
                         ),
-                        right: _Label(
+                        right: // Plant picker (inside Obx -> _Row2 -> right)
+                            _Label(
                           'Plant',
                           child: _TapField(
                             text: controller.plant.value.isEmpty
@@ -259,9 +263,10 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             onTap: () => _pickFromList(
                               context,
                               title: 'Select Plant',
-                              options: controller.plantsForPicker
-                                  .toList(), // from DropDownStore
-                              onSelected: (v) => controller.plant.value = v,
+                              // ⬇️ use controller.plantsOpt
+                              options: controller.plantsOpt,
+                              // ⬇️ call controller handler
+                              onSelected: (v) => controller.onPlantChanged(v),
                             ),
                           ),
                         ),
@@ -289,6 +294,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         ),
                       ),
                       SizedBox(height: vGap - 4),
+                      // Shift picker (below "Reported On")
                       _Label(
                         'Shift',
                         child: _TapField(
@@ -296,18 +302,18 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                               ? 'Select'
                               : controller.shift.value,
                           leading: const Icon(
-                            CupertinoIcons.square_stack_3d_down_dottedline,
-                            size: 18,
-                            color: AppColors.muted,
-                          ),
+                              CupertinoIcons.square_stack_3d_down_dottedline,
+                              size: 18,
+                              color: AppColors.muted),
                           trailing: const Icon(CupertinoIcons.chevron_down,
                               color: AppColors.muted),
                           onTap: () => _pickFromList(
                             context,
                             title: 'Select Shift',
-                            options: controller.shiftsForPicker
-                                .toList(), // from ShiftDataStore
-                            onSelected: (v) => controller.shift.value = v,
+                            // ⬇️ use controller.shiftsOpt
+                            options: controller.shiftsOpt,
+                            // ⬇️ call controller handler
+                            onSelected: (v) => controller.onShiftChanged(v),
                           ),
                         ),
                       ),
