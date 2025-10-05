@@ -1,16 +1,21 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/domain/repository_impl.dart'
-    show RepositoryImpl;
+import 'package:easy_ops/database/db_repository/offline_work_order_repository.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/domain/create_work_order_repository_impl.dart'
+    show CreateWorkOrderRepositoryImpl;
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/offline_work_order.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkOrderDetailsController extends GetxController {
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
-  final RepositoryImpl repositoryImpl = RepositoryImpl();
+  final CreateWorkOrderRepositoryImpl repositoryImpl =
+      CreateWorkOrderRepositoryImpl();
 
   final line = ''.obs;
   final cnc_1 = ''.obs;
@@ -197,12 +202,55 @@ class WorkOrderDetailsController extends GetxController {
         mediaFiles: mediaFiles,
       );
 
+      //final res = await repositoryImpl.createWorkOrderRequest(req);
+      createWorkOrder(req);
+
+      // if (res.httpCode == 201 && res.data != null) {
+      //   // Get.offAllNamed(Routes.landingDashboardScreen, arguments: {'tab': 3});
+      //   // _bag.clear();
+
+      //   Get.snackbar(
+      //     'Create',
+      //     'Work Order Created Successfully',
+      //     snackPosition: SnackPosition.TOP,
+      //     backgroundColor: AppColors.successGreen,
+      //     colorText: AppColors.white,
+      //   );
+      // } else {
+      //   // Not OK
+      //   Get.snackbar(
+      //     'Create',
+      //     res.message!,
+      //     snackPosition: SnackPosition.TOP,
+      //     backgroundColor: AppColors.red,
+      //     colorText: AppColors.white,
+      //   );
+      // }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> createWorkOrder(CreateWorkOrderRequest req) async {
+    final offlineRepo = Get.find<OfflineWorkOrderRepository>();
+    //final apiRepo = Get.find<WorkOrderApiRepository>();
+
+    try {
+      // Check connectivity
+      final connectivity = await Connectivity().checkConnectivity();
+
+      // ignore: unrelated_type_equality_checks
+      if (connectivity == ConnectivityResult.none) {
+        /// No network at all → save offline
+        await _saveOffline(req, offlineRepo);
+        return;
+      }
+
+      /// Try API call
       final res = await repositoryImpl.createWorkOrderRequest(req);
 
       if (res.httpCode == 201 && res.data != null) {
-        // Get.offAllNamed(Routes.landingDashboardScreen, arguments: {'tab': 3});
-        // _bag.clear();
-
+        /// Success online
         Get.snackbar(
           'Create',
           'Work Order Created Successfully',
@@ -211,18 +259,49 @@ class WorkOrderDetailsController extends GetxController {
           colorText: AppColors.white,
         );
       } else {
-        // Not OK
-        Get.snackbar(
-          'Create',
-          res.message!,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.red,
-          colorText: AppColors.white,
-        );
+        /// Server error or bad response → fallback to offline
+        await _saveOffline(req, offlineRepo);
       }
-    } finally {
-      isLoading.value = false;
+    } catch (e) {
+      /// Exception (timeout, parsing, etc.) → fallback to offline
+      await _saveOffline(req, offlineRepo);
+      if (kDebugMode) {
+        print("❌ Error creating Work Order online: $e");
+      }
     }
+  }
+
+  /// helper to save offline work order
+  Future<void> _saveOffline(CreateWorkOrderRequest req,
+      OfflineWorkOrderRepository offlineRepo) async {
+    final offlineOrder = OfflineWorkOrder(
+      type: req.type.name,
+      priority: req.priority.name,
+      status: req.status.name,
+      title: req.title,
+      description: req.description,
+      remark: req.remark,
+      scheduledStart: req.scheduledStart,
+      scheduledEnd: req.scheduledEnd,
+      assetId: req.assetId,
+      plantId: req.plantId,
+      departmentId: req.departmentId,
+      issueTypeId: req.issueTypeId,
+      impactId: req.impactId,
+      shiftId: req.shiftId,
+      mediaFiles: req.mediaFiles,
+      createdAt: DateTime.now(),
+    );
+
+    await offlineRepo.insertOfflineOrder(offlineOrder);
+
+    Get.snackbar(
+      'Offline',
+      'No internet. Work order saved locally and will sync later.',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.yellow,
+      colorText: Colors.black,
+    );
   }
 
   void goBack() => Get.back();

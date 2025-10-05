@@ -1,4 +1,4 @@
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_list_page.dart';
 import 'package:flutter/material.dart';
 
 class NavigationBottomAssets extends StatelessWidget {

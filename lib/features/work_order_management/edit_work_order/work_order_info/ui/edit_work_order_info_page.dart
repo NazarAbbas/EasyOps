@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart';
 import 'package:easy_ops/features/work_order_management/edit_work_order/work_order_info/controller/edit_work_order_info_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -916,9 +915,9 @@ class _Hr extends StatelessWidget {
   const _Hr();
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 6),
-    child: Divider(color: _C.line, height: 1),
-  );
+        padding: EdgeInsets.symmetric(vertical: 6),
+        child: Divider(color: _C.line, height: 1),
+      );
 }
 
 class _Row2 extends StatelessWidget {

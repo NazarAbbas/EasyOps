@@ -56,6 +56,7 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => WorkOrdersController());
     Get.lazyPut(() => WorkorderInfoController());
     Get.lazyPut(() => WorkTabsController());
+    //Get.put(WorkTabsController(), permanent: true);
     Get.lazyPut(() => OperatorInfoController());
     Get.lazyPut(() => UpdateWorkOrderDetailsController());
     Get.lazyPut(() => UpdateWorkTabsController());

@@ -1,4 +1,5 @@
 // lib/.../work_order_info/controller/workorder_info_controller.dart
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/database/db_repository/assets_repository.dart';
@@ -6,7 +7,9 @@ import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -64,6 +67,9 @@ class WorkorderInfoController extends GetxController {
 
   late final VoidCallback _assetListener;
 
+  WorkOrder? workOrderInfo;
+  WorkOrderStatus? workOrderStatus;
+
   // ─────────────────────────────────────────────────────────────────────────
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
@@ -76,6 +82,12 @@ class WorkorderInfoController extends GetxController {
     // keep derived fields in sync while typing: try exact serial match
     _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
+    // ✅ Get order and status from WorkTabsController
+    final workTabsController = Get.find<WorkTabsController>();
+    workOrderInfo = workTabsController.workOrder;
+    workOrderStatus = workTabsController.workOrderStatus;
+    //final order = Get.find<WorkTabsController>().order;
+    final xx = "";
   }
 
   @override
@@ -127,6 +139,7 @@ class WorkorderInfoController extends GetxController {
   }
 
   Future<void> _loadAssets() async {
+    final assetsId = 'AST-24Sep2025130416546006';
     // pulls once; if you want reactive, expose a stream in repository
     final list = await assetRepository.getAllAssets();
     _storeAssets

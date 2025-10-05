@@ -1,8 +1,10 @@
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/domain/work_order_list_repository_impl.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkOrdersController extends GetxController {
+  WorkOrderListRepositoryImpl repositoryImpl = WorkOrderListRepositoryImpl();
   // ---------------- UI state ----------------
   final loading = true.obs; // first-load spinner
   final isRefreshing = false.obs; // pull-to-refresh spinner (if you show one)
@@ -36,6 +38,9 @@ class WorkOrdersController extends GetxController {
   Future<void> _loadInitial() async {
     loading.value = true;
     await Future.delayed(const Duration(milliseconds: 900));
+
+    final res = await repositoryImpl.workOrderList();
+    final list = res.data?.content ?? const <WorkOrder>[];
 
     // Mock data (replace with your API result)
     orders.assignAll(_mockOrders);

@@ -78,6 +78,8 @@ class _$AppDatabase extends AppDatabase {
 
   ShiftDao? _shiftDaoInstance;
 
+  OfflineWorkOrderDao? _offlineWorkOrderDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -105,6 +107,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `assets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `criticality` TEXT NOT NULL, `description` TEXT, `serialNumber` TEXT NOT NULL, `manufacturer` TEXT, `manufacturerPhone` TEXT, `manufacturerEmail` TEXT, `manufacturerAddress` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `plantName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `shifts` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
         await database.execute(
@@ -145,6 +149,12 @@ class _$AppDatabase extends AppDatabase {
   @override
   ShiftDao get shiftDao {
     return _shiftDaoInstance ??= _$ShiftDao(database, changeListener);
+  }
+
+  @override
+  OfflineWorkOrderDao get offlineWorkOrderDao {
+    return _offlineWorkOrderDaoInstance ??=
+        _$OfflineWorkOrderDao(database, changeListener);
   }
 }
 
@@ -310,6 +320,118 @@ class _$ShiftDao extends ShiftDao {
   Future<void> upsertAllShift(List<ShiftEntity> items) async {
     await _shiftEntityInsertionAdapter.insertList(
         items, OnConflictStrategy.replace);
+  }
+}
+
+class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
+  _$OfflineWorkOrderDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _offlineWorkOrderEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'offline_workorders',
+            (OfflineWorkOrderEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'type': item.type,
+                  'priority': item.priority,
+                  'status': item.status,
+                  'title': item.title,
+                  'description': item.description,
+                  'remark': item.remark,
+                  'scheduledStart': item.scheduledStart,
+                  'scheduledEnd': item.scheduledEnd,
+                  'assetId': item.assetId,
+                  'plantId': item.plantId,
+                  'departmentId': item.departmentId,
+                  'issueTypeId': item.issueTypeId,
+                  'impactId': item.impactId,
+                  'shiftId': item.shiftId,
+                  'mediaFilesJson': item.mediaFilesJson,
+                  'createdAt': item.createdAt,
+                  'synced': item.synced
+                }),
+        _offlineWorkOrderEntityDeletionAdapter = DeletionAdapter(
+            database,
+            'offline_workorders',
+            ['id'],
+            (OfflineWorkOrderEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'type': item.type,
+                  'priority': item.priority,
+                  'status': item.status,
+                  'title': item.title,
+                  'description': item.description,
+                  'remark': item.remark,
+                  'scheduledStart': item.scheduledStart,
+                  'scheduledEnd': item.scheduledEnd,
+                  'assetId': item.assetId,
+                  'plantId': item.plantId,
+                  'departmentId': item.departmentId,
+                  'issueTypeId': item.issueTypeId,
+                  'impactId': item.impactId,
+                  'shiftId': item.shiftId,
+                  'mediaFilesJson': item.mediaFilesJson,
+                  'createdAt': item.createdAt,
+                  'synced': item.synced
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<OfflineWorkOrderEntity>
+      _offlineWorkOrderEntityInsertionAdapter;
+
+  final DeletionAdapter<OfflineWorkOrderEntity>
+      _offlineWorkOrderEntityDeletionAdapter;
+
+  @override
+  Future<List<OfflineWorkOrderEntity>> getUnsynced() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM offline_workorders WHERE synced = \"false\"',
+        mapper: (Map<String, Object?> row) => OfflineWorkOrderEntity(
+            id: row['id'] as int?,
+            type: row['type'] as String,
+            priority: row['priority'] as String,
+            status: row['status'] as String,
+            title: row['title'] as String,
+            description: row['description'] as String,
+            remark: row['remark'] as String,
+            scheduledStart: row['scheduledStart'] as String,
+            scheduledEnd: row['scheduledEnd'] as String,
+            assetId: row['assetId'] as String,
+            plantId: row['plantId'] as String,
+            departmentId: row['departmentId'] as String,
+            issueTypeId: row['issueTypeId'] as String,
+            impactId: row['impactId'] as String,
+            shiftId: row['shiftId'] as String,
+            mediaFilesJson: row['mediaFilesJson'] as String,
+            createdAt: row['createdAt'] as String,
+            synced: row['synced'] as String));
+  }
+
+  @override
+  Future<void> updateSyncStatus(
+    int id,
+    String status,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE offline_workorders SET synced = ?2 WHERE id = ?1',
+        arguments: [id, status]);
+  }
+
+  @override
+  Future<void> insertWorkOrder(OfflineWorkOrderEntity order) async {
+    await _offlineWorkOrderEntityInsertionAdapter.insert(
+        order, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> deleteWorkOrder(OfflineWorkOrderEntity order) async {
+    await _offlineWorkOrderEntityDeletionAdapter.delete(order);
   }
 }
 

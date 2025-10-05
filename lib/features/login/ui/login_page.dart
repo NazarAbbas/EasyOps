@@ -180,8 +180,8 @@ class _LoginCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryBlue,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primaryBlue
-                            .withOpacity(0.6),
+                        disabledBackgroundColor:
+                            AppColors.primaryBlue.withOpacity(0.6),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -230,10 +230,16 @@ class _LoginCard extends StatelessWidget {
                 Center(
                   child: Column(
                     children: [
-                      Image.asset(
-                        AppImages.fingerPrint,
-                        width: isTablet ? 70 : 50,
-                        height: isTablet ? 70 : 50,
+                      Center(
+                        child: InkWell(
+                          onTap: () => controller.authenticateWithFingerprint(),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            AppImages.fingerPrint,
+                            width: isTablet ? 70 : 50,
+                            height: isTablet ? 70 : 50,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Text('login_biometric'.tr),

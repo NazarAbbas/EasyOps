@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/controller/work_order_list_controller.dart';
@@ -10,8 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class WorkOrdersPage extends GetView<WorkOrdersController> {
-  const WorkOrdersPage({super.key});
+class WorkOrdersListPage extends GetView<WorkOrdersController> {
+  const WorkOrdersListPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -180,8 +181,7 @@ class _GradientHeader extends GetView<WorkOrdersController>
   @override
   Widget build(BuildContext context) {
     final isTablet = _isTablet(context);
-    final primary =
-        Theme.of(context).appBarTheme.backgroundColor ??
+    final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
     // compact, mobile-first spacing
@@ -466,12 +466,19 @@ class _WorkOrderCard extends StatelessWidget {
           if (order.status.name == 'resolved') {
             Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order);
           } else if (order.status.name == 'open') {
-            Get.toNamed(Routes.editWorkOrderTabShellScreen, arguments: order);
+            //Get.toNamed(Routes.editWorkOrderTabShellScreen, arguments: order);
+            Get.toNamed(
+              Routes.workOrderTabShellScreen,
+              arguments: {
+                Constant.workOrderInfo: order,
+                Constant.workOrderStatus:
+                    WorkOrderStatus.open, // example: open Operator tab directly
+              },
+            );
           } else {
             Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
           }
         },
-
         child: Stack(
           children: [
             // Accent stripe
@@ -834,8 +841,7 @@ class _Tabs extends GetView<WorkOrdersController> {
     final double uThick = isTablet ? 3.5 : 3;
     final double uSide = isTablet ? 12 : 10;
     final double uGap = isTablet ? 8 : 6;
-    final primary =
-        Theme.of(context).appBarTheme.backgroundColor ??
+    final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
     return Container(
       color: primary,

@@ -9,18 +9,18 @@ enum Status { inProgress, resolved, open, none }
 
 extension RightStatusX on Status {
   String get text => switch (this) {
-    Status.inProgress => 'In Progress',
-    Status.none => '',
-    Status.resolved => 'Resolved',
-    Status.open => 'Open',
-  };
+        Status.inProgress => 'In Progress',
+        Status.none => '',
+        Status.resolved => 'Resolved',
+        Status.open => 'Open',
+      };
 
   Color get color => switch (this) {
-    Status.inProgress => AppColors.primary,
-    Status.none => Colors.transparent,
-    Status.resolved => AppColors.successGreen,
-    Status.open => AppColors.red,
-  };
+        Status.inProgress => AppColors.primary,
+        Status.none => Colors.transparent,
+        Status.resolved => AppColors.successGreen,
+        Status.open => AppColors.red,
+      };
 }
 
 /// UI tabs / filters you care about

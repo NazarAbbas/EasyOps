@@ -29,6 +29,7 @@ dependencies:
   fl_chart: ^0.68.0
   flutter_secure_storage: ^9.2.2
   json_annotation: ^4.9.0     # ↑ pair with json_serializable 6.9
+  connectivity_plus: ^6.0.3   # latest at time of writing
 
 dev_dependencies:
   flutter_test:

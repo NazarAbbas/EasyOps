@@ -2,12 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/ApiService.dart';
 import 'package:easy_ops/core/network/api_result.dart';
 import 'package:easy_ops/core/network/network_exception.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/domain/repository.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/domain/create_work_order_repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:get/get.dart';
 
-class RepositoryImpl implements Repository {
+class CreateWorkOrderRepositoryImpl implements CreateWorkOrderRepository {
   final ApiService _apiService = Get.find<ApiService>();
 
   @override

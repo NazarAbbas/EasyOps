@@ -34,7 +34,7 @@ import 'package:easy_ops/features/work_order_management/update_work_order/closur
 import 'package:easy_ops/features/work_order_management/update_work_order/re_open_work_order/ui/re_open_work_order_page.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/tabs/ui/update_work_order_tabs_shell.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/bottom_navigation/navigation_bottom_assets.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_list_page.dart';
 import 'package:easy_ops/features/forgot_password/ui/forgot_password_page.dart';
 import 'package:easy_ops/features/update_password/ui/update_password_page.dart';
 import 'package:easy_ops/features/login/ui/login_page.dart';
@@ -71,7 +71,7 @@ class AllPages {
       ),
       GetPage(
         name: Routes.workOrderScreen,
-        page: () => WorkOrdersPage(),
+        page: () => WorkOrdersListPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),

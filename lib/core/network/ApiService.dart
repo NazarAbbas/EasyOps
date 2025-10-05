@@ -11,6 +11,7 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 
 class ApiService {
   late final RestClient _api;
@@ -75,6 +76,14 @@ class ApiService {
       CreateWorkOrderRequest createWorkOrderRequest) async {
     try {
       return await _api.createWorkOrderRequest(createWorkOrderRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<WorkOrderListResponse> workOrderList() async {
+    try {
+      return await _api.getWorkOrderList();
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

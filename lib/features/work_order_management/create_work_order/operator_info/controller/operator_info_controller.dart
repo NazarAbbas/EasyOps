@@ -1,9 +1,11 @@
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -73,6 +75,8 @@ class OperatorInfoController extends GetxController {
   final Map<String, String> _deptNameToId = {};
   final Map<String, String> _shiftNameToId = {};
 
+  // late final WorkOrder workOrderInfo;
+  // late final WorkOrderStatus workOrderStatus;
   // ─────────────────────────────────────────────────────────────────────────
   // Placeholder helpers
   // ─────────────────────────────────────────────────────────────────────────
@@ -114,6 +118,10 @@ class OperatorInfoController extends GetxController {
     sameAsOperator.value = true;
     reportedTime.value = _decodeTime('12:20');
     reportedDate.value = _decodeDate('2025-09-23');
+    // final workTabsController = Get.find<WorkTabsController>();
+    // workOrderInfo = workTabsController.workOrder;
+    // workOrderStatus = workTabsController.workOrderStatus;
+    // final xx = "";
 
     _initAsync();
   }

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
@@ -606,35 +608,111 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
           ),
         ),
       ),
+      // ✅ Bottom CTA — fully safe and GetX-compliant
+      bottomNavigationBar: GetBuilder<WorkorderInfoController>(
+        id: 'bottomBar', // optional id (if you ever want to update manually)
+        builder: (controller) {
+          final status = controller.workOrderStatus; // <- NOT .obs, just value
+          final isTablet = _isTablet(context);
+          final hPad = isTablet ? 20.0 : 14.0;
 
-      // Bottom CTA
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(hPad, 6, hPad, 10),
-          child: SizedBox(
-            height: isTablet ? 56 : 52,
-            width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: _C.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 1.5,
+          return SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 6, hPad, 10),
+              child: status == WorkOrderStatus.open
+                  ? _buildTwoButtons(isTablet, controller)
+                  : _buildSingleButton(isTablet, controller),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Helper widget for a single "Create" button
+Widget _buildSingleButton(bool isTablet, WorkorderInfoController controller) {
+  return SizedBox(
+    height: isTablet ? 56 : 52,
+    width: double.infinity,
+    child: FilledButton(
+      style: FilledButton.styleFrom(
+        backgroundColor: _C.primary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 1.5,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+      ),
+      onPressed: () => controller.goToWorkOrderDetailScreen(),
+      child: const Text(
+        'Create',
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
+        ),
+      ),
+    ),
+  );
+}
+
+// Helper widget for two side-by-side buttons
+Widget _buildTwoButtons(bool isTablet, WorkorderInfoController controller) {
+  return SizedBox(
+    height: isTablet ? 56 : 52,
+    width: double.infinity,
+    child: Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            //onPressed: () => Get.back(),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: _C.primary, width: 1.4),
+              foregroundColor: _C.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              onPressed: () => controller.goToWorkOrderDetailScreen(),
-              child: const Text(
-                'Create',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: () {
+              Get.toNamed(Routes.cancelWorkOrderScreen);
+            },
+            child: const Text(
+              'Cancel Work Order',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton(
+            onPressed: () => controller.goToWorkOrderDetailScreen(),
+            style: FilledButton.styleFrom(
+              backgroundColor: _C.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 1.5,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            child: const Text(
+              'Next',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /* ─────────────── pieces ─────────────── */

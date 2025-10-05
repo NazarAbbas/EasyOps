@@ -1,7 +1,7 @@
 // lib/core/navigation/main_tab_shell.dart
 import 'package:easy_ops/features/assets_management/assets_management_dashboard/ui/assets_management_dashboard_page.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_page.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/ui/work_order_list/work_orders_list_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,9 +23,8 @@ class _LandingDashboardTabShellState extends State<LandingDashboardTabShell> {
   void initState() {
     super.initState();
     final arg = Get.arguments;
-    final startTab = (arg is Map && arg['tab'] is int)
-        ? arg['tab'] as int
-        : c.index.value;
+    final startTab =
+        (arg is Map && arg['tab'] is int) ? arg['tab'] as int : c.index.value;
 
     _pageController = PageController(initialPage: startTab);
 
@@ -69,7 +68,7 @@ class _LandingDashboardTabShellState extends State<LandingDashboardTabShell> {
           // TODO: replace with your real Inventory page
           HomeDashboardPage(key: PageStorageKey('tab-1-inventory')),
           AssetsManagementDashboardPage(key: PageStorageKey('tab-2-assets')),
-          WorkOrdersPage(key: PageStorageKey('tab-3-workorders')),
+          WorkOrdersListPage(key: PageStorageKey('tab-3-workorders')),
         ],
       ),
       bottomNavigationBar: Obx(

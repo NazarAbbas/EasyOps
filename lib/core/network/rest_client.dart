@@ -5,6 +5,8 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/domain/work_order_list_repository.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
 
@@ -29,6 +31,9 @@ abstract class RestClient {
   Future<CreateWorkOrderResponse> createWorkOrderRequest(
     @Body() CreateWorkOrderRequest body,
   );
+
+  @GET('/work-order/')
+  Future<WorkOrderListResponse> getWorkOrderList();
 
   @GET('/shift/')
   Future<ShiftData> getShiftData();

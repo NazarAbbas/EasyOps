@@ -126,4 +126,6 @@ class LoginPageController extends GetxController {
     passwordController.dispose();
     super.onClose();
   }
+
+  void authenticateWithFingerprint() {}
 }
