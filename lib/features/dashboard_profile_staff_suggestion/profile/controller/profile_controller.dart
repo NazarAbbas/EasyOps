@@ -1,3 +1,5 @@
+import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/profile/domain/profile_repository_impl.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -46,6 +48,7 @@ class UserProfile {
 }
 
 class ProfileController extends GetxController {
+  final ProfileRepositoryImpl profileRepositoryImpl = ProfileRepositoryImpl();
   final profile = const UserProfile(
     avatarUrl:
         'https://i.pravatar.cc/256?img=12', // replace or set null to show icon
@@ -74,8 +77,13 @@ class ProfileController extends GetxController {
     // Navigate to edit profile / image picker
   }
 
-  void logout() {
+  void logout() async {
     // your logout logic
+    final result = await profileRepositoryImpl.logout();
+    if (result.httpCode == 204 && result.message == 'Success') {
+      Get.offAllNamed(
+          Routes.loginScreen); // or Routes.login if you use named constants
+    }
   }
 
   Future<void> callNumber(String rawNumber) async {

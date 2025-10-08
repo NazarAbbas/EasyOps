@@ -1,16 +1,18 @@
 // lib/network/rest_client.dart
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' hide Headers;
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/domain/work_order_list_repository.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
 
 part 'rest_client.g.dart';
+
+// Define this at the top of the file or in a constants file
 
 @RestApi(baseUrl: 'https://216.48.186.237:8443/v1/api')
 abstract class RestClient {
@@ -28,9 +30,9 @@ abstract class RestClient {
   });
 
   @POST('/work-order/with-media')
+  @Headers(<String, String>{'Content-Type': 'multipart/form-data'})
   Future<CreateWorkOrderResponse> createWorkOrderRequest(
-    @Body() CreateWorkOrderRequest body,
-  );
+      @Body() FormData formData);
 
   @GET('/work-order/')
   Future<WorkOrderListResponse> getWorkOrderList();
@@ -40,4 +42,12 @@ abstract class RestClient {
 
   @GET('/asset/')
   Future<AssetsData> getAssetsData();
+
+  @POST('/logout')
+  Future<void> logout();
+
+  @POST('/suggestion/')
+  Future<NewSuggestionResponse> addNewSuggestion(
+    @Body() NewSuggestionRequest body,
+  );
 }

@@ -76,18 +76,36 @@ class WorkorderInfoController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _initDefaults();
-    _initAsync();
 
-    // keep derived fields in sync while typing: try exact serial match
-    _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
-    assetsCtrl.addListener(_assetListener);
-    // ✅ Get order and status from WorkTabsController
     final workTabsController = Get.find<WorkTabsController>();
     workOrderInfo = workTabsController.workOrder;
     workOrderStatus = workTabsController.workOrderStatus;
-    //final order = Get.find<WorkTabsController>().order;
-    final xx = "";
+    if (workOrderInfo != null && workOrderStatus != null) {
+      _bag.merge({
+        WOKeys.issueTypeId:
+            'CLU-24Sep2025120750334005', //workOrderInfo.issueTypeId,
+        WOKeys.impactId: "CLU-24Sep2025131615074016", //selectedImpactId.value,
+        WOKeys.assetsId: "AST-24Sep2025130416546006", //assetsId.value,
+        WOKeys.issueType: "ADMIN", //issueType.value,
+        WOKeys.impact: "IMPACT-001", //impact.value,
+        WOKeys.assetsNumber: "PS-2024-001", // assetsCtrl.text.trim(),
+        WOKeys.problemDescription:
+            "Problem Description", //problemCtrl.text.trim(),
+        WOKeys.typeText: typeText.value,
+        WOKeys.descriptionText: descriptionText.value,
+        WOKeys.photos: photos.toList(),
+        WOKeys.voiceNotePath: voiceNotePath.value,
+        WOKeys.operatorName: operatorName.value,
+        WOKeys.operatorMobileNumber: operatorMobileNumber.value,
+        WOKeys.operatorInfo: operatorInfo.value,
+        //WOKeys.asset: assetsCtrl.text.trim(),
+      });
+    }
+
+    _initDefaults();
+    _initAsync();
+    _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
+    assetsCtrl.addListener(_assetListener);
   }
 
   @override

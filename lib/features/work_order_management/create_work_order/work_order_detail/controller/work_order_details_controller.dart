@@ -1,6 +1,7 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/database/db_repository/offline_work_order_repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/domain/create_work_order_repository_impl.dart'
@@ -269,6 +270,10 @@ class WorkOrderDetailsController extends GetxController {
         print("❌ Error creating Work Order online: $e");
       }
     }
+    Get.offAllNamed(
+      Routes.landingDashboardScreen,
+      arguments: {'tab': 3}, // open Work Orders
+    );
   }
 
   /// helper to save offline work order

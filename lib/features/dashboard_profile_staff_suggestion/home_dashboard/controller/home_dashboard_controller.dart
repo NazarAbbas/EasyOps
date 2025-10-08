@@ -1,5 +1,6 @@
 // ==================== CONTROLLER (update) ====================
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/profile/domain/profile_repository_impl.dart';
 import 'package:get/get.dart';
 
 enum StatTone { neutral, critical, warning, success, info }
@@ -25,6 +26,8 @@ class SectionStats {
 }
 
 class HomeDashboardController extends GetxController {
+  ProfileRepositoryImpl profileRepositoryImpl = ProfileRepositoryImpl();
+
   // Work Orders (top row)
   final summary = SectionStats(
     title: 'Work Orders',
@@ -132,8 +135,13 @@ class HomeDashboardController extends GetxController {
     // Get.toNamed(Routes.workOrders, arguments: {'section': section.title, 'filter': item.label});
   }
 
-  void signOut() {
-    // Implement your sign-out logic
+  void signOut() async {
+    // your logout logic
+    final result = await profileRepositoryImpl.logout();
+    if (result.httpCode == 204 && result.message == 'Success') {
+      Get.offAllNamed(
+          Routes.loginScreen); // or Routes.login if you use named constants
+    }
   }
 
   // in HomeDashboardController

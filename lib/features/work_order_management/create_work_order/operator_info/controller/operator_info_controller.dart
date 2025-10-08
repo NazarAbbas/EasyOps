@@ -82,7 +82,7 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   static const String _placeholder = 'Select';
   bool _isPlaceholder(String v) => v.trim().isEmpty || v.trim() == _placeholder;
-  String _valueOf(String v) => _isPlaceholder(v) ? '' : v;
+  //String _valueOf(String v) => _isPlaceholder(v) ? '' : v;
 
   // ─────────────────────────────────────────────────────────────────────────
   // UI helpers
@@ -354,12 +354,15 @@ class OperatorInfoController extends GetxController {
     final phoneOk = RegExp(r'^\d{10,15}$').hasMatch(phone);
     if (phone.isEmpty || !phoneOk) errors.add('Phone Number (10–15 digits)');
 
-    if (_isPlaceholder(location.value) || locationId.value.isEmpty)
+    if (_isPlaceholder(location.value) || locationId.value.isEmpty) {
       errors.add('Location');
-    if (_isPlaceholder(plant.value) || plantId.value.isEmpty)
+    }
+    if (_isPlaceholder(plant.value) || plantId.value.isEmpty) {
       errors.add('Plant');
-    if (_isPlaceholder(shift.value) || shiftId.value.isEmpty)
+    }
+    if (_isPlaceholder(shift.value) || shiftId.value.isEmpty) {
       errors.add('Shift');
+    }
 
     if (reportedTime.value == null) errors.add('Reported At (Time)');
     if (reportedDate.value == null) errors.add('Reported On (Date)');

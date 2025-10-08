@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   get: ^4.6.6
   dio: ^5.4.0
-  retrofit: ^4.1.0
+  retrofit: ^4.1.3
   floor: ^1.5.0              # ↑ upgrade floor
   get_storage: ^2.1.1
   loader_overlay: ^2.2.0
@@ -29,7 +29,11 @@ dependencies:
   fl_chart: ^0.68.0
   flutter_secure_storage: ^9.2.2
   json_annotation: ^4.9.0     # ↑ pair with json_serializable 6.9
-  connectivity_plus: ^6.0.3   # latest at time of writing
+  device_info_plus: ^12.1.0
+  connectivity_plus: ^6.0.5
+  network_info_plus: ^7.0.0
+  package_info_plus: ^9.0.0
+ 
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +57,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/mock_json/work_orders.json
 
   fonts:
     - family: inter

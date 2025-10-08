@@ -1,4 +1,10 @@
 // lib/network/api_service.dart
+import 'dart:convert';
+import 'dart:io';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/api_factory.dart';
 import 'package:easy_ops/core/network/auth_store.dart';
@@ -73,9 +79,39 @@ class ApiService {
   }
 
   Future<CreateWorkOrderResponse> createWorkOrder(
-      CreateWorkOrderRequest createWorkOrderRequest) async {
+    CreateWorkOrderRequest req,
+  ) async {
     try {
-      return await _api.createWorkOrderRequest(createWorkOrderRequest);
+      // 1️⃣ Encode the workOrder JSON and wrap it as a JSON multipart part
+      final jsonString = jsonEncode(req.toJson());
+      final workOrderPart = MultipartFile.fromString(
+        jsonString,
+        contentType: MediaType('application', 'json'),
+        filename: 'workOrder.json', // helps some servers
+      );
+
+      // 2️⃣ Collect file parts
+      final fileEntries = <MapEntry<String, MultipartFile>>[];
+      for (final media in req.mediaFiles) {
+        final file = File(media.filePath);
+        if (await file.exists()) {
+          final fileName = file.path.split('/').last;
+          fileEntries.add(
+            MapEntry(
+              'files', // matches your curl's `--form 'files=@...'`
+              await MultipartFile.fromFile(file.path, filename: fileName),
+            ),
+          );
+        }
+      }
+
+      // 3️⃣ Build the FormData (mimics the cURL structure)
+      final formData = FormData();
+      formData.files.add(MapEntry('workOrder', workOrderPart));
+      formData.files.addAll(fileEntries);
+
+      // 4️⃣ Call Retrofit client (Dio runs internally — no manual post())
+      return _api.createWorkOrderRequest(formData);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }
@@ -84,6 +120,23 @@ class ApiService {
   Future<WorkOrderListResponse> workOrderList() async {
     try {
       return await _api.getWorkOrderList();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await _api.logout();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<NewSuggestionResponse> addNewSuggestion(
+      NewSuggestionRequest newSuggestionRequest) async {
+    try {
+      return await _api.addNewSuggestion(newSuggestionRequest);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

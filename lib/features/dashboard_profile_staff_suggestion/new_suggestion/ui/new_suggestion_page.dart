@@ -1,8 +1,8 @@
+import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/controller/new_suggestions_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
+import 'package:get/get.dart';
 
 class NewSuggestionPage extends GetView<NewSuggestionController> {
   const NewSuggestionPage({super.key});
@@ -28,7 +28,7 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           child: Column(
             children: [
-              // Reporter Info (collapsible)
+              // ─────────────── Reporter Info ───────────────
               Obx(
                 () => _ReporterInfoCard(
                   expanded: c.reporterExpanded.value,
@@ -41,38 +41,42 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
               ),
               const SizedBox(height: 14),
 
-              // Form
+              // ─────────────── Form ───────────────
               Form(
                 key: c.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _FieldLabel('Department'),
-                    DropdownButtonFormField<String>(
-                      value: c.department.value,
-                      decoration: _inputDecoration(),
-                      items: c.departments
-                          .map(
-                            (d) => DropdownMenuItem(value: d, child: Text(d)),
-                          )
-                          .toList(),
-                      onChanged: (v) => c.department.value = v,
+                    Obx(
+                      () => _BottomSheetField(
+                        label: c.location.value == '-'
+                            ? 'Select Department'
+                            : c.location.value,
+                        onTap: () => _showBottomSheetPicker(
+                          context: context,
+                          title: 'Select Department',
+                          options: c.locationsForPicker,
+                          onSelected: c.onLocationChanged,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 14),
-
                     _FieldLabel('Type'),
-                    DropdownButtonFormField<String>(
-                      value: c.type.value,
-                      decoration: _inputDecoration(),
-                      items: c.types
-                          .map(
-                            (t) => DropdownMenuItem(value: t, child: Text(t)),
-                          )
-                          .toList(),
-                      onChanged: (v) => c.type.value = v,
+                    Obx(
+                      () => _BottomSheetField(
+                        label: c.suggestion.value == '-'
+                            ? 'Select Type'
+                            : c.suggestion.value,
+                        onTap: () => _showBottomSheetPicker(
+                          context: context,
+                          title: 'Select Type',
+                          options: c.suggestionForPicker,
+                          onSelected: c.onSuggestionChanged,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 14),
-
                     _FieldLabel('Title'),
                     TextFormField(
                       controller: c.titleC,
@@ -83,36 +87,33 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 14),
-
                     _FieldLabel('Description'),
                     TextFormField(
                       controller: c.descriptionC,
                       validator: c.validateDesc,
                       maxLines: 4,
                       decoration: _inputDecoration(
-                        hint: 'Provide as detailed summary of your suggestion.',
+                        hint:
+                            'Provide a detailed description of your suggestion.',
                       ),
                     ),
                     const SizedBox(height: 14),
-
                     _FieldLabel('Justification'),
                     TextFormField(
                       controller: c.justificationC,
                       validator: c.validateJust,
                       maxLines: 3,
                       decoration: _inputDecoration(
-                        hint: 'Provide details of the impact amount.',
+                        hint: 'Explain why this suggestion is important.',
                       ),
                     ),
                     const SizedBox(height: 14),
-
                     _FieldLabel('Impact Amount (₹)'),
                     TextFormField(
                       controller: c.amountC,
                       validator: c.validateAmount,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: false,
-                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: false),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
                       ],
@@ -121,10 +122,14 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
                   ],
                 ),
               ),
+              if (controller.isLoading.value)
+                const LoadingOverlay(message: 'Adding new suggestion...'),
             ],
           ),
         ),
       ),
+
+      // ─────────────── Submit Button ───────────────
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -152,78 +157,126 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
   }
 }
 
-/// =================== UI HELPERS ===================
+/// =================== BEAUTIFUL BOTTOM SHEET ===================
 
-class _Card extends StatelessWidget {
-  final Widget child;
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FE),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE3E9F4)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+void _showBottomSheetPicker({
+  required BuildContext context,
+  required String title,
+  required List<String> options,
+  required Function(String) onSelected,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 5,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDADDE3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                  color: Color(0xFF2D2F39),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, color: Color(0xFFE9EEF5)),
+                  itemBuilder: (context, index) {
+                    final opt = options[index];
+                    return ListTile(
+                      title: Text(
+                        opt,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D2F39),
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        onSelected(opt);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: child,
-    );
-  }
+        ),
+      );
+    },
+  );
 }
 
-class _LabelValue extends StatelessWidget {
+/// =================== REUSABLE BOTTOM SHEET FIELD ===================
+
+class _BottomSheetField extends StatelessWidget {
   final String label;
-  final String value;
-  final bool boldFirstLine;
-  const _LabelValue({
+  final VoidCallback onTap;
+
+  const _BottomSheetField({
     required this.label,
-    required this.value,
-    this.boldFirstLine = false,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final lines = value.split('\n');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12.5,
-            color: Color(0xFF7C8698),
-            fontWeight: FontWeight.w700,
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE3E9F4)),
+          borderRadius: BorderRadius.circular(8),
         ),
-        const SizedBox(height: 4),
-        RichText(
-          text: TextSpan(
-            style: const TextStyle(color: Color(0xFF2D2F39), fontSize: 13.5),
-            children: [
-              TextSpan(
-                text: lines.first,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                label,
                 style: TextStyle(
-                  fontWeight: boldFirstLine ? FontWeight.w800 : FontWeight.w600,
+                  color: (label.startsWith('Select'))
+                      ? const Color(0xFF9AA4B2)
+                      : const Color(0xFF2D2F39),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              if (lines.length > 1)
-                TextSpan(text: '\n${lines.sublist(1).join('\n')}'),
-            ],
-          ),
+            ),
+            const Icon(Icons.keyboard_arrow_down_rounded,
+                color: Color(0xFF7C8698)),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
+
+/// =================== COMMON UI HELPERS ===================
 
 class _FieldLabel extends StatelessWidget {
   final String text;
@@ -245,31 +298,32 @@ class _FieldLabel extends StatelessWidget {
 }
 
 InputDecoration _inputDecoration({String? hint}) => InputDecoration(
-  hintText: hint,
-  hintStyle: const TextStyle(
-    color: Color(0xFF9AA4B2),
-    fontWeight: FontWeight.w500,
-  ),
-  filled: true,
-  fillColor: Colors.white,
-  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-  enabledBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(8),
-    borderSide: const BorderSide(color: Color(0xFFE3E9F4)),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(8),
-    borderSide: const BorderSide(color: Color(0xFF2F6BFF), width: 1.5),
-  ),
-  errorBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(8),
-    borderSide: const BorderSide(color: Color(0xFFE34B3B)),
-  ),
-  focusedErrorBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(8),
-    borderSide: const BorderSide(color: Color(0xFFE34B3B), width: 1.2),
-  ),
-);
+      hintText: hint,
+      hintStyle: const TextStyle(
+        color: Color(0xFF9AA4B2),
+        fontWeight: FontWeight.w500,
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE3E9F4)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2F6BFF), width: 1.5),
+      ),
+      // ❌ Removed default red borders — will only show on actual validation error
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+    );
 
 class _ReporterInfoCard extends StatelessWidget {
   final bool expanded;
@@ -292,7 +346,7 @@ class _ReporterInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Header
+        // ───────────── Header Row ─────────────
         InkWell(
           onTap: onToggle,
           borderRadius: BorderRadius.circular(12),
@@ -300,7 +354,7 @@ class _ReporterInfoCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(
               children: [
-                _InitialsAvatar(text: name, size: 36),
+                _InitialsAvatar(text: name, size: 40),
                 const SizedBox(width: 10),
                 const Expanded(
                   child: Text(
@@ -308,12 +362,13 @@ class _ReporterInfoCard extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF2D2F39),
+                      fontSize: 15,
                     ),
                   ),
                 ),
                 AnimatedRotation(
                   duration: const Duration(milliseconds: 200),
-                  turns: expanded ? 0.5 : 0, // rotate chevron
+                  turns: expanded ? 0.5 : 0,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -331,17 +386,16 @@ class _ReporterInfoCard extends StatelessWidget {
           ),
         ),
 
-        // Body
+        // ───────────── Expandable Body ─────────────
         AnimatedCrossFade(
-          duration: const Duration(milliseconds: 200),
-          crossFadeState: expanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 250),
+          crossFadeState:
+              expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           firstChild: const SizedBox.shrink(),
           secondChild: Container(
             width: double.infinity,
             margin: const EdgeInsets.only(top: 6),
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
             decoration: BoxDecoration(
               color: const Color(0xFFF7F9FE),
               borderRadius: BorderRadius.circular(12),
@@ -352,7 +406,7 @@ class _ReporterInfoCard extends StatelessWidget {
                 _KVRow(
                   label: 'Reported By',
                   value: '$name ($code)',
-                  subtitleChip: role, // small chip under name
+                  subtitleChip: role,
                 ),
                 const SizedBox(height: 10),
                 const Divider(height: 1, color: Color(0xFFE9EEF5)),
@@ -367,11 +421,12 @@ class _ReporterInfoCard extends StatelessWidget {
   }
 }
 
-/// Small label/value row with optional chip subtitle.
+/// ───────────── Key-Value Row inside Reporter Card ─────────────
 class _KVRow extends StatelessWidget {
   final String label;
   final String value;
   final String? subtitleChip;
+
   const _KVRow({required this.label, required this.value, this.subtitleChip});
 
   @override
@@ -408,13 +463,11 @@ class _KVRow extends StatelessWidget {
               if (subtitleChip != null) ...[
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFEAF2FF),
-                    shape: const StadiumBorder(),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: const ShapeDecoration(
+                    color: Color(0xFFEAF2FF),
+                    shape: StadiumBorder(),
                   ),
                   child: Text(
                     subtitleChip!,
@@ -434,7 +487,7 @@ class _KVRow extends StatelessWidget {
   }
 }
 
-/// Circle avatar with initials + subtle ring.
+/// ───────────── Circle Avatar with Initials ─────────────
 class _InitialsAvatar extends StatelessWidget {
   final String text;
   final double size;
@@ -445,12 +498,13 @@ class _InitialsAvatar extends StatelessWidget {
     final initials = text.trim().isEmpty
         ? 'U'
         : text
-              .trim()
-              .split(RegExp(r'\s+'))
-              .take(2)
-              .map((e) => e[0])
-              .join()
-              .toUpperCase();
+            .trim()
+            .split(RegExp(r'\s+'))
+            .take(2)
+            .map((e) => e[0])
+            .join()
+            .toUpperCase();
+
     return Container(
       width: size,
       height: size,
@@ -469,7 +523,10 @@ class _InitialsAvatar extends StatelessWidget {
         foregroundColor: const Color(0xFF2F6BFF),
         child: Text(
           initials,
-          style: const TextStyle(fontWeight: FontWeight.w900),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+          ),
         ),
       ),
     );

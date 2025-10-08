@@ -65,7 +65,6 @@ class _LandingDashboardTabShellState extends State<LandingDashboardTabShell> {
         physics: const NeverScrollableScrollPhysics(),
         children: const [
           HomeDashboardPage(key: PageStorageKey('tab-0-home')),
-          // TODO: replace with your real Inventory page
           HomeDashboardPage(key: PageStorageKey('tab-1-inventory')),
           AssetsManagementDashboardPage(key: PageStorageKey('tab-2-assets')),
           WorkOrdersListPage(key: PageStorageKey('tab-3-workorders')),

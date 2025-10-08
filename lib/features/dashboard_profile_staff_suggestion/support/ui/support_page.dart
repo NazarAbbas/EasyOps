@@ -7,7 +7,6 @@ class SupportPage extends GetView<SupportController> {
 
   @override
   Widget build(BuildContext context) {
-    final c = controller;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
@@ -30,7 +29,7 @@ class SupportPage extends GetView<SupportController> {
               _Card(
                 padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
                 child: Obx(() {
-                  final last = c.lastSync.value;
+                  final last = controller.lastSync.value;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -40,7 +39,7 @@ class SupportPage extends GetView<SupportController> {
                           Expanded(
                             child: _Value.rich([
                               TextSpan(
-                                text: c.softwareVersion.value,
+                                text: controller.softwareVersion.value,
                                 style: _bold,
                               ),
                               const TextSpan(
@@ -53,17 +52,17 @@ class SupportPage extends GetView<SupportController> {
                               Icons.refresh_rounded,
                               color: Color(0xFF2F6BFF),
                             ),
-                            onPressed: c.refreshSoftware,
+                            onPressed: controller.refreshSoftware,
                             tooltip: 'Check updates',
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       _Label('Device Model'),
-                      _Value.text(c.deviceModel.value),
+                      _Value.text(controller.deviceModel.value),
                       const SizedBox(height: 12),
                       _Label('OS Version'),
-                      _Value.text(c.osVersion.value),
+                      _Value.text(controller.osVersion.value),
                       const SizedBox(height: 12),
                       _Label('Last Sync'),
                       Row(
@@ -78,30 +77,55 @@ class SupportPage extends GetView<SupportController> {
                               Icons.refresh_rounded,
                               color: Color(0xFF2F6BFF),
                             ),
-                            onPressed: c.refreshSync,
+                            onPressed: controller.refreshSync,
                             tooltip: 'Sync now',
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       _Label('Connectivity Status'),
-                      Row(
-                        children: const [
-                          _ValueText('Online'),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.signal_cellular_alt_rounded,
-                            size: 16,
-                            color: Color(0xFF2F6BFF),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Icons.wifi_rounded,
-                            size: 16,
-                            color: Color(0xFF2F6BFF),
-                          ),
-                        ],
-                      ),
+                      Obx(() {
+                        final conn = controller.connectivity.value;
+                        final lower = conn.toLowerCase();
+
+                        Widget iconWidget;
+                        if (lower.contains('wifi') &&
+                            lower.contains('mobile')) {
+                          iconWidget = Row(
+                            children: const [
+                              Icon(Icons.signal_cellular_alt_rounded,
+                                  size: 16, color: Color(0xFF2F6BFF)),
+                              SizedBox(width: 4),
+                              Icon(Icons.wifi_rounded,
+                                  size: 16, color: Color(0xFF2F6BFF)),
+                            ],
+                          );
+                        } else if (lower.contains('wifi')) {
+                          iconWidget = const Icon(Icons.wifi_rounded,
+                              size: 16, color: Color(0xFF2F6BFF));
+                        } else if (lower.contains('mobile')) {
+                          iconWidget = const Icon(
+                              Icons.signal_cellular_alt_rounded,
+                              size: 16,
+                              color: Color(0xFF2F6BFF));
+                        } else if (lower.contains('ethernet')) {
+                          iconWidget = const Icon(
+                              Icons.settings_ethernet_rounded,
+                              size: 16,
+                              color: Color(0xFF2F6BFF));
+                        } else {
+                          iconWidget = const Icon(Icons.cloud_off_rounded,
+                              size: 16, color: Color(0xFF7C8698));
+                        }
+
+                        return Row(
+                          children: [
+                            _ValueText(conn.isEmpty ? 'Offline' : conn),
+                            const SizedBox(width: 8),
+                            iconWidget,
+                          ],
+                        );
+                      }),
                     ],
                   );
                 }),
@@ -126,7 +150,7 @@ class SupportPage extends GetView<SupportController> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: c.sendEmail,
+                            onPressed: controller.sendEmail,
                             icon: const Icon(Icons.mail_outline_rounded),
                             label: const Text('via Email'),
                             style: OutlinedButton.styleFrom(
@@ -145,7 +169,7 @@ class SupportPage extends GetView<SupportController> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: c.callSupport,
+                            onPressed: controller.callSupport,
                             icon: const Icon(Icons.call_rounded),
                             label: const Text('via Call'),
                             style: FilledButton.styleFrom(
@@ -258,11 +282,11 @@ class _Value {
   static Widget text(String value) =>
       const _ValueText(null, inline: false).withText(value);
   static Widget rich(List<TextSpan> spans) => RichText(
-    text: TextSpan(
-      style: const TextStyle(color: Color(0xFF2D2F39), fontSize: 13.5),
-      children: spans,
-    ),
-  );
+        text: TextSpan(
+          style: const TextStyle(color: Color(0xFF2D2F39), fontSize: 13.5),
+          children: spans,
+        ),
+      );
 }
 
 class _ValueText extends StatelessWidget {

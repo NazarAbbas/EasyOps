@@ -14,16 +14,23 @@ class CreateWorkOrderRepositoryImpl implements CreateWorkOrderRepository {
   Future<ApiResult<CreateWorkOrderResponse>> createWorkOrderRequest(
       CreateWorkOrderRequest createWorkOrderRequest) async {
     try {
+      // ✅ Call API service (which should internally handle JSON or multipart)
       final createWorkOrderResponse =
           await _apiService.createWorkOrder(createWorkOrderRequest);
 
       return ApiResult<CreateWorkOrderResponse>(
-          httpCode: 201, data: createWorkOrderResponse, message: 'Success');
+        httpCode: 201,
+        data: createWorkOrderResponse,
+        message: 'Success',
+      );
     } on DioException catch (e) {
       final code = e.response?.statusCode ?? 0;
       final msg = NetworkExceptions.getMessage(e);
       return ApiResult<CreateWorkOrderResponse>(
-          httpCode: code, data: null, message: msg);
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
     } catch (e) {
       return ApiResult<CreateWorkOrderResponse>(
         httpCode: 0,
