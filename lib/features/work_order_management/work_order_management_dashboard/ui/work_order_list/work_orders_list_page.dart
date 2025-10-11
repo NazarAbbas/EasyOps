@@ -4,7 +4,8 @@ import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/controller/work_order_list_controller.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
+    show WorkOrder, Status, Priority;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -463,9 +464,9 @@ class _WorkOrderCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          if (order.status.name == 'resolved') {
+          if (order.status == 'Resolved') {
             Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order);
-          } else if (order.status.name == 'open') {
+          } else if (order.status == 'Open') {
             //Get.toNamed(Routes.editWorkOrderTabShellScreen, arguments: order);
             Get.toNamed(
               Routes.workOrderTabShellScreen,
@@ -538,7 +539,7 @@ class _WorkOrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // left: code
-                      _MetaChip(icon: CupertinoIcons.number, label: order.code),
+                      _MetaChip(icon: CupertinoIcons.number, label: order.id),
 
                       const SizedBox(width: 8),
 
@@ -546,7 +547,7 @@ class _WorkOrderCard extends StatelessWidget {
                       Expanded(
                         child: _MetaChip(
                           icon: null,
-                          label: '${order.time} | ${order.date}',
+                          label: _formatDate(order.createdAt),
                         ),
                       ),
 
@@ -555,10 +556,10 @@ class _WorkOrderCard extends StatelessWidget {
                       // right: status (only if not 'none')
                       if (order.status != Status.none)
                         Text(
-                          order.status.text,
+                          order.status,
                           textAlign: TextAlign.right,
                           style: TextStyle(
-                            color: order.status.color,
+                            //color: order.status.color,
                             fontWeight: FontWeight.w800,
                             fontSize: labelSize,
                           ),
@@ -594,7 +595,7 @@ class _WorkOrderCard extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Flexible(
                                   child: Text(
-                                    order.department,
+                                    order.departmentName,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: textPrimary,
@@ -622,7 +623,7 @@ class _WorkOrderCard extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Flexible(
                                   child: Text(
-                                    order.line,
+                                    order.asset.id,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: textSecondary,
@@ -653,15 +654,17 @@ class _WorkOrderCard extends StatelessWidget {
                           //   ),
                           _MetaChip(
                             icon: CupertinoIcons.clock,
-                            label: order.duration,
+                            label: order.timeLeft ?? '',
                             dense: true,
                           ),
+                          const SizedBox(height: 10),
                           const SizedBox(width: 6),
-                          if (order.footerTag.isNotEmpty &&
-                              order.status != Status.resolved) ...[
-                            const SizedBox(height: 6),
-                            _MetaChip(icon: null, label: order.footerTag),
-                          ],
+                          if (order.escalated > 0)
+                            _MetaChip(
+                              icon: null,
+                              label: 'Escalated',
+                              dense: true,
+                            ),
                         ],
                       ),
                     ],
@@ -678,17 +681,47 @@ class _WorkOrderCard extends StatelessWidget {
   // ---- helpers ----
 
   Color _accentFor(WorkOrder o) {
-    switch ((o.priority, o.status)) {
-      case (Priority.high, final s) when s != Status.resolved:
-        return AppColors.red; // coral red
-      case (_, Status.resolved):
-        return AppColors.successGreen; // coral red
+    switch (o.status) {
+      case "Open":
+        return AppColors.red; // 🔴 Red for Open
+      case "Inprogress":
+        return const Color(0xFFFFC107); // 🟡 Amber for In Progress
+      case "Resolved":
+        return AppColors.successGreen; // 🟢 Green for Resolved
+      case Status.none:
       default:
-        return const Color(0xFF2F6BFF); // brand blue fallback
+        return const Color(0xFF2F6BFF); // 🔵 Blue fallback
     }
   }
 }
 
+String _formatDate(DateTime dt) {
+  final hh = dt.hour.toString().padLeft(2, '0');
+  final mm = dt.minute.toString().padLeft(2, '0');
+
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+  final day = dt.day.toString().padLeft(2, '0');
+  final month = months[dt.month - 1];
+
+  return '$hh:$mm | $day $month';
+}
+
+// String _formatDate(DateTime date) {
+//   return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+// }
 /* ============================ Bits ============================ */
 
 class _MetaChip extends StatelessWidget {
@@ -744,7 +777,7 @@ class _MetaChip extends StatelessWidget {
 }
 
 class _StatusPill extends StatelessWidget {
-  final Priority pill;
+  final String pill;
   final double fontSize;
   final bool uppercase;
   final bool showDot;
@@ -758,9 +791,10 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cfg = switch (pill) {
-      Priority.high => (color: AppColors.red, label: 'High'),
-    };
+    // final cfg = switch (pill) {
+    //   Priority.high => (color: AppColors.red, label: 'High'),
+    // };
+    final cfg = (color: AppColors.red, label: 'High');
 
     final label = uppercase ? cfg.label.toUpperCase() : cfg.label;
 

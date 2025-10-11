@@ -1,15 +1,16 @@
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/domain/work_order_list_repository_impl.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
+    show WorkOrder, Tenant, Client, Asset;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkOrdersController extends GetxController {
-  WorkOrderListRepositoryImpl repositoryImpl = WorkOrderListRepositoryImpl();
+  final WorkOrderListRepositoryImpl repositoryImpl =
+      WorkOrderListRepositoryImpl();
+
   // ---------------- UI state ----------------
   final loading = true.obs; // first-load spinner
-  final isRefreshing = false.obs; // pull-to-refresh spinner (if you show one)
-
-  // Calendar state
+  final isRefreshing = false.obs; // pull-to-refresh spinner
   final selectedDay = DateTime.now().obs;
   final focusedDay = DateTime.now().obs;
 
@@ -26,24 +27,24 @@ class WorkOrdersController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
     // Recompute visible list whenever any of these change
     everAll([orders, query, selectedTab], (_) => _recomputeVisible());
-
-    // First load (simulate API)
     _loadInitial();
   }
 
-  // ---------------- API Simulations ----------------
+  // ---------------- API / Initial Load ----------------
   Future<void> _loadInitial() async {
     loading.value = true;
     await Future.delayed(const Duration(milliseconds: 900));
 
-    final res = await repositoryImpl.workOrderList();
-    final list = res.data?.content ?? const <WorkOrder>[];
-
-    // Mock data (replace with your API result)
-    orders.assignAll(_mockOrders);
+    try {
+      final res = await repositoryImpl.workOrderList();
+      final list = res.data?.content ?? const <WorkOrder>[];
+      orders.assignAll(list.isEmpty ? mockWorkOrders : list);
+    } catch (e) {
+      // Fallback to mock data on error
+      orders.assignAll(mockWorkOrders);
+    }
 
     loading.value = false;
     _recomputeVisible();
@@ -54,10 +55,15 @@ class WorkOrdersController extends GetxController {
     isRefreshing.value = true;
     await Future.delayed(const Duration(milliseconds: 900));
 
-    // TODO: Replace with repository/API call
-    // For demo: shuffle to show change
-    final shuffled = orders.toList()..shuffle();
-    orders.assignAll(shuffled);
+    try {
+      final res = await repositoryImpl.workOrderList();
+      final list = res.data?.content ?? const <WorkOrder>[];
+      orders.assignAll(list);
+    } catch (e) {
+      // For demo: shuffle mock data to simulate change
+      final shuffled = orders.toList()..shuffle();
+      orders.assignAll(shuffled);
+    }
 
     isRefreshing.value = false;
     _recomputeVisible();
@@ -73,20 +79,21 @@ class WorkOrdersController extends GetxController {
     // 1) Filter by tab
     switch (selectedTab.value) {
       case 0: // Today
-        // If your model had DateTime, you'd compare to selectedDay.
-        // With string dates like '09 Aug', we'll just passthrough for now.
-        // Customize here when you have a proper date field.
+        src = src.where((w) {
+          final d = DateTime.now();
+          return w.scheduledStart.year == d.year &&
+              w.scheduledStart.month == d.month &&
+              w.scheduledStart.day == d.day;
+        }).toList();
         break;
       case 1: // Open
-        src = src.where((w) => !_isResolved(w)).toList();
+        src = src.where((w) => w.status.toLowerCase() == 'open').toList();
         break;
       case 2: // Escalated
-        src = src
-            .where((w) => (w.footerTag).toLowerCase().contains('escalated'))
-            .toList();
+        src = src.where((w) => w.escalated > 0).toList();
         break;
       case 3: // Critical
-        src = src.where((w) => w.priority == Priority.high).toList();
+        src = src.where((w) => w.priority.toLowerCase() == 'high').toList();
         break;
     }
 
@@ -99,15 +106,13 @@ class WorkOrdersController extends GetxController {
     visibleOrders.assignAll(src);
   }
 
-  bool _isResolved(WorkOrder w) => w.priority == Priority.high;
-
-  // ---------------- Calendar markers (TableCalendar) ----------------
+  // ---------------- Calendar helpers (TableCalendar) ----------------
   DateTime _d(DateTime d) => DateTime.utc(d.year, d.month, d.day);
 
   final Map<DateTime, List<MarkerEvent>> eventMap = {
     DateTime.utc(2025, 8, 25): [
       MarkerEvent(Colors.red),
-      MarkerEvent(Colors.red),
+      MarkerEvent(Colors.red)
     ],
     DateTime.utc(2025, 9, 6): [MarkerEvent(Colors.amber)],
     DateTime.utc(2025, 9, 10): [MarkerEvent(Colors.blue)],
@@ -118,7 +123,7 @@ class WorkOrdersController extends GetxController {
     ],
     DateTime.utc(2025, 9, 26): [
       MarkerEvent(Colors.red),
-      MarkerEvent(Colors.red),
+      MarkerEvent(Colors.red)
     ],
   };
 
@@ -133,54 +138,112 @@ class MarkerEvent {
 }
 
 // ---------------- Mock data ----------------
-final _mockOrders = <WorkOrder>[
+final mockWorkOrders = <WorkOrder>[
   WorkOrder(
+    id: 'WO-0001',
+    type: 'Breakdown Management',
+    plantId: 'PLANT-001',
+    plantName: 'Main Plant',
+    departmentId: 'DEPT-001',
+    departmentName: 'Mechanical',
+    impactId: null,
+    impactName: null,
+    priority: 'High',
+    status: 'Open',
     title: 'Conveyor Belt Stopped Abruptly During Operation',
-    code: 'BD-102',
-    time: '18:08',
-    date: '09 Aug',
-    department: 'Mechanical',
-    line: 'CNC - 1',
-    priority: Priority.high,
-    status: Status.open,
-    duration: '3h 20m',
-    footerTag: 'Escalated',
+    description: 'The conveyor belt unexpectedly stopped during operation.',
+    remark: 'Needs immediate attention',
+    comment: null,
+    scheduledStart: DateTime.parse('2025-08-09T18:08:00Z'),
+    scheduledEnd: DateTime.parse('2025-08-09T21:28:00Z'),
+    recordStatus: 1,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    escalated: 1,
+    timeLeft: '3h 20m',
+    tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
+    client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
+    asset: Asset(
+      id: 'AST-001',
+      name: 'CNC - 1',
+      serialNumber: 'SN-001',
+      status: 'ACTIVE',
+    ),
+    reportedBy: null,
+    createdBy: null,
+    updatedBy: null,
+    mediaFiles: const [],
   ),
   WorkOrder(
+    id: 'WO-0002',
+    type: 'Breakdown Management',
+    plantId: 'PLANT-001',
+    plantName: 'Main Plant',
+    departmentId: 'DEPT-002',
+    departmentName: 'Electrical',
+    impactId: null,
+    impactName: null,
+    priority: 'High',
+    status: 'Resolved',
     title:
-        'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly During Operation',
-    code: 'BD-118',
-    time: '14:12',
-    date: '10 Aug',
-    department: 'Electrical',
-    line: 'CNC - 7',
-    priority: Priority.high,
-    status: Status.resolved,
-    duration: '1h 20m',
-    footerTag: '',
+        'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly',
+    description: 'Multiple machine issues observed in line CNC - 7.',
+    remark: 'Fixed after diagnostics',
+    comment: null,
+    scheduledStart: DateTime.parse('2025-08-10T14:12:00Z'),
+    scheduledEnd: DateTime.parse('2025-08-10T15:32:00Z'),
+    recordStatus: 1,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    escalated: 0,
+    timeLeft: '1h 20m',
+    tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
+    client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
+    asset: Asset(
+      id: 'AST-002',
+      name: 'CNC - 7',
+      serialNumber: 'SN-002',
+      status: 'ACTIVE',
+    ),
+    reportedBy: null,
+    createdBy: null,
+    updatedBy: null,
+    mediaFiles: const [],
   ),
   WorkOrder(
-    title: 'Unusual Grinding Noise from CNC Assets During Cutting',
-    code: 'BD-131',
-    time: '09:45',
-    date: '11 Aug',
-    department: 'Mechanical',
-    line: 'CNC - 1',
-    priority: Priority.high,
-    status: Status.inProgress,
-    duration: '3h 20m',
-    footerTag: 'Escalated',
-  ),
-  WorkOrder(
-    title: 'Unusual Grinding Noise from CNC Assets During Cutting',
-    code: 'BD-131',
-    time: '09:45',
-    date: '11 Aug',
-    department: 'Mechanical',
-    line: 'CNC - 1',
-    priority: Priority.high,
-    status: Status.inProgress,
-    duration: '3h 20m',
-    footerTag: 'Critial',
+    id: 'WO-0002',
+    type: 'Breakdown Management',
+    plantId: 'PLANT-001',
+    plantName: 'Main Plant',
+    departmentId: 'DEPT-002',
+    departmentName: 'Electrical',
+    impactId: null,
+    impactName: null,
+    priority: 'High',
+    status: 'Inprogress',
+    title:
+        'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly',
+    description: 'Multiple machine issues observed in line CNC - 7.',
+    remark: 'Fixed after diagnostics',
+    comment: null,
+    scheduledStart: DateTime.parse('2025-08-10T14:12:00Z'),
+    scheduledEnd: DateTime.parse('2025-08-10T15:32:00Z'),
+    recordStatus: 1,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    escalated: 0,
+    timeLeft: '1h 20m',
+    tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
+    client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
+    asset: Asset(
+      id: 'AST-002',
+      name: 'CNC - 7',
+      serialNumber: 'SN-002',
+      status: 'ACTIVE',
+    ),
+    reportedBy: null,
+    createdBy: null,
+    updatedBy: null,
+    mediaFiles: const [],
   ),
 ];

@@ -2,14 +2,15 @@ import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/ApiService.dart';
 import 'package:easy_ops/core/network/api_result.dart';
 import 'package:easy_ops/core/network/network_exception.dart';
-import 'package:easy_ops/features/login/domain/repository.dart';
+import 'package:easy_ops/features/login/domain/login_repository.dart';
+import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:get/get.dart';
 
-class RepositoryImpl implements Repository {
+class LoginRepositoryImpl implements LoginRepository {
   final ApiService _apiService = Get.find<ApiService>();
 
   @override
@@ -122,6 +123,34 @@ class RepositoryImpl implements Repository {
       );
     } catch (e) {
       return ApiResult<AssetsData>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<LoginPersonDetails>> loginPersonDetails(
+      String userName) async {
+    try {
+      final result = await _apiService.loginPersonDetails(userName);
+
+      return ApiResult<LoginPersonDetails>(
+        httpCode: 200,
+        data: result,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<LoginPersonDetails>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<LoginPersonDetails>(
         httpCode: 0,
         data: null,
         message: e.toString(),

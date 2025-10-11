@@ -9,7 +9,6 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
 
   @override
   Widget build(BuildContext context) {
-    final c = controller;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
@@ -24,108 +23,116 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
       ),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-          child: Column(
-            children: [
-              // ─────────────── Reporter Info ───────────────
-              Obx(
-                () => _ReporterInfoCard(
-                  expanded: c.reporterExpanded.value,
-                  onToggle: c.toggleReporter,
-                  name: c.reporterName.value,
-                  code: c.employeeCode.value,
-                  role: c.role.value,
-                  department: c.reporterDept.value,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // ─────────────── Form ───────────────
-              Form(
-                key: c.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _FieldLabel('Department'),
-                    Obx(
-                      () => _BottomSheetField(
-                        label: c.location.value == '-'
-                            ? 'Select Department'
-                            : c.location.value,
-                        onTap: () => _showBottomSheetPicker(
-                          context: context,
-                          title: 'Select Department',
-                          options: c.locationsForPicker,
-                          onSelected: c.onLocationChanged,
+        child: Stack(
+          children: [
+            // 🟡 Main scrollable content
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              child: Column(
+                children: [
+                  Obx(
+                    () => _ReporterInfoCard(
+                      expanded: controller.reporterExpanded.value,
+                      onToggle: controller.toggleReporter,
+                      name: controller.reporterName.value,
+                      code: controller.employeeCode.value,
+                      role: controller.role.value,
+                      department: controller.reporterDept.value,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Form(
+                    key: controller.formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _FieldLabel('Department'),
+                        Obx(
+                          () => _BottomSheetField(
+                            label: controller.location.value == '-'
+                                ? 'Select Department'
+                                : controller.location.value,
+                            onTap: () => _showBottomSheetPicker(
+                              context: context,
+                              title: 'Select Department',
+                              options: controller.locationsForPicker,
+                              onSelected: controller.onLocationChanged,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    _FieldLabel('Type'),
-                    Obx(
-                      () => _BottomSheetField(
-                        label: c.suggestion.value == '-'
-                            ? 'Select Type'
-                            : c.suggestion.value,
-                        onTap: () => _showBottomSheetPicker(
-                          context: context,
-                          title: 'Select Type',
-                          options: c.suggestionForPicker,
-                          onSelected: c.onSuggestionChanged,
+                        const SizedBox(height: 14),
+                        _FieldLabel('Type'),
+                        Obx(
+                          () => _BottomSheetField(
+                            label: controller.suggestion.value == '-'
+                                ? 'Select Type'
+                                : controller.suggestion.value,
+                            onTap: () => _showBottomSheetPicker(
+                              context: context,
+                              title: 'Select Type',
+                              options: controller.suggestionForPicker,
+                              onSelected: controller.onSuggestionChanged,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    _FieldLabel('Title'),
-                    TextFormField(
-                      controller: c.titleC,
-                      validator: c.validateTitle,
-                      decoration: _inputDecoration(
-                        hint: 'Explain your summary in one line',
-                      ),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 14),
-                    _FieldLabel('Description'),
-                    TextFormField(
-                      controller: c.descriptionC,
-                      validator: c.validateDesc,
-                      maxLines: 4,
-                      decoration: _inputDecoration(
-                        hint:
-                            'Provide a detailed description of your suggestion.',
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    _FieldLabel('Justification'),
-                    TextFormField(
-                      controller: c.justificationC,
-                      validator: c.validateJust,
-                      maxLines: 3,
-                      decoration: _inputDecoration(
-                        hint: 'Explain why this suggestion is important.',
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    _FieldLabel('Impact Amount (₹)'),
-                    TextFormField(
-                      controller: c.amountC,
-                      validator: c.validateAmount,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: false),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
+                        const SizedBox(height: 14),
+                        _FieldLabel('Title'),
+                        TextFormField(
+                          controller: controller.titleC,
+                          validator: controller.validateTitle,
+                          decoration: _inputDecoration(
+                            hint: 'Explain your summary in one line',
+                          ),
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 14),
+                        _FieldLabel('Description'),
+                        TextFormField(
+                          controller: controller.descriptionC,
+                          validator: controller.validateDesc,
+                          maxLines: 4,
+                          decoration: _inputDecoration(
+                            hint:
+                                'Provide a detailed description of your suggestion.',
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _FieldLabel('Justification'),
+                        TextFormField(
+                          controller: controller.justificationC,
+                          validator: controller.validateJust,
+                          maxLines: 3,
+                          decoration: _inputDecoration(
+                            hint: 'Explain why this suggestion is important.',
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _FieldLabel('Impact Amount (₹)'),
+                        TextFormField(
+                          controller: controller.amountC,
+                          validator: controller.validateAmount,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: false),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9,]')),
+                          ],
+                          decoration: _inputDecoration(),
+                        ),
                       ],
-                      decoration: _inputDecoration(),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              if (controller.isLoading.value)
-                const LoadingOverlay(message: 'Adding new suggestion...'),
-            ],
-          ),
+            ),
+
+            // 🔵 Overlay Loader — sits on top of everything
+            Obx(() {
+              return controller.isLoading.value
+                  ? const LoadingOverlay(message: 'Adding new suggestion...')
+                  : const SizedBox.shrink();
+            }),
+          ],
         ),
       ),
 
@@ -144,7 +151,7 @@ class NewSuggestionPage extends GetView<NewSuggestionController> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: c.submit,
+              onPressed: controller.submit,
               child: const Text(
                 'Submit',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),

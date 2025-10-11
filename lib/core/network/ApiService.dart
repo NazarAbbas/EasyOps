@@ -1,9 +1,11 @@
 // lib/network/api_service.dart
 import 'dart:convert';
 import 'dart:io';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
-import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
+import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/api_factory.dart';
@@ -78,6 +80,14 @@ class ApiService {
     }
   }
 
+  Future<LoginPersonDetails> loginPersonDetails(String userName) async {
+    try {
+      return await _api.loginPersonDetails(userName);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
   Future<CreateWorkOrderResponse> createWorkOrder(
     CreateWorkOrderRequest req,
   ) async {
@@ -125,9 +135,9 @@ class ApiService {
     }
   }
 
-  Future<void> logout() async {
+  Future<LogoutResponse> logout() async {
     try {
-      await _api.logout();
+      return _api.logout();
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }
@@ -137,6 +147,16 @@ class ApiService {
       NewSuggestionRequest newSuggestionRequest) async {
     try {
       return await _api.addNewSuggestion(newSuggestionRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<SuggestionsResponse> suggestionList() async {
+    try {
+      // throw Exception();
+
+      return await _api.suggestionList();
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

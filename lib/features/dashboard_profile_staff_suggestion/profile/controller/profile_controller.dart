@@ -80,7 +80,7 @@ class ProfileController extends GetxController {
   void logout() async {
     // your logout logic
     final result = await profileRepositoryImpl.logout();
-    if (result.httpCode == 204 && result.message == 'Success') {
+    if (result.httpCode == 200 && result.message == 'Success') {
       Get.offAllNamed(
           Routes.loginScreen); // or Routes.login if you use named constants
     }

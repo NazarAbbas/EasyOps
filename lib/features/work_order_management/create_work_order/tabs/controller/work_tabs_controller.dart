@@ -1,5 +1,6 @@
 import 'package:easy_ops/core/constants/constant.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
+    show WorkOrder;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 

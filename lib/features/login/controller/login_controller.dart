@@ -2,19 +2,22 @@ import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/theme_controller.dart';
 import 'package:easy_ops/database/db_repository/assets_repository.dart';
+import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
-import 'package:easy_ops/features/login/domain/repository_impl.dart';
+import 'package:easy_ops/features/login/domain/login_repository_impl.dart';
 import 'package:easy_ops/core/utils/app_snackbar.dart';
+import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/login/validator/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginPageController extends GetxController {
-  final RepositoryImpl repositoryImpl = RepositoryImpl();
+  final LoginRepositoryImpl repositoryImpl = LoginRepositoryImpl();
   final lookupRepository = Get.find<LookupRepository>();
   final assetRepository = Get.find<AssetRepository>();
   final shiftRepository = Get.find<ShiftRepository>();
+  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   // Inputs
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -29,8 +32,11 @@ class LoginPageController extends GetxController {
   void onInit() async {
     super.onInit();
     //db = await AppDatabase.open();
-    emailController.text = "satya.eazysaas@gmail.com";
-    passwordController.text = "r@Iv2Zi8iu?M";
+    // emailController.text = "satya.eazysaas@gmail.com";
+    //passwordController.text = "r@Iv2Zi8iu?M";
+
+    emailController.text = "raajvastra11@gmail.com";
+    passwordController.text = "@Raaj1234";
   }
 
   Future<void> login() async {
@@ -62,6 +68,14 @@ class LoginPageController extends GetxController {
       debugPrint('Login HTTP code: ${result.httpCode}');
 
       if (result.isSuccess && result.data != null) {
+        final loginPersonDetails =
+            await repositoryImpl.loginPersonDetails(result.data!.userName);
+
+        await loginPersonDetailsRepository
+            .upsertLoginPersonDetails(loginPersonDetails.data!);
+        // final details = await loginPersonDetailsRepository
+        //     .getPersonById(loginPersonDetails.data!.id);
+
         final dropDownData =
             await repositoryImpl.dropDownData(0, 20, 'sort_order,asc');
         final shiftData = await repositoryImpl.shiftData();

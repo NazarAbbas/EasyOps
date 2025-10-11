@@ -72,6 +72,12 @@ class _$AppDatabase extends AppDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
+  LoginPersonDetailsDao? _loginPersonDaoInstance;
+
+  LoginPersonContactDao? _loginPersonContactDaoInstance;
+
+  LoginPersonAttendanceDao? _loginPersonAttendanceDaoInstance;
+
   LookupDao? _lookupDaoInstance;
 
   AssetDao? _assetDaoInstance;
@@ -110,6 +116,12 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `login_person_attendance` (`id` TEXT NOT NULL, `attDate` TEXT NOT NULL, `checkIn` TEXT, `checkOut` TEXT, `remarks` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, `shiftId` TEXT, `shiftName` TEXT, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `login_person_contact` (`id` TEXT NOT NULL, `label` TEXT NOT NULL, `relationship` TEXT, `phone` TEXT, `email` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
+        await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_lookup_tenantId_clientId_lookupType_code` ON `lookup` (`tenantId`, `clientId`, `lookupType`, `code`)');
@@ -137,6 +149,24 @@ class _$AppDatabase extends AppDatabase {
   }
 
   @override
+  LoginPersonDetailsDao get loginPersonDao {
+    return _loginPersonDaoInstance ??=
+        _$LoginPersonDetailsDao(database, changeListener);
+  }
+
+  @override
+  LoginPersonContactDao get loginPersonContactDao {
+    return _loginPersonContactDaoInstance ??=
+        _$LoginPersonContactDao(database, changeListener);
+  }
+
+  @override
+  LoginPersonAttendanceDao get loginPersonAttendanceDao {
+    return _loginPersonAttendanceDaoInstance ??=
+        _$LoginPersonAttendanceDao(database, changeListener);
+  }
+
+  @override
   LookupDao get lookupDao {
     return _lookupDaoInstance ??= _$LookupDao(database, changeListener);
   }
@@ -155,6 +185,235 @@ class _$AppDatabase extends AppDatabase {
   OfflineWorkOrderDao get offlineWorkOrderDao {
     return _offlineWorkOrderDaoInstance ??=
         _$OfflineWorkOrderDao(database, changeListener);
+  }
+}
+
+class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
+  _$LoginPersonDetailsDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _loginPersonDetailsEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'login_person_details',
+            (LoginPersonDetailsEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'dob': item.dob,
+                  'bloodGroup': item.bloodGroup,
+                  'designation': item.designation,
+                  'type': item.type,
+                  'recordStatus': item.recordStatus,
+                  'updatedAt': item.updatedAt,
+                  'userId': item.userId,
+                  'userEmail': item.userEmail,
+                  'organizationId': item.organizationId,
+                  'organizationName': item.organizationName,
+                  'departmentId': item.departmentId,
+                  'departmentName': item.departmentName,
+                  'managerId': item.managerId,
+                  'managerName': item.managerName,
+                  'shiftId': item.shiftId,
+                  'shiftName': item.shiftName
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<LoginPersonDetailsEntity>
+      _loginPersonDetailsEntityInsertionAdapter;
+
+  @override
+  Future<LoginPersonDetailsEntity?> findById(String id) async {
+    return _queryAdapter.query(
+        'SELECT * FROM login_person_details WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => LoginPersonDetailsEntity(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            dob: row['dob'] as String?,
+            bloodGroup: row['bloodGroup'] as String?,
+            designation: row['designation'] as String?,
+            type: row['type'] as String?,
+            recordStatus: row['recordStatus'] as int,
+            updatedAt: row['updatedAt'] as String,
+            userId: row['userId'] as String?,
+            userEmail: row['userEmail'] as String?,
+            organizationId: row['organizationId'] as String?,
+            organizationName: row['organizationName'] as String?,
+            departmentId: row['departmentId'] as String?,
+            departmentName: row['departmentName'] as String?,
+            managerId: row['managerId'] as String?,
+            managerName: row['managerName'] as String?,
+            shiftId: row['shiftId'] as String?,
+            shiftName: row['shiftName'] as String?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<List<LoginPersonDetailsEntity>> getAllPersons() async {
+    return _queryAdapter.queryList('SELECT * FROM login_person_details',
+        mapper: (Map<String, Object?> row) => LoginPersonDetailsEntity(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            dob: row['dob'] as String?,
+            bloodGroup: row['bloodGroup'] as String?,
+            designation: row['designation'] as String?,
+            type: row['type'] as String?,
+            recordStatus: row['recordStatus'] as int,
+            updatedAt: row['updatedAt'] as String,
+            userId: row['userId'] as String?,
+            userEmail: row['userEmail'] as String?,
+            organizationId: row['organizationId'] as String?,
+            organizationName: row['organizationName'] as String?,
+            departmentId: row['departmentId'] as String?,
+            departmentName: row['departmentName'] as String?,
+            managerId: row['managerId'] as String?,
+            managerName: row['managerName'] as String?,
+            shiftId: row['shiftId'] as String?,
+            shiftName: row['shiftName'] as String?));
+  }
+
+  @override
+  Future<void> clearAllPersons() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM login_person_details');
+  }
+
+  @override
+  Future<void> upsertPerson(LoginPersonDetailsEntity entity) async {
+    await _loginPersonDetailsEntityInsertionAdapter.insert(
+        entity, OnConflictStrategy.replace);
+  }
+}
+
+class _$LoginPersonContactDao extends LoginPersonContactDao {
+  _$LoginPersonContactDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _loginPersonContactEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'login_person_contact',
+            (LoginPersonContactEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'label': item.label,
+                  'relationship': item.relationship,
+                  'phone': item.phone,
+                  'email': item.email,
+                  'recordStatus': item.recordStatus,
+                  'updatedAt': item.updatedAt,
+                  'personId': item.personId,
+                  'personName': item.personName
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<LoginPersonContactEntity>
+      _loginPersonContactEntityInsertionAdapter;
+
+  @override
+  Future<List<LoginPersonContactEntity>> getContactsForPerson(
+      String personId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM login_person_contact WHERE personId = ?1',
+        mapper: (Map<String, Object?> row) => LoginPersonContactEntity(
+            id: row['id'] as String,
+            label: row['label'] as String,
+            relationship: row['relationship'] as String?,
+            phone: row['phone'] as String?,
+            email: row['email'] as String?,
+            recordStatus: row['recordStatus'] as int,
+            updatedAt: row['updatedAt'] as String,
+            personId: row['personId'] as String,
+            personName: row['personName'] as String),
+        arguments: [personId]);
+  }
+
+  @override
+  Future<void> deleteContactsForPerson(String personId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM login_person_contact WHERE personId = ?1',
+        arguments: [personId]);
+  }
+
+  @override
+  Future<void> upsertContacts(List<LoginPersonContactEntity> entities) async {
+    await _loginPersonContactEntityInsertionAdapter.insertList(
+        entities, OnConflictStrategy.replace);
+  }
+}
+
+class _$LoginPersonAttendanceDao extends LoginPersonAttendanceDao {
+  _$LoginPersonAttendanceDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _loginPersonAttendanceEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'login_person_attendance',
+            (LoginPersonAttendanceEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'attDate': item.attDate,
+                  'checkIn': item.checkIn,
+                  'checkOut': item.checkOut,
+                  'remarks': item.remarks,
+                  'status': item.status,
+                  'recordStatus': item.recordStatus,
+                  'updatedAt': item.updatedAt,
+                  'personId': item.personId,
+                  'personName': item.personName,
+                  'shiftId': item.shiftId,
+                  'shiftName': item.shiftName
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<LoginPersonAttendanceEntity>
+      _loginPersonAttendanceEntityInsertionAdapter;
+
+  @override
+  Future<List<LoginPersonAttendanceEntity>> getAttendanceForPerson(
+      String personId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM login_person_attendance WHERE personId = ?1',
+        mapper: (Map<String, Object?> row) => LoginPersonAttendanceEntity(
+            id: row['id'] as String,
+            attDate: row['attDate'] as String,
+            checkIn: row['checkIn'] as String?,
+            checkOut: row['checkOut'] as String?,
+            remarks: row['remarks'] as String?,
+            status: row['status'] as String,
+            recordStatus: row['recordStatus'] as int,
+            updatedAt: row['updatedAt'] as String,
+            personId: row['personId'] as String,
+            personName: row['personName'] as String,
+            shiftId: row['shiftId'] as String?,
+            shiftName: row['shiftName'] as String?),
+        arguments: [personId]);
+  }
+
+  @override
+  Future<void> deleteAttendanceForPerson(String personId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM login_person_attendance WHERE personId = ?1',
+        arguments: [personId]);
+  }
+
+  @override
+  Future<void> upsertAttendance(
+      List<LoginPersonAttendanceEntity> entities) async {
+    await _loginPersonAttendanceEntityInsertionAdapter.insertList(
+        entities, OnConflictStrategy.replace);
   }
 }
 

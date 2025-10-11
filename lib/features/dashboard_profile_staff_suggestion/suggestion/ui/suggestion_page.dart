@@ -1,4 +1,5 @@
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/controller/suggestion_controller.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,17 +13,27 @@ class SuggestionsPage extends GetView<SuggestionsController> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2F6BFF),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text(
           'Suggestions',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       body: Obx(() {
-        final list = controller.items;
+        final list = controller.itemList;
+        if (list.isEmpty) {
+          return const Center(
+            child: Text(
+              'No suggestions found',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          );
+        }
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           physics: const BouncingScrollPhysics(),
           itemBuilder: (ctx, i) {
             final s = list[i];
@@ -31,12 +42,10 @@ class SuggestionsPage extends GetView<SuggestionsController> {
                 suggestion: s,
                 isOpen: controller.isOpen(s.id),
                 onOpenToggle: () => controller.toggleOpen(s.id),
-                onTap: () => controller.openSuggestion(s),
-                onCallReporter: () => controller.callReporter(s.reporterPhone),
               ),
             );
           },
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemCount: list.length,
         );
       }),
@@ -53,11 +62,17 @@ class SuggestionsPage extends GetView<SuggestionsController> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
+                elevation: 4,
+                shadowColor: const Color(0xFF2F6BFF).withOpacity(0.4),
               ),
               onPressed: controller.addNew,
               child: const Text(
-                'Add New',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                'Add New Suggestion',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  letterSpacing: 0.3,
+                ),
               ),
             ),
           ),
@@ -71,122 +86,150 @@ class SuggestionsPage extends GetView<SuggestionsController> {
 
 class _SuggestionCard extends StatelessWidget {
   final Suggestion suggestion;
-  final VoidCallback onTap;
   final bool isOpen;
   final VoidCallback onOpenToggle;
-  final VoidCallback onCallReporter;
 
   const _SuggestionCard({
     required this.suggestion,
-    required this.onTap,
     required this.isOpen,
     required this.onOpenToggle,
-    required this.onCallReporter,
   });
 
   @override
   Widget build(BuildContext context) {
-    final meta =
-        '${suggestion.id}   ${_fmtTime(suggestion.createdAt)} | ${_fmtDate(suggestion.createdAt)}';
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
+    return GestureDetector(
+      onTap: onOpenToggle,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: const Color(0xFFF4F6FB),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title + Status pill (tap pill to expand)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      suggestion.title,
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF2D2F39),
-                        height: 1.2,
-                      ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title Row + Status
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    suggestion.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF2D2F39),
+                      height: 1.3,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onOpenToggle,
-                    child: _StatusPill(text: suggestion.status),
+                ),
+                _StatusPill(text: suggestion.status),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Meta Row
+            Row(
+              children: [
+                const Icon(Icons.badge_outlined,
+                    size: 15, color: Color(0xFF7C8698)),
+                const SizedBox(width: 4),
+                Text(
+                  suggestion.id,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF7C8698),
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.schedule_outlined,
+                    size: 15, color: Color(0xFF7C8698)),
+                const SizedBox(width: 4),
+                Text(
+                  _fmtTime(suggestion.createdAt),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF7C8698),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.calendar_month_outlined,
+                    size: 15, color: Color(0xFF7C8698)),
+                const SizedBox(width: 4),
+                Text(
+                  _fmtDate(suggestion.createdAt),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF7C8698),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // Description
+            Text(
+              suggestion.description,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF2D2F39),
+                fontWeight: FontWeight.w600,
+                height: 1.3,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+            Text(
+              'Estimated Impact: ₹${suggestion.impactEstimate.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF7C8698),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+
+            // Expandable section
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 250),
+              crossFadeState:
+                  isOpen ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              firstChild: const SizedBox.shrink(),
+              secondChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 14),
+                  _SoftBlock(
+                    title: 'Comment',
+                    text: suggestion.comment.isEmpty
+                        ? 'No comment provided'
+                        : suggestion.comment,
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              // Meta row
-              Text(
-                meta,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF737F93),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Category (+ optional cost)
-              Text(
-                suggestion.costText == null
-                    ? suggestion.category
-                    : '${suggestion.category} (${suggestion.costText})',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF2D2F39),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 2),
-              // Department
-              Text(
-                suggestion.department,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF2D2F39),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+            ),
 
-              // ===== Expanded content (Suggestion + Justification + Reporter Info) =====
-              AnimatedCrossFade(
-                duration: const Duration(milliseconds: 200),
-                crossFadeState: isOpen
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                firstChild: const SizedBox.shrink(),
-                secondChild: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    _SoftBlock(
-                      title: 'Suggestion',
-                      text: suggestion.suggestionText,
-                    ),
-                    const SizedBox(height: 8),
-                    _SoftBlock(
-                      title: 'Justification',
-                      text: suggestion.justificationText,
-                    ),
-                    const SizedBox(height: 8),
-                    _ReporterInfoBlock(
-                      name: suggestion.reporterName,
-                      department: suggestion.reporterDepartment,
-                      onCall: onCallReporter,
-                    ),
-                  ],
-                ),
+            // Expand/Collapse icon at bottom
+            Align(
+              alignment: Alignment.center,
+              child: Icon(
+                isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                color: const Color(0xFF2F6BFF),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -217,7 +260,7 @@ class _SoftBlock extends StatelessWidget {
               color: Color(0xFF2D2F39),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             text,
             style: const TextStyle(
@@ -232,109 +275,37 @@ class _SoftBlock extends StatelessWidget {
   }
 }
 
-class _ReporterInfoBlock extends StatelessWidget {
-  final String name;
-  final String department;
-  final VoidCallback onCall;
-  const _ReporterInfoBlock({
-    required this.name,
-    required this.department,
-    required this.onCall,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F3FB),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Reporter Info',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF2D2F39),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const SizedBox(
-                width: 110,
-                child: Text(
-                  'Reported By',
-                  style: TextStyle(
-                    color: Color(0xFF7C8698),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    color: Color(0xFF2D2F39),
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: onCall,
-                icon: const Icon(Icons.call_rounded, color: Color(0xFF2F6BFF)),
-                tooltip: 'Call',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const SizedBox(
-                width: 110,
-                child: Text(
-                  'Department',
-                  style: TextStyle(
-                    color: Color(0xFF7C8698),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  department,
-                  style: const TextStyle(
-                    color: Color(0xFF2D2F39),
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatusPill extends StatelessWidget {
   final String text;
   const _StatusPill({required this.text});
+
+  Color _statusColor() {
+    switch (text.toLowerCase()) {
+      case 'approved':
+        return const Color(0xFF4CAF50);
+      case 'pending':
+        return const Color(0xFFEBCB50);
+      case 'rejected':
+        return const Color(0xFFE53935);
+      default:
+        return const Color(0xFF90A4AE);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: const ShapeDecoration(
-        color: Color(0xFFEBCB50),
-        shape: StadiumBorder(),
+      decoration: ShapeDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _statusColor().withOpacity(0.9),
+            _statusColor(),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        shape: const StadiumBorder(),
       ),
       child: Text(
         text,

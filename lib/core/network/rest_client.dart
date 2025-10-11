@@ -1,7 +1,10 @@
 // lib/network/rest_client.dart
 import 'package:dio/dio.dart' hide Headers;
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
+import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
+import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -44,10 +47,18 @@ abstract class RestClient {
   Future<AssetsData> getAssetsData();
 
   @POST('/logout')
-  Future<void> logout();
+  Future<LogoutResponse> logout();
 
   @POST('/suggestion/')
   Future<NewSuggestionResponse> addNewSuggestion(
     @Body() NewSuggestionRequest body,
+  );
+
+  @GET('/suggestion/')
+  Future<SuggestionsResponse> suggestionList();
+
+  @GET('/person/details-by-username')
+  Future<LoginPersonDetails> loginPersonDetails(
+    @Query('username') String username,
   );
 }
