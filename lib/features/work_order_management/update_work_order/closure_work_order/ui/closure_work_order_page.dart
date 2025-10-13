@@ -25,7 +25,6 @@ class ClosureWorkOrderPage extends GetView<ClosureWorkOrderController> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(headerH),
         child: Obx(
@@ -35,77 +34,92 @@ class ClosureWorkOrderPage extends GetView<ClosureWorkOrderController> {
           ),
         ),
       ),
-
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
           padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: Size.fromHeight(btnH),
-                    side: const BorderSide(color: _C.primary, width: 1.4),
-                    foregroundColor: _C.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-
-                  onPressed: controller.reopenWorkOrder,
-                  child: const Text(
-                    'Re-open',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: // ...inside bottomNavigationBar -> FilledButton
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    minimumSize: Size.fromHeight(btnH),
-                    backgroundColor: _C.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 1.5,
-                  ),
-                  onPressed: () async {
-                    await Get.showOverlay(
-                      opacity: 0.35,
-                      loadingWidget: const LoadingOverlay(
-                        message: 'Closing Work Order...',
+          child: Obx(() {
+            final busy = controller.isSubmitting.value;
+            return Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: Size.fromHeight(btnH),
+                      side: const BorderSide(color: _C.primary, width: 1.4),
+                      foregroundColor: _C.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      asyncFunction: () => controller.closeWorkOrder(),
-                    );
-                  },
-                  child: const Text(
-                    'Close',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: busy ? null : controller.reopenWorkOrder,
+                    child: const Text(
+                      'Re-open',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize: Size.fromHeight(btnH),
+                      backgroundColor: _C.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 1.5,
+                    ),
+                    onPressed: busy
+                        ? null
+                        : () async {
+                            // If your controller already toggles isSubmitting,
+                            // you can just call closeWorkOrder().
+                            controller.isSubmitting.value = true;
+                            try {
+                              await controller.closeWorkOrder();
+                            } finally {
+                              controller.isSubmitting.value = false;
+                            }
+                          },
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
         ),
       ),
-
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
-        child: Column(
+      body: Obx(() {
+        final busy = controller.isSubmitting.value;
+        return Stack(
           children: [
-            _IssueHeaderCard(),
-            const SizedBox(height: 12),
-            _ClosureCommentsCard(),
-            const SizedBox(height: 12),
-            _SparesCard(),
-            const SizedBox(height: 80),
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
+              child: Column(
+                children: const [
+                  _IssueHeaderCard(),
+                  SizedBox(height: 12),
+                  _ClosureCommentsCard(),
+                  SizedBox(height: 12),
+                  _SparesCard(),
+                  SizedBox(height: 80),
+                ],
+              ),
+            ),
+
+            // Full-screen overlay whenever submitting
+            if (busy)
+              const LoadingOverlay(
+                message: 'Closing Work Order...',
+              ),
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
 }
@@ -124,8 +138,7 @@ class _GradientHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final btnSize = isTablet ? 48.0 : 44.0;
     final iconSize = isTablet ? 26.0 : 22.0;
-    final primary =
-        Theme.of(context).appBarTheme.backgroundColor ??
+    final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
     return Container(
       decoration: BoxDecoration(
@@ -175,6 +188,8 @@ class _GradientHeader extends StatelessWidget implements PreferredSizeWidget {
 /* ===================== top issue card ===================== */
 
 class _IssueHeaderCard extends GetView<ClosureWorkOrderController> {
+  const _IssueHeaderCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Obx(
@@ -217,7 +232,7 @@ class _IssueHeaderCard extends GetView<ClosureWorkOrderController> {
                 const Spacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+                  children: const [
                     Text(
                       'In Progress',
                       style: TextStyle(
@@ -225,9 +240,9 @@ class _IssueHeaderCard extends GetView<ClosureWorkOrderController> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Row(
-                      children: const [
+                      children: [
                         Icon(CupertinoIcons.time, size: 14, color: _C.muted),
                         SizedBox(width: 4),
                         Text(
@@ -261,6 +276,8 @@ class _IssueHeaderCard extends GetView<ClosureWorkOrderController> {
 /* ===================== closure comments ===================== */
 
 class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
+  const _ClosureCommentsCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return _Card(
@@ -280,7 +297,6 @@ class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
               ),
             ),
           ),
-
           const _KVLabel('Resolution Type'),
           const SizedBox(height: 6),
           Obx(
@@ -295,7 +311,6 @@ class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
               decoration: _D.field(),
             ),
           ),
-
           const SizedBox(height: 16),
           const _KVLabel('Note'),
           const SizedBox(height: 6),
@@ -305,11 +320,9 @@ class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
             maxLines: 6,
             decoration: _D.field(hint: 'Write your closure note'),
           ),
-
           const SizedBox(height: 16),
           const _KVLabel('Signature'),
           const SizedBox(height: 6),
-
           // Signature pad
           Container(
             height: 140,
@@ -343,9 +356,7 @@ class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
                   final f = File(path);
                   if (!f.existsSync()) return const SizedBox.shrink();
 
-                  // show only the file name, ellipsized if too long
                   final fileName = f.path.split(Platform.pathSeparator).last;
-
                   return Align(
                     alignment: Alignment.centerRight,
                     child: Text(
@@ -363,7 +374,6 @@ class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
           Text(
             '${TimeOfDay.now().format(context)} | Sept 30',
@@ -381,6 +391,8 @@ class _ClosureCommentsCard extends GetView<ClosureWorkOrderController> {
 /* ===================== spares ===================== */
 
 class _SparesCard extends GetView<ClosureWorkOrderController> {
+  const _SparesCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Obx(
@@ -550,22 +562,23 @@ class _C {
 
 class _D {
   static InputDecoration field({String? hint}) {
-    return InputDecoration(
+    return const InputDecoration(
       isDense: true,
-      hintText: hint,
-      hintStyle: const TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      border: const OutlineInputBorder(
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      border: OutlineInputBorder(
         borderSide: BorderSide(color: Color(0xFFE1E6EF)),
       ),
-      enabledBorder: const OutlineInputBorder(
+      enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: Color(0xFFE1E6EF)),
       ),
-      focusedBorder: const OutlineInputBorder(
+      focusedBorder: OutlineInputBorder(
         borderSide: BorderSide(color: Color(0xFFE1E6EF)),
       ),
+    ).copyWith(
+      hintText: hint,
+      hintStyle: const TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
     );
   }
 }

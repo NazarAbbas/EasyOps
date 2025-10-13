@@ -9,12 +9,12 @@ class ProfilePage extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     final c = controller;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.primary,
-
         centerTitle: true,
         title: const Text(
           'My Profile',
@@ -25,6 +25,13 @@ class ProfilePage extends GetView<ProfileController> {
       body: SafeArea(
         child: Obx(() {
           final p = c.profile.value;
+
+          // Loading / empty state
+          if (p == null) {
+            return const _ProfileLoading();
+          }
+
+          // Content
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
             child: Column(
@@ -126,7 +133,7 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
                 const SizedBox(height: 12),
 
-                // Collapsibles (look like your screenshot rows)
+                // Collapsibles
                 _CollapsedRow(
                   title: 'Emergency Contact',
                   subtitle: '${p.emergencyContactsCount} Contacts',
@@ -191,21 +198,104 @@ class ProfilePage extends GetView<ProfileController> {
   }
 }
 
+/// ===== Loading =====
+
+class _ProfileLoading extends StatelessWidget {
+  const _ProfileLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      children: const [
+        _ShimmerBox(width: 104, height: 104, radius: 100),
+        SizedBox(height: 20),
+        _ShimmerLine(),
+        SizedBox(height: 12),
+        _ShimmerCard(lines: 6),
+        SizedBox(height: 16),
+        _ShimmerLine(),
+        SizedBox(height: 12),
+        _ShimmerCard(lines: 4),
+      ],
+    );
+  }
+}
+
+class _ShimmerCard extends StatelessWidget {
+  final int lines;
+  const _ShimmerCard({required this.lines});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE9EEF5)),
+      ),
+      child: Column(
+        children: List.generate(lines, (i) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: i == lines - 1 ? 0 : 10),
+            child: const _ShimmerLine(),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _ShimmerLine extends StatelessWidget {
+  const _ShimmerLine();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _ShimmerBox(width: double.infinity, height: 14, radius: 6);
+  }
+}
+
+class _ShimmerBox extends StatelessWidget {
+  final double width;
+  final double height;
+  final double radius;
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width == double.infinity ? null : width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF3FA),
+        borderRadius: BorderRadius.circular(radius),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFEFF3FA), Color(0xFFF7F9FD), Color(0xFFEFF3FA)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          stops: [0.2, 0.5, 0.8],
+        ),
+      ),
+    );
+  }
+}
+
 /// ===== Widgets =====
 
 class _AvatarBlock extends StatelessWidget {
-  final String? imageUrl;
+  final String imageUrl;
   final VoidCallback onEdit;
   const _AvatarBlock({required this.imageUrl, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
-    const double size = 104; // total width/height
-    const double radius = 100; // corner radius (rounded shape)
-
-    final String url = (imageUrl?.isNotEmpty ?? false)
-        ? imageUrl!
-        : 'https://i.pravatar.cc/256?img=18'; // fallback avatar
+    const double size = 104;
+    const double radius = 100;
 
     return SizedBox(
       width: size,
@@ -231,7 +321,7 @@ class _AvatarBlock extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(radius - 1),
               child: Image.network(
-                url,
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: const Color(0xFFEAF2FF),
@@ -397,7 +487,7 @@ class _CollapsedRow extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(isOpen ? 14 : 14),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFE9EEF5)),
           boxShadow: const [
             BoxShadow(
@@ -411,15 +501,12 @@ class _CollapsedRow extends StatelessWidget {
         child: Column(
           children: [
             InkWell(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(14),
-              ),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(14)),
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(
                   children: [
                     Text(
@@ -456,9 +543,8 @@ class _CollapsedRow extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
                 child: child,
               ),
-              crossFadeState: isOpen
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
+              crossFadeState:
+                  isOpen ? CrossFadeState.showSecond : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 200),
             ),
           ],

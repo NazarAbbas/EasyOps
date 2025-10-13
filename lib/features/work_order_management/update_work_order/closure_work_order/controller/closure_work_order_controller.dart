@@ -1,13 +1,17 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/features/dashboard_screens/landing_dashboard/controller/landing_dashboard_nav_controller.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/domain/close_repository_impl.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:signature/signature.dart';
 
 class ClosureWorkOrderController extends GetxController {
+  CloseRepositoryImpl closeRepositoryImpl = CloseRepositoryImpl();
+
   final pageTitle = 'Closure'.obs;
 
   final issueTitle = 'Tool misalignment and spindle speed issues in Bay 3.'.obs;
@@ -48,6 +52,10 @@ class ClosureWorkOrderController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    final workTabsController = Get.find<UpdateWorkTabsController>();
+    final workOrderInfo = workTabsController.workOrder;
+
     signatureCtrl = SignatureController(
       penColor: const Color(0xFF111827),
       penStrokeWidth: 3,

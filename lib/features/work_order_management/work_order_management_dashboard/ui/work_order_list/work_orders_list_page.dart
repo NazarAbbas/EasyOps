@@ -429,14 +429,22 @@ class _CalendarCard extends GetView<WorkOrdersController> {
 
 /* ───────────────────────── List items ───────────────────────── */
 
-class _WorkOrderCard extends StatelessWidget {
+class _WorkOrderCard extends StatefulWidget {
   final WorkOrder order;
   const _WorkOrderCard({required this.order});
+
+  @override
+  State<_WorkOrderCard> createState() => _WorkOrderCardState();
+}
+
+class _WorkOrderCardState extends State<_WorkOrderCard> {
+  bool _pressed = false;
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
+    final order = widget.order;
     final isTablet = _isTablet(context);
 
     // Sizing
@@ -450,248 +458,263 @@ class _WorkOrderCard extends StatelessWidget {
     const textPrimary = Color(0xFF111827);
     const textSecondary = Color(0xFF6B7280);
     const borderSoft = Color(0xFFE9EEF5);
-    final accent = _accentFor(order);
 
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      color: Colors.white,
-      surfaceTintColor: Colors.white,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radius),
-        side: const BorderSide(color: borderSoft, width: 1),
-      ),
-      child: InkWell(
-        onTap: () {
-          if (order.status == 'Resolved') {
-            Get.toNamed(Routes.updateWorkOrderTabScreen, arguments: order);
-          } else if (order.status == 'Open') {
-            //Get.toNamed(Routes.editWorkOrderTabShellScreen, arguments: order);
-            Get.toNamed(
-              Routes.workOrderTabShellScreen,
-              arguments: {
-                Constant.workOrderInfo: order,
-                Constant.workOrderStatus:
-                    WorkOrderStatus.open, // example: open Operator tab directly
-              },
-            );
-          } else {
-            Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
-          }
-        },
-        child: Stack(
-          children: [
-            // Accent stripe
-            Positioned.fill(
-              left: 0,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Container(width: 3, color: accent),
-              ),
-            ),
+    //final statusBg = _statusColorSoft(order.status);
+    //final statusFg = _statusTextColor(order.status);
 
-            // Content
-            Padding(
-              padding: EdgeInsets.fromLTRB(pad + 2, pad, pad, pad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top row: Title + status + chevron
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // severity dot + title
-                      Expanded(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // _SeverityDot(color: accent),
-                            // const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                order.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: textPrimary,
-                                  fontSize: titleSize,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.25,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+    final statusBg = _statusColorSoft(order.status);
+    final statusFg =
+        _statusTextColor(order.status); // <- single source of truth
+
+    final accent = statusFg;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      transform: Matrix4.identity()
+        ..translate(0.0, _pressed ? 1.0 : 0.0)
+        ..scale(_pressed ? 0.9975 : 1.0),
+      child: Material(
+        color: Colors.white,
+        surfaceTintColor: Colors.white,
+        elevation: _pressed ? 2 : 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius),
+          side: const BorderSide(color: borderSoft, width: 1),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onHighlightChanged: (v) => setState(() => _pressed = v),
+          onTap: () {
+            final s = (order.status).toUpperCase();
+            // if (s == 'RESOLVED') {
+            if (s == 'OPEN') {
+              Get.toNamed(
+                Routes.updateWorkOrderTabScreen,
+                arguments: {
+                  Constant.workOrderInfo: order,
+                  Constant.workOrderStatus: WorkOrderStatus.resolved,
+                },
+              );
+            } else if (s == 'OPEN') {
+              Get.toNamed(
+                Routes.workOrderTabShellScreen,
+                arguments: {
+                  Constant.workOrderInfo: order,
+                  Constant.workOrderStatus: WorkOrderStatus.open,
+                },
+              );
+            } else {
+              Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
+            }
+          },
+          child: Stack(
+            children: [
+              // Accent stripe with gradient
+              // Accent stripe (currently using status color)
+              // 1) right above the Stack, derive the color from priority
+
+// 2) in the Stack, replace the stripe with priorityColor
+              Positioned.fill(
+                left: 0,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    width: 4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _priorityCfg(order.priority).color.withOpacity(0.95),
+                          _priorityCfg(order.priority).color.withOpacity(0.95),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
+                    ),
+                  ),
+                ),
+              ),
 
-                      if (order.status != Status.resolved) ...[
-                        const SizedBox(width: 15),
+              // Content
+              Padding(
+                padding: EdgeInsets.fromLTRB(pad + 4, pad, pad, pad),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top row: Title + priority chip
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            order.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.w900,
+                              height: 1.25,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         _StatusPill(pill: order.priority),
                       ],
-                    ],
-                  ),
+                    ),
 
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                  // Meta row: [code]  [time | date................]                [STATUS -> right]
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // left: code
-                      _MetaChip(icon: CupertinoIcons.number, label: order.id),
-
-                      const SizedBox(width: 8),
-
-                      // middle: time | date (expands), keeps left alignment
-                      Expanded(
-                        child: _MetaChip(
-                          icon: null,
-                          label: _formatDate(order.createdAt),
-                        ),
-                      ),
-
-                      const SizedBox(width: 8),
-
-                      // right: status (only if not 'none')
-                      if (order.status != Status.none)
-                        Text(
-                          order.status,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            //color: order.status.color,
-                            fontWeight: FontWeight.w800,
-                            fontSize: labelSize,
+// Meta stack (code, date, right status)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // left: code + date
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _MetaChip(
+                                  icon: CupertinoIcons.number, label: order.id),
+                              const SizedBox(height: 8),
+                              _MetaChip(
+                                  icon: null,
+                                  label: _formatDate(order.createdAt)),
+                            ],
                           ),
                         ),
-                    ],
-                  ),
 
-                  const SizedBox(height: 12),
+                        const SizedBox(width: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          child: Text(
+                            (order.status).toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900,
+                              fontSize: labelSize,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
 
-                  // Divider (soft)
-                  const Divider(height: 1, color: borderSoft),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, color: borderSoft),
+                    const SizedBox(height: 12),
 
-                  const SizedBox(height: 12),
+                    // Bottom info
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // LEFT
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Department
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    CupertinoIcons.square_grid_2x2_fill,
+                                    size: 14,
+                                    color: textSecondary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      order.departmentName,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: labelSize,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              // Asset
+                              Row(
+                                children: [
+                                  const Icon(
+                                    CupertinoIcons
+                                        .exclamationmark_triangle_fill,
+                                    size: 14,
+                                    color: Color(0xFFE25555),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      order.asset.id,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: textSecondary,
+                                        fontSize: metaSize,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
 
-                  // Bottom info: left (dept & line) | right (badge + duration + tag)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // LEFT
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        // RIGHT
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            // Department
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.square_grid_2x2_fill,
-                                  size: 14,
-                                  color: textSecondary,
-                                ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    order.departmentName,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: textPrimary,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: labelSize,
-                                    ),
-                                  ),
-                                ),
-                                // const SizedBox(width: 6),
-                                // if (order.footerTag.isNotEmpty) ...[
-                                //   const SizedBox(height: 6),
-                                //   _TagChip(text: order.footerTag),
-                                // ],
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            // Line (with danger icon)
-                            Row(
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.exclamationmark_triangle_fill,
-                                  size: 14,
-                                  color: Color(0xFFE25555),
-                                ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    order.asset.id,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: textSecondary,
-                                      fontSize: metaSize,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // RIGHT
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          // if (order.status != Status.none)
-                          //   Text(
-                          //     order.status.text,
-                          //     style: TextStyle(
-                          //       color: order.status.color,
-                          //       fontWeight: FontWeight.w800,
-                          //       fontSize: labelSize,
-                          //     ),
-                          //   ),
-                          _MetaChip(
-                            icon: CupertinoIcons.clock,
-                            label: order.timeLeft ?? '',
-                            dense: true,
-                          ),
-                          const SizedBox(height: 10),
-                          const SizedBox(width: 6),
-                          if (order.escalated > 0)
                             _MetaChip(
-                              icon: null,
-                              label: 'Escalated',
+                              icon: CupertinoIcons.clock,
+                              label: order.timeLeft ?? '—',
                               dense: true,
                             ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                            const SizedBox(height: 10),
+                            if (order.escalated > 0)
+                              _MetaChip(
+                                  icon: CupertinoIcons.flag_fill,
+                                  label: 'Escalated',
+                                  dense: true)
+                            else
+                              _MetaChip(label: 'Not escalated', dense: true),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  // ---- helpers ----
+bool _isNone(String? s) {
+  if (s == null) return true;
+  final v = s.trim().toUpperCase();
+  return v.isEmpty || v == 'NONE';
+}
 
-  Color _accentFor(WorkOrder o) {
-    switch (o.status) {
-      case "Open":
-        return AppColors.red; // 🔴 Red for Open
-      case "Inprogress":
-        return const Color(0xFFFFC107); // 🟡 Amber for In Progress
-      case "Resolved":
-        return AppColors.successGreen; // 🟢 Green for Resolved
-      case Status.none:
-      default:
-        return const Color(0xFF2F6BFF); // 🔵 Blue fallback
-    }
+Color? _statusColor(String? s) {
+  final v = (s ?? '').trim().toUpperCase();
+  switch (v) {
+    case 'IN_PROGRESS':
+      return AppColors.primary;
+    case 'RESOLVED':
+      return AppColors.successGreen;
+    case 'OPEN':
+      return AppColors.red;
+    default:
+      return null; // fallback to default text color
   }
 }
 
@@ -736,40 +759,35 @@ class _MetaChip extends StatelessWidget {
     final padH = dense ? 8.0 : 10.0;
     final padV = dense ? 4.0 : 6.0;
 
-    return Align(
-      alignment: Alignment.centerLeft,
-      widthFactor: 1, // <- make width = child's width
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF4F7FB),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE9EEF5)),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF6F8FC), Color(0xFFF2F5FA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
-          child: Row(
-            mainAxisSize: MainAxisSize.min, // <- content width
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: dense ? 12 : 14,
-                  color: const Color(0xFF6B7280),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                label,
-                softWrap: false,
-                overflow: TextOverflow.fade, // avoids forcing extra width
-                style: TextStyle(
-                  color: const Color(0xFF374151),
-                  fontWeight: FontWeight.w700,
-                  fontSize: dense ? 11.5 : 12.5,
-                ),
-              ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE6ECF5)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: dense ? 12 : 14, color: const Color(0xFF7C8698)),
+              const SizedBox(width: 6),
             ],
-          ),
+            Text(
+              label,
+              style: TextStyle(
+                color: const Color(0xFF374151),
+                fontWeight: FontWeight.w800,
+                fontSize: dense ? 11.5 : 12.5,
+                height: 1.1,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -791,51 +809,42 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final cfg = switch (pill) {
-    //   Priority.high => (color: AppColors.red, label: 'High'),
-    // };
-    final cfg = (color: AppColors.red, label: 'High');
-
+    final cfg = _priorityCfg(pill);
     final label = uppercase ? cfg.label.toUpperCase() : cfg.label;
 
-    return Semantics(
-      label: 'Status: ${cfg.label}',
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: cfg.color, // 🔴 red background
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: RichText(
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              children: [
-                if (showDot)
-                  WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: _Dot(
-                        color: Colors.white, // white dot on red bg
-                        size: fontSize * 0.5,
-                      ),
-                    ),
-                  ),
-                TextSpan(
-                  text: label,
-                  style: TextStyle(
-                    color: Colors.white, // white text on red bg
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                    height: 1.1,
-                  ),
-                ),
-              ],
-            ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: cfg.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x2A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showDot) ...[
+              _Dot(color: Colors.white, size: fontSize * 0.5),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: fontSize,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -946,20 +955,99 @@ class _Tabs extends GetView<WorkOrdersController> {
 }
 
 /* ───────────────────────── Reusable bits ───────────────────────── */
-
-class _InitialLoading extends StatelessWidget {
+class _InitialLoading extends StatefulWidget {
   const _InitialLoading();
 
   @override
+  State<_InitialLoading> createState() => _InitialLoadingState();
+}
+
+class _InitialLoadingState extends State<_InitialLoading>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(seconds: 2))
+        ..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Simple first-load spinner; replace with shimmer if you like
-    return const Center(
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: CircularProgressIndicator(strokeWidth: 3),
+    const base = Color(0xFFEFF3FA);
+    const highlight = Color(0xFFF7F9FD);
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      itemCount: 6,
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (_, __) {
+            return Container(
+              height: 110,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE9EEF5)),
+                gradient: LinearGradient(
+                  begin: Alignment(-1.0 + 2.0 * _c.value, -0.2),
+                  end: Alignment(1.0 + 2.0 * _c.value, 0.2),
+                  colors: const [base, highlight, base],
+                  stops: const [0.20, 0.50, 0.80],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
+  }
+}
+
+Color _statusColorSoft(String? s) {
+  switch ((s ?? '').trim().toUpperCase()) {
+    case 'OPEN':
+      return const Color(0xFFFFE4E4);
+    case 'IN_PROGRESS':
+      return const Color(0xFFFFF3CD);
+    case 'RESOLVED':
+      return const Color(0xFFEAF7EE);
+    case 'CANCEL':
+      return const Color(0xFFEDEEF2);
+    default:
+      return const Color(0xFFEDEEF2);
+  }
+}
+
+Color _statusTextColor(String? s) {
+  switch ((s ?? '').trim().toUpperCase()) {
+    case 'OPEN':
+      return AppColors.red;
+    case 'IN_PROGRESS':
+      return const Color(0xFF8A6D3B);
+    case 'RESOLVED':
+      return AppColors.successGreen;
+    case 'CANCEL':
+      return const Color(0xFF6B7280);
+    default:
+      return const Color(0xFF374151);
+  }
+}
+
+({String label, Color color}) _priorityCfg(String p) {
+  switch (p.trim().toUpperCase()) {
+    case 'HIGH':
+      return (label: 'HIGH', color: AppColors.red);
+    case 'MEDIUM':
+      return (label: 'MED', color: const Color(0xFFFFA000));
+    case 'LOW':
+      return (label: 'LOW', color: const Color(0xFF2F6BFF));
+    default:
+      return (label: p.toUpperCase(), color: const Color(0xFF64748B));
   }
 }
 

@@ -35,15 +35,16 @@ class WorkOrdersController extends GetxController {
   // ---------------- API / Initial Load ----------------
   Future<void> _loadInitial() async {
     loading.value = true;
-    await Future.delayed(const Duration(milliseconds: 900));
+    //await Future.delayed(const Duration(milliseconds: 900));
 
     try {
       final res = await repositoryImpl.workOrderList();
       final list = res.data?.content ?? const <WorkOrder>[];
-      orders.assignAll(list.isEmpty ? mockWorkOrders : list);
+      orders.assignAll(list);
+      //  orders.assignAll(mockWorkOrders);
     } catch (e) {
       // Fallback to mock data on error
-      orders.assignAll(mockWorkOrders);
+      //orders.assignAll(mockWorkOrders);
     }
 
     loading.value = false;
@@ -79,11 +80,13 @@ class WorkOrdersController extends GetxController {
     // 1) Filter by tab
     switch (selectedTab.value) {
       case 0: // Today
+        final now = DateTime.now();
+        final start = DateTime(now.year, now.month, now.day);
+        final end = start.add(const Duration(days: 1));
         src = src.where((w) {
-          final d = DateTime.now();
-          return w.scheduledStart.year == d.year &&
-              w.scheduledStart.month == d.month &&
-              w.scheduledStart.day == d.day;
+          final t =
+              w.createdAt.toLocal(); // "2025-10-12T11:15:32.075737Z" -> local
+          return !t.isBefore(start) && t.isBefore(end);
         }).toList();
         break;
       case 1: // Open
@@ -137,113 +140,113 @@ class MarkerEvent {
   MarkerEvent(this.color, [this.tag = '']);
 }
 
-// ---------------- Mock data ----------------
-final mockWorkOrders = <WorkOrder>[
-  WorkOrder(
-    id: 'WO-0001',
-    type: 'Breakdown Management',
-    plantId: 'PLANT-001',
-    plantName: 'Main Plant',
-    departmentId: 'DEPT-001',
-    departmentName: 'Mechanical',
-    impactId: null,
-    impactName: null,
-    priority: 'High',
-    status: 'Open',
-    title: 'Conveyor Belt Stopped Abruptly During Operation',
-    description: 'The conveyor belt unexpectedly stopped during operation.',
-    remark: 'Needs immediate attention',
-    comment: null,
-    scheduledStart: DateTime.parse('2025-08-09T18:08:00Z'),
-    scheduledEnd: DateTime.parse('2025-08-09T21:28:00Z'),
-    recordStatus: 1,
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-    escalated: 1,
-    timeLeft: '3h 20m',
-    tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
-    client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
-    asset: Asset(
-      id: 'AST-001',
-      name: 'CNC - 1',
-      serialNumber: 'SN-001',
-      status: 'ACTIVE',
-    ),
-    reportedBy: null,
-    createdBy: null,
-    updatedBy: null,
-    mediaFiles: const [],
-  ),
-  WorkOrder(
-    id: 'WO-0002',
-    type: 'Breakdown Management',
-    plantId: 'PLANT-001',
-    plantName: 'Main Plant',
-    departmentId: 'DEPT-002',
-    departmentName: 'Electrical',
-    impactId: null,
-    impactName: null,
-    priority: 'High',
-    status: 'Resolved',
-    title:
-        'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly',
-    description: 'Multiple machine issues observed in line CNC - 7.',
-    remark: 'Fixed after diagnostics',
-    comment: null,
-    scheduledStart: DateTime.parse('2025-08-10T14:12:00Z'),
-    scheduledEnd: DateTime.parse('2025-08-10T15:32:00Z'),
-    recordStatus: 1,
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-    escalated: 0,
-    timeLeft: '1h 20m',
-    tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
-    client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
-    asset: Asset(
-      id: 'AST-002',
-      name: 'CNC - 7',
-      serialNumber: 'SN-002',
-      status: 'ACTIVE',
-    ),
-    reportedBy: null,
-    createdBy: null,
-    updatedBy: null,
-    mediaFiles: const [],
-  ),
-  WorkOrder(
-    id: 'WO-0002',
-    type: 'Breakdown Management',
-    plantId: 'PLANT-001',
-    plantName: 'Main Plant',
-    departmentId: 'DEPT-002',
-    departmentName: 'Electrical',
-    impactId: null,
-    impactName: null,
-    priority: 'High',
-    status: 'Inprogress',
-    title:
-        'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly',
-    description: 'Multiple machine issues observed in line CNC - 7.',
-    remark: 'Fixed after diagnostics',
-    comment: null,
-    scheduledStart: DateTime.parse('2025-08-10T14:12:00Z'),
-    scheduledEnd: DateTime.parse('2025-08-10T15:32:00Z'),
-    recordStatus: 1,
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-    escalated: 0,
-    timeLeft: '1h 20m',
-    tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
-    client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
-    asset: Asset(
-      id: 'AST-002',
-      name: 'CNC - 7',
-      serialNumber: 'SN-002',
-      status: 'ACTIVE',
-    ),
-    reportedBy: null,
-    createdBy: null,
-    updatedBy: null,
-    mediaFiles: const [],
-  ),
-];
+// // ---------------- Mock data ----------------
+// final mockWorkOrders = <WorkOrder>[
+//   WorkOrder(
+//     id: 'WO-0001',
+//     type: 'Breakdown Management',
+//     plantId: 'PLANT-001',
+//     plantName: 'Main Plant',
+//     departmentId: 'DEPT-001',
+//     departmentName: 'Mechanical',
+//     impactId: null,
+//     impactName: null,
+//     priority: 'High',
+//     status: 'Open',
+//     title: 'Conveyor Belt Stopped Abruptly During Operation',
+//     description: 'The conveyor belt unexpectedly stopped during operation.',
+//     remark: 'Needs immediate attention',
+//     comment: null,
+//     scheduledStart: DateTime.parse('2025-08-09T18:08:00Z'),
+//     scheduledEnd: DateTime.parse('2025-08-09T21:28:00Z'),
+//     recordStatus: 1,
+//     createdAt: DateTime.now(),
+//     updatedAt: DateTime.now(),
+//     escalated: 1,
+//     timeLeft: '3h 20m',
+//     tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
+//     client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
+//     asset: Asset(
+//       id: 'AST-001',
+//       name: 'CNC - 1',
+//       serialNumber: 'SN-001',
+//       status: 'ACTIVE',
+//     ),
+//     reportedBy: null,
+//     createdBy: null,
+//     updatedBy: null,
+//     mediaFiles: const [],
+//   ),
+//   WorkOrder(
+//     id: 'WO-0002',
+//     type: 'Breakdown Management',
+//     plantId: 'PLANT-001',
+//     plantName: 'Main Plant',
+//     departmentId: 'DEPT-002',
+//     departmentName: 'Electrical',
+//     impactId: null,
+//     impactName: null,
+//     priority: 'High',
+//     status: 'Resolved',
+//     title:
+//         'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly',
+//     description: 'Multiple machine issues observed in line CNC - 7.',
+//     remark: 'Fixed after diagnostics',
+//     comment: null,
+//     scheduledStart: DateTime.parse('2025-08-10T14:12:00Z'),
+//     scheduledEnd: DateTime.parse('2025-08-10T15:32:00Z'),
+//     recordStatus: 1,
+//     createdAt: DateTime.now(),
+//     updatedAt: DateTime.now(),
+//     escalated: 0,
+//     timeLeft: '1h 20m',
+//     tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
+//     client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
+//     asset: Asset(
+//       id: 'AST-002',
+//       name: 'CNC - 7',
+//       serialNumber: 'SN-002',
+//       status: 'ACTIVE',
+//     ),
+//     reportedBy: null,
+//     createdBy: null,
+//     updatedBy: null,
+//     mediaFiles: const [],
+//   ),
+//   WorkOrder(
+//     id: 'WO-0002',
+//     type: 'Breakdown Management',
+//     plantId: 'PLANT-001',
+//     plantName: 'Main Plant',
+//     departmentId: 'DEPT-002',
+//     departmentName: 'Electrical',
+//     impactId: null,
+//     impactName: null,
+//     priority: 'High',
+//     status: 'Inprogress',
+//     title:
+//         'Hydraulic Press Not Generating Adequate Force and Conveyor Belt Stopped Abruptly',
+//     description: 'Multiple machine issues observed in line CNC - 7.',
+//     remark: 'Fixed after diagnostics',
+//     comment: null,
+//     scheduledStart: DateTime.parse('2025-08-10T14:12:00Z'),
+//     scheduledEnd: DateTime.parse('2025-08-10T15:32:00Z'),
+//     recordStatus: 1,
+//     createdAt: DateTime.now(),
+//     updatedAt: DateTime.now(),
+//     escalated: 0,
+//     timeLeft: '1h 20m',
+//     tenant: Tenant(id: 'TEN-001', name: 'Hawkeye'),
+//     client: Client(id: 'CLT-001', name: 'Kingfisher Airlines'),
+//     asset: Asset(
+//       id: 'AST-002',
+//       name: 'CNC - 7',
+//       serialNumber: 'SN-002',
+//       status: 'ACTIVE',
+//     ),
+//     reportedBy: null,
+//     createdBy: null,
+//     updatedBy: null,
+//     mediaFiles: const [],
+//   ),
+// ];

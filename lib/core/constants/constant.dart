@@ -11,6 +11,7 @@ class Constant {
   static const int snackbarSmallDuration = 1;
   static const String workOrderInfo = 'work_order_info';
   static const String workOrderStatus = 'work_order_status';
+  static const String loginPersonId = 'login_person_id';
 }
 
 enum WorkOrderStatus {

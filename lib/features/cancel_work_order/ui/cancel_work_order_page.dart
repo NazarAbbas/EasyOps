@@ -1,6 +1,7 @@
 /* ───────── Page ───────── */
 import 'dart:ui';
 
+import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/cancel_work_order/controller/cancel_work_order_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,15 +25,28 @@ class CancelWorkOrderPage extends GetView<CancelWorkOrderController> {
         title: const Text('Cancel Work Order'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: Get.back,
+          onPressed: () => Get.back(),
         ),
       ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 14),
+      // Use a Stack so we can place the loading overlay above the content
+      body: Stack(
         children: [
-          const _AssetCard(),
-          const SizedBox(height: 14),
-          _FormCard(isTablet: isTablet),
+          ListView(
+            padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 14),
+            children: [
+              const _AssetCard(),
+              const SizedBox(height: 14),
+              _FormCard(isTablet: isTablet),
+            ],
+          ),
+
+          // Loading overlay (visible when submitting)
+          Obx(() {
+            final busy = controller.isSubmitting.value;
+            return busy
+                ? const LoadingOverlay(message: 'Cancelling work order…')
+                : const SizedBox.shrink();
+          }),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -73,7 +87,17 @@ class CancelWorkOrderPage extends GetView<CancelWorkOrderController> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: busy ? null : controller.cancelWorkOrder,
+                      onPressed: busy
+                          ? null
+                          : () async {
+                              // toggle loading, call API, then reset
+                              try {
+                                controller.isSubmitting.value = true;
+                                await controller.cancelWorkOrder();
+                              } finally {
+                                controller.isSubmitting.value = false;
+                              }
+                            },
                       child: busy
                           ? const SizedBox(
                               height: 22,

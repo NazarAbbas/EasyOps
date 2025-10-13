@@ -9,8 +9,8 @@ class WorkTabsController extends GetxController {
   final selectedTab = 0.obs; // 0 = WorkOrderPage (default)
   void goTo(int i) => selectedTab.value = i;
 
-  WorkOrder? workOrder = null;
-  WorkOrderStatus? workOrderStatus = null;
+  WorkOrder? workOrder;
+  WorkOrderStatus? workOrderStatus;
 
   @override
   void onInit() {

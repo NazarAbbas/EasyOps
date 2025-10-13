@@ -3,6 +3,7 @@ import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/database/db_repository/assets_repository.dart';
+import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
@@ -10,8 +11,10 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
@@ -20,6 +23,8 @@ class WorkorderInfoController extends GetxController {
   final lookupRepository = Get.find<LookupRepository>();
   final assetRepository = Get.find<AssetRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
+
+  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
 
   //final WorkOrderConfig cfg = WorkOrderConfig.demo;
 
@@ -74,33 +79,34 @@ class WorkorderInfoController extends GetxController {
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
 
-    // final workTabsController = Get.find<WorkTabsController>();
-    // workOrderInfo = workTabsController.workOrder;
-    // workOrderStatus = workTabsController.workOrderStatus;
-    // if (workOrderInfo != null && workOrderStatus != null) {
-    //   _bag.merge({
-    //     WOKeys.issueTypeId:
-    //         'CLU-24Sep2025120750334005', //workOrderInfo.issueTypeId,
-    //     WOKeys.impactId: "CLU-24Sep2025131615074016", //selectedImpactId.value,
-    //     WOKeys.assetsId: "AST-24Sep2025130416546006", //assetsId.value,
-    //     WOKeys.issueType: "ADMIN", //issueType.value,
-    //     WOKeys.impact: "IMPACT-001", //impact.value,
-    //     WOKeys.assetsNumber: "PS-2024-001", // assetsCtrl.text.trim(),
-    //     WOKeys.problemDescription:
-    //         "Problem Description", //problemCtrl.text.trim(),
-    //     WOKeys.typeText: typeText.value,
-    //     WOKeys.descriptionText: descriptionText.value,
-    //     WOKeys.photos: photos.toList(),
-    //     WOKeys.voiceNotePath: voiceNotePath.value,
-    //     WOKeys.operatorName: operatorName.value,
-    //     WOKeys.operatorMobileNumber: operatorMobileNumber.value,
-    //     WOKeys.operatorInfo: operatorInfo.value,
-    //     //WOKeys.asset: assetsCtrl.text.trim(),
-    //   });
-    // }
+    final workTabsController = Get.find<WorkTabsController>();
+    workOrderInfo = workTabsController.workOrder;
+    workOrderStatus = workTabsController.workOrderStatus;
+    if (workOrderInfo != null && workOrderStatus != null) {
+      _bag.merge({
+        WOKeys.issueTypeId:
+            'CLU-24Sep2025120750334005', //workOrderInfo.issueTypeId,
+        WOKeys.impactId: workOrderInfo?.impactId,
+        WOKeys.assetsId: workOrderInfo?.asset.id,
+        WOKeys.issueType: issueType.value,
+        WOKeys.impact: impact.value,
+        WOKeys.assetsNumber: assetsCtrl.text.trim(),
+        WOKeys.problemDescription: problemCtrl.text.trim(),
+        WOKeys.typeText: typeText.value,
+        WOKeys.descriptionText: descriptionText.value,
+        WOKeys.photos: photos.toList(),
+        WOKeys.voiceNotePath: voiceNotePath.value,
+        WOKeys.operatorName: operatorName.value,
+        WOKeys.operatorMobileNumber: operatorMobileNumber.value,
+        WOKeys.operatorInfo: operatorInfo.value,
+        //WOKeys.asset: assetsCtrl.text.trim(),
+      });
+
+      //operatorInfo.value = '-'.obs;
+    }
 
     _initDefaults();
     _initAsync();
@@ -120,9 +126,17 @@ class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // Init helpers
   // ─────────────────────────────────────────────────────────────────────────
-  void _initDefaults() {
-    operatorName.value = 'Ajay Kumar (MP18292)';
-    operatorMobileNumber.value = '9876543211';
+  void _initDefaults() async {
+    // operatorName.value = 'Ajay Kumar (MP18292)';
+    // operatorMobileNumber.value = '9876543211';
+    // operatorInfo.value = 'Assets Shop | 12:20 | 03 Sept | A';
+
+    final prefs = await SharedPreferences.getInstance();
+    final loginPerson = prefs.getString(Constant.loginPersonId); // String?
+    final details =
+        await loginPersonDetailsRepository.getPersonById(loginPerson!);
+    operatorName.value = '${details!.name}(${details.id})';
+    operatorMobileNumber.value = details.contacts[0].phone!;
     operatorInfo.value = 'Assets Shop | 12:20 | 03 Sept | A';
 
     typeText.value = '—';

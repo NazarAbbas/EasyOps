@@ -11,6 +11,7 @@ import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/login/validator/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPageController extends GetxController {
   final LoginRepositoryImpl repositoryImpl = LoginRepositoryImpl();
@@ -73,6 +74,9 @@ class LoginPageController extends GetxController {
 
         await loginPersonDetailsRepository
             .upsertLoginPersonDetails(loginPersonDetails.data!);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            Constant.loginPersonId, loginPersonDetails.data!.id);
         // final details = await loginPersonDetailsRepository
         //     .getPersonById(loginPersonDetails.data!.id);
 

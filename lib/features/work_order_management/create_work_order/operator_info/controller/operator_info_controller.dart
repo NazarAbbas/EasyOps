@@ -1,4 +1,5 @@
 import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
@@ -8,8 +9,10 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OperatorInfoController extends GetxController {
+  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   // ─────────────────────────────────────────────────────────────────────────
   // Config & DI
   // ─────────────────────────────────────────────────────────────────────────
@@ -105,23 +108,71 @@ class OperatorInfoController extends GetxController {
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
 
     // Initial text (example defaults)
-    operatorCtrl.text = 'Ajay Kumar (MP18292)';
-    reporterCtrl.text = 'Ajay Kumar (MP18292)';
+    //operatorCtrl.text = 'Ajay Kumar (MP18292)';
+    //reporterCtrl.text = 'Ajay Kumar (MP18292)';
 
     // Scalars
     employeeId.value = 'MP18292';
     phoneNumber.value = '8860700947';
+
+    final prefs = await SharedPreferences.getInstance();
+    final loginPerson = prefs.getString(Constant.loginPersonId); // String?
+    final details =
+        await loginPersonDetailsRepository.getPersonById(loginPerson!);
+    reporterCtrl.text = '${details!.name}(${details.id})';
+    employeeId.value = details.id;
+    phoneNumber.value = details.contacts[0].phone!;
+
     sameAsOperator.value = true;
     reportedTime.value = _decodeTime('12:20');
     reportedDate.value = _decodeDate('2025-09-23');
-    // final workTabsController = Get.find<WorkTabsController>();
-    // workOrderInfo = workTabsController.workOrder;
-    // workOrderStatus = workTabsController.workOrderStatus;
-    // final xx = "";
+    final workTabsController = Get.find<WorkTabsController>();
+    final workOrderInfo = workTabsController.workOrder;
+    final workOrderStatus = workTabsController.workOrderStatus;
+    final xx = "";
+
+    if (workOrderInfo != null && workOrderStatus != null) {
+      _bag.merge({
+        // IDs for API
+        WOKeys.departmentId: locationId.value,
+        WOKeys.plantId: plantId.value,
+        WOKeys.shiftId: shiftId.value,
+        WOKeys.location: location.value,
+        WOKeys.plant: plant.value,
+
+        WOKeys.shift: shift.value,
+        WOKeys.operatorName: operatorCtrl.text,
+        // WOKeys.reporter: reporterFinal,
+        WOKeys.employeeId: employeeId.value,
+        WOKeys.phoneNumber: phoneNumber.value,
+        WOKeys.sameAsOperator: sameAsOperator.value,
+        WOKeys.reportedTime: _encodeTime(reportedTime.value),
+        WOKeys.reportedDate: _encodeDate(reportedDate.value),
+      });
+
+      // _bag.merge({
+      //   WOKeys.issueTypeId:
+      //       'CLU-24Sep2025120750334005', //workOrderInfo.issueTypeId,
+      //   WOKeys.location: locationId.value,
+      //   WOKeys.assetsId: assetsId.value,
+      //   WOKeys.issueType: issueType.value,
+      //   WOKeys.impact: impact.value,
+      //   WOKeys.assetsNumber: assetsCtrl.text.trim(),
+      //   WOKeys.problemDescription: problemCtrl.text.trim(),
+      //   WOKeys.typeText: typeText.value,
+      //   WOKeys.descriptionText: descriptionText.value,
+      //   WOKeys.photos: photos.toList(),
+      //   WOKeys.voiceNotePath: voiceNotePath.value,
+      //   WOKeys.operatorName: operatorName.value,
+      //   WOKeys.operatorMobileNumber: operatorMobileNumber.value,
+      //   WOKeys.operatorInfo: operatorInfo.value,
+      //   //WOKeys.asset: assetsCtrl.text.trim(),
+      // });
+    }
 
     _initAsync();
   }

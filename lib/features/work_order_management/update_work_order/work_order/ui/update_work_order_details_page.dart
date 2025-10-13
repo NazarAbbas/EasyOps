@@ -48,7 +48,6 @@ class UpdateWorkOrderDetailsPage
                     foregroundColor: AppColors.primary,
                   ),
                   onPressed: controller.reOpenWorkOrder,
-
                   child: const Text(
                     'Re-Open',
                     style: TextStyle(fontWeight: FontWeight.w700),
@@ -164,9 +163,9 @@ class UpdateWorkOrderDetailsPage
                     children: [
                       Text(
                         [
-                          controller.time.value.isEmpty
-                              ? '—'
-                              : controller.time.value,
+                          // controller.time.value.isEmpty
+                          //     ? '—'
+                          //     : controller.time.value,
                           controller.date.value.isEmpty
                               ? '—'
                               : controller.date.value,
@@ -503,9 +502,9 @@ class _DividerPad extends StatelessWidget {
   const _DividerPad();
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 12),
-    child: Divider(color: _C.line, height: 1),
-  );
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Divider(color: _C.line, height: 1),
+      );
 }
 
 class _Pill extends StatelessWidget {

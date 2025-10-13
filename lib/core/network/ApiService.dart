@@ -1,11 +1,15 @@
 // lib/network/api_service.dart
 import 'dart:convert';
 import 'dart:io';
+import 'package:easy_ops/features/cancel_work_order/domain/cancel_work_order_request.dart';
+import 'package:easy_ops/features/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
 import 'package:easy_ops/features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/api_factory.dart';
@@ -39,6 +43,18 @@ class ApiService {
       final res = await _api.loginBasic(basicAuthHeader(username, password));
       await AuthStore.instance.setUseRefreshForAuth(preferRefreshForOtherApis);
       return res;
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  /// Login with Basic auth. Tokens are captured from headers by interceptor.
+  Future<CancelWorkOrderResponse> cancelWorkOrder({
+    required CancelWorkOrderRequest cancelWorkOrderRequest,
+    required String workOrderId,
+  }) async {
+    try {
+      return await _api.cancelWorkOrder(workOrderId, cancelWorkOrderRequest);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }
@@ -127,9 +143,48 @@ class ApiService {
     }
   }
 
+  Future<CloseWorkOrderResponse> closeWorkOrder(
+      CloseWorkOrderRequest req, String workOrderId) async {
+    try {
+      // 1️⃣ Encode the workOrder JSON and wrap it as a JSON multipart part
+      final jsonString = jsonEncode(req.toJson());
+      final workOrderPart = MultipartFile.fromString(
+        jsonString,
+        contentType: MediaType('application', 'json'),
+        filename: 'workOrder.json', // helps some servers
+      );
+
+      // 2️⃣ Collect file parts
+      final fileEntries = <MapEntry<String, MultipartFile>>[];
+      // for (final media in req.mediaFiles) {
+      //   final file = File(media.filePath);
+      //   if (await file.exists()) {
+      //     final fileName = file.path.split('/').last;
+      //     fileEntries.add(
+      //       MapEntry(
+      //         'files', // matches your curl's `--form 'files=@...'`
+      //         await MultipartFile.fromFile(file.path, filename: fileName),
+      //       ),
+      //     );
+      //   }
+      // }
+
+      // 3️⃣ Build the FormData (mimics the cURL structure)
+      final formData = FormData();
+      formData.files.add(MapEntry('workOrder', workOrderPart));
+      formData.files.addAll(fileEntries);
+
+      // 4️⃣ Call Retrofit client (Dio runs internally — no manual post())
+      return _api.closeWorkOrder(workOrderId, formData);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
   Future<WorkOrderListResponse> workOrderList() async {
     try {
-      return await _api.getWorkOrderList();
+      final workOrderListResponse = await _api.getWorkOrderList();
+      return workOrderListResponse;
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }
