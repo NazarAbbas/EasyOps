@@ -1,3 +1,5 @@
+// lib/features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart
+
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:easy_ops/core/utils/utils.dart';
@@ -187,9 +189,11 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                       'Reporter',
                       child: TextField(
                         controller: controller.reporterCtrl,
-                        textInputAction: TextInputAction.next,
+                        readOnly:
+                            true, // ⬅️ open bottom list instead of keyboard
+                        onTap: controller.onTapChooseReporter, // ⬅️ OPEN PICKER
                         decoration: AppInput.bordered(
-                          hintText: "Enter Reporter's Name",
+                          hintText: "Choose Reporter",
                           prefixIcon: const Padding(
                             padding: EdgeInsets.only(left: 10, right: 4),
                             child: Icon(CupertinoIcons.person,
@@ -241,16 +245,14 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             onTap: () => _pickFromList(
                               context,
                               title: 'Select Location',
-                              // ⬇️ use controller.locations (no placeholders)
-                              options: controller.locations,
-                              // ⬇️ update both name and id via controller handler
+                              // ⬇️ use placeholder-free list
+                              options: controller.locationsForPicker,
                               onSelected: (v) =>
                                   controller.onLocationChanged(v),
                             ),
                           ),
                         ),
-                        right: // Plant picker (inside Obx -> _Row2 -> right)
-                            _Label(
+                        right: _Label(
                           'Plant',
                           child: _TapField(
                             text: controller.plant.value.isEmpty
@@ -263,9 +265,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             onTap: () => _pickFromList(
                               context,
                               title: 'Select Plant',
-                              // ⬇️ use controller.plantsOpt
+                              // plantsOpt already excludes placeholder
                               options: controller.plantsOpt,
-                              // ⬇️ call controller handler
                               onSelected: (v) => controller.onPlantChanged(v),
                             ),
                           ),
@@ -294,7 +295,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         ),
                       ),
                       SizedBox(height: vGap - 4),
-                      // Shift picker (below "Reported On")
+                      // Shift picker
                       _Label(
                         'Shift',
                         child: _TapField(
@@ -310,9 +311,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                           onTap: () => _pickFromList(
                             context,
                             title: 'Select Shift',
-                            // ⬇️ use controller.shiftsOpt
                             options: controller.shiftsOpt,
-                            // ⬇️ call controller handler
                             onSelected: (v) => controller.onShiftChanged(v),
                           ),
                         ),
@@ -335,13 +334,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                       _CheckboxLine(
                         label: 'Same as Operator',
                         value: controller.sameAsOperator.value,
-                        onChanged: (v) {
-                          controller.sameAsOperator.value = v;
-                          if (v) {
-                            controller.operatorCtrl.text =
-                                controller.reporterCtrl.text;
-                          }
-                        },
+                        onChanged: (v) => controller.onSameAsOperatorChanged(v),
                       ),
                       if (!controller.sameAsOperator.value) ...[
                         SizedBox(height: vGap - 2),
@@ -349,10 +342,10 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                           'Operator',
                           child: TextField(
                             controller: controller.operatorCtrl,
-                            enabled: !controller.sameAsOperator.value,
-                            textInputAction: TextInputAction.next,
+                            readOnly: true, // ⬅️ open bottom list
+                            onTap: controller.onTapChooseOperator, // ⬅️ OPEN
                             decoration: AppInput.bordered(
-                              hintText: "Enter operator's name",
+                              hintText: "Choose Operator",
                               prefixIcon: const Padding(
                                 padding: EdgeInsets.only(left: 10, right: 4),
                                 child: Icon(CupertinoIcons.person,
@@ -370,9 +363,9 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         _Row2(
                           spacing: 12,
                           left: Obx(() => _LabelValuePlain(
-                              'Employee ID', controller.employeeId.value)),
-                          right: Obx(() => _LabelValuePlain(
-                              'Phone Number', controller.phoneNumber.value)),
+                              'Employee ID', controller.operatorId.value)),
+                          right: Obx(() => _LabelValuePlain('Phone Number',
+                              controller.operatorPhoneNumber.value)),
                         ),
                       ],
                     ],

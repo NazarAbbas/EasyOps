@@ -1,22 +1,29 @@
+// lib/features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart
+// Full controller: binds operatorCtrl / reporterCtrl to operators list
+// with a searchable Get.bottomSheet picker and WorkOrderBag sync.
+
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/database/db_repository/operators_details_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
+import 'package:easy_ops/features/login/models/operators_details.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OperatorInfoController extends GetxController {
-  final operatorDetailsRepository = Get.find<OperatorDetailsRepository>();
-  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   // ─────────────────────────────────────────────────────────────────────────
-  // Config & DI
+  // DI
   // ─────────────────────────────────────────────────────────────────────────
+  final OperatorDetailsRepository operatorDetailsRepository =
+      Get.find<OperatorDetailsRepository>();
+  final LoginPersonDetailsRepository loginPersonDetailsRepository =
+      Get.find<LoginPersonDetailsRepository>();
   final LookupRepository lookupRepository = Get.find<LookupRepository>();
   final ShiftRepository shiftRepository = Get.find<ShiftRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
@@ -28,11 +35,14 @@ class OperatorInfoController extends GetxController {
   final TextEditingController reporterCtrl = TextEditingController();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Reactive scalar fields (names)
+  // Reactive scalar fields
   // ─────────────────────────────────────────────────────────────────────────
   final sameAsOperator = false.obs;
   RxString employeeId = '-'.obs;
   RxString phoneNumber = '-'.obs;
+
+  RxString operatorId = '-'.obs;
+  RxString operatorPhoneNumber = '-'.obs;
 
   // Display names currently selected in UI
   RxString plant = '-'.obs; // PLANT name
@@ -55,9 +65,9 @@ class OperatorInfoController extends GetxController {
   final RxList<LookupValues> locationTypeOptions = <LookupValues>[].obs;
   final RxList<LookupValues> plantTypeOptions = <LookupValues>[].obs;
 
-  final RxList<String> locationOptions = <String>[].obs; // DEPARTMENT names
-  final RxList<String> plantOptions = <String>[].obs; // PLANT names
-  final RxList<String> shiftOptions = <String>[].obs; // SHIFT names
+  final RxList<String> locationOptions = <String>[].obs;
+  final RxList<String> plantOptions = <String>[].obs;
+  final RxList<String> shiftOptions = <String>[].obs;
 
   // Shorthand getters for UI
   List<String> get locations => locationOptions;
@@ -73,20 +83,26 @@ class OperatorInfoController extends GetxController {
       shiftOptions.where((e) => e != _placeholder).toList();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Name → ID maps for quick lookup
+  // Name → ID maps
   // ─────────────────────────────────────────────────────────────────────────
   final Map<String, String> _plantNameToId = {};
   final Map<String, String> _deptNameToId = {};
   final Map<String, String> _shiftNameToId = {};
 
-  // late final WorkOrder workOrderInfo;
-  // late final WorkOrderStatus workOrderStatus;
+  // ─────────────────────────────────────────────────────────────────────────
+  // Operators list + selection
+  // ─────────────────────────────────────────────────────────────────────────
+  final RxList<OperatosDetails> _operators = <OperatosDetails>[].obs;
+  final RxList<OperatosDetails> _filteredOperators = <OperatosDetails>[].obs;
+
+  OperatosDetails? _selectedOperator; // for operatorCtrl
+  OperatosDetails? _selectedReporter; // for reporterCtrl
+
   // ─────────────────────────────────────────────────────────────────────────
   // Placeholder helpers
   // ─────────────────────────────────────────────────────────────────────────
   static const String _placeholder = 'Select';
   bool _isPlaceholder(String v) => v.trim().isEmpty || v.trim() == _placeholder;
-  //String _valueOf(String v) => _isPlaceholder(v) ? '' : v;
 
   // ─────────────────────────────────────────────────────────────────────────
   // UI helpers
@@ -112,67 +128,48 @@ class OperatorInfoController extends GetxController {
   void onInit() async {
     super.onInit();
 
-    // Initial text (example defaults)
-    //operatorCtrl.text = 'Ajay Kumar (MP18292)';
-    //reporterCtrl.text = 'Ajay Kumar (MP18292)';
+    // Defaults
+    // employeeId.value = 'MP18292';
+    // phoneNumber.value = '8860700947';
 
-    // Scalars
-    employeeId.value = 'MP18292';
-    phoneNumber.value = '8860700947';
-
-    final prefs = await SharedPreferences.getInstance();
-    final loginPerson = prefs.getString(Constant.loginPersonId); // String?
-    final details =
-        await loginPersonDetailsRepository.getPersonById(loginPerson!);
-    reporterCtrl.text = '${details!.name}(${details.id})';
-    employeeId.value = details.id;
-    phoneNumber.value = details.contacts[0].phone!;
+    // Pre-fill reporter from login-person in DB
+    // final prefs = await SharedPreferences.getInstance();
+    //  final loginPerson = prefs.getString(Constant.loginPersonId);
+    // if (loginPerson != null && loginPerson.isNotEmpty) {
+    //   final details =
+    //       await loginPersonDetailsRepository.getPersonById(loginPerson);
+    //   if (details != null) {
+    //     reporterCtrl.text = '${details.name}(${details.id})';
+    //     employeeId.value = details.id;
+    //     if (details.contacts.isNotEmpty && details.contacts[0].phone != null) {
+    //       phoneNumber.value = details.contacts[0].phone!;
+    //     }
+    //   }
+    // }
 
     sameAsOperator.value = true;
     reportedTime.value = _decodeTime('12:20');
     reportedDate.value = _decodeDate('2025-09-23');
+
+    // Warm the bag
     final workTabsController = Get.find<WorkTabsController>();
     final workOrderInfo = workTabsController.workOrder;
     final workOrderStatus = workTabsController.workOrderStatus;
-    final xx = "";
-
     if (workOrderInfo != null && workOrderStatus != null) {
       _bag.merge({
-        // IDs for API
         WOKeys.departmentId: locationId.value,
         WOKeys.plantId: plantId.value,
         WOKeys.shiftId: shiftId.value,
         WOKeys.location: location.value,
         WOKeys.plant: plant.value,
-
         WOKeys.shift: shift.value,
         WOKeys.operatorName: operatorCtrl.text,
-        // WOKeys.reporter: reporterFinal,
         WOKeys.employeeId: employeeId.value,
         WOKeys.phoneNumber: phoneNumber.value,
         WOKeys.sameAsOperator: sameAsOperator.value,
         WOKeys.reportedTime: _encodeTime(reportedTime.value),
         WOKeys.reportedDate: _encodeDate(reportedDate.value),
       });
-
-      // _bag.merge({
-      //   WOKeys.issueTypeId:
-      //       'CLU-24Sep2025120750334005', //workOrderInfo.issueTypeId,
-      //   WOKeys.location: locationId.value,
-      //   WOKeys.assetsId: assetsId.value,
-      //   WOKeys.issueType: issueType.value,
-      //   WOKeys.impact: impact.value,
-      //   WOKeys.assetsNumber: assetsCtrl.text.trim(),
-      //   WOKeys.problemDescription: problemCtrl.text.trim(),
-      //   WOKeys.typeText: typeText.value,
-      //   WOKeys.descriptionText: descriptionText.value,
-      //   WOKeys.photos: photos.toList(),
-      //   WOKeys.voiceNotePath: voiceNotePath.value,
-      //   WOKeys.operatorName: operatorName.value,
-      //   WOKeys.operatorMobileNumber: operatorMobileNumber.value,
-      //   WOKeys.operatorInfo: operatorInfo.value,
-      //   //WOKeys.asset: assetsCtrl.text.trim(),
-      // });
     }
 
     _initAsync();
@@ -187,16 +184,17 @@ class OperatorInfoController extends GetxController {
 
   Future<void> _initAsync() async {
     // Fetch lists
-
-    final operatorsList = await operatorDetailsRepository.getAllOperator();
-
+    final List<OperatosDetails> operatorsList =
+        await operatorDetailsRepository.getAllOperator();
     final List<Shift> shiftList = await shiftRepository.getAllShift();
-
     final List<LookupValues> deptList =
         await lookupRepository.getLookupByType(LookupType.department);
-
     final List<LookupValues> plantsList =
         await lookupRepository.getLookupByType(LookupType.plant);
+
+    // Keep operators for picker
+    _operators.assignAll(operatorsList);
+    _filteredOperators.assignAll(operatorsList);
 
     // Build typed option lists (with placeholders)
     locationTypeOptions.assignAll([
@@ -235,11 +233,9 @@ class OperatorInfoController extends GetxController {
     locationOptions
       ..clear()
       ..addAll([_placeholder, ...deptList.map((e) => e.displayName)]);
-
     plantOptions
       ..clear()
       ..addAll([_placeholder, ...plantsList.map((e) => e.displayName)]);
-
     shiftOptions
       ..clear()
       ..addAll([_placeholder, ...shiftList.map((e) => e.name)]);
@@ -248,11 +244,9 @@ class OperatorInfoController extends GetxController {
     _plantNameToId
       ..clear()
       ..addEntries(plantsList.map((e) => MapEntry(e.displayName, e.id)));
-
     _deptNameToId
       ..clear()
       ..addEntries(deptList.map((e) => MapEntry(e.displayName, e.id)));
-
     _shiftNameToId
       ..clear()
       ..addEntries(shiftList.map((s) => MapEntry(s.name, s.id)));
@@ -262,15 +256,167 @@ class OperatorInfoController extends GetxController {
     plant.value = _placeholder;
     shift.value = _placeholder;
 
-    // Hydrate from bag (sets both names and ids)
+    // Hydrate from bag (also restores operator/reporter text)
     _hydrateFromBag();
 
-    // (Optional) share lists with other tabs
+    // Share lists with other tabs
     _bag.merge({
       'locations': locations,
       'plantsOpt': plantsOpt,
       'shiftsOpt': shiftsOpt,
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // People binding & picker (Get.bottomSheet)
+  // ─────────────────────────────────────────────────────────────────────────
+  // String _displayFor(OperatosDetails p) {
+  //   final suffix = (p.id).isNotEmpty ? ' (${p.id})' : '';
+  //   return '${p.name}$suffix';
+  // }
+  String _displayFor(OperatosDetails p) => p.name;
+
+  void _applySelectedPerson({
+    required OperatosDetails person,
+    required bool setAsOperator,
+  }) {
+    if (setAsOperator) {
+      _selectedOperator = person;
+      operatorCtrl.text = _displayFor(person);
+
+      if (sameAsOperator.value) {
+        _selectedReporter = person;
+        reporterCtrl.text = _displayFor(person);
+      }
+    } else {
+      _selectedReporter = person;
+      reporterCtrl.text = _displayFor(person);
+    }
+
+    // Update scalars if needed
+    employeeId.value = person.id;
+    // phoneNumber.value = person.phone ?? phoneNumber.value; // if available
+
+    saveToBag();
+  }
+
+  Future<void> openPeoplePicker({required bool setOperatorField}) async {
+    _filteredOperators.assignAll(_operators);
+    final searchCtrl = TextEditingController();
+
+    await Get.bottomSheet<void>(
+      SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(Get.context!).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 12,
+          ),
+          child: SizedBox(
+            height: MediaQuery.of(Get.context!).size.height * 0.75,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Text(
+                  setOperatorField ? 'Choose Operator' : 'Choose Reporter',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 16),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: searchCtrl,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search by name or ID...',
+                    prefixIcon: const Icon(Icons.search),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (q) {
+                    final qq = q.trim().toLowerCase();
+                    if (qq.isEmpty) {
+                      _filteredOperators.assignAll(_operators);
+                    } else {
+                      _filteredOperators.assignAll(
+                        _operators.where((p) {
+                          final name = (p.name).toLowerCase();
+                          final id = (p.id).toLowerCase();
+                          return name.contains(qq) || id.contains(qq);
+                        }),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: Obx(() {
+                    if (_filteredOperators.isEmpty) {
+                      return const Center(child: Text('No matches found'));
+                    }
+                    return ListView.separated(
+                      itemCount: _filteredOperators.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final person = _filteredOperators[i];
+                        return ListTile(
+                          title: Text(_displayFor(person)),
+                          subtitle: (person.userEmail ?? '').isNotEmpty
+                              ? Text(person.userEmail!)
+                              : null,
+                          onTap: () {
+                            _applySelectedPerson(
+                              person: person,
+                              setAsOperator: setOperatorField,
+                            );
+                            Get.back();
+                          },
+                        );
+                      },
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+    );
+  }
+
+  // Public methods for UI bindings
+  void onTapChooseOperator() => openPeoplePicker(setOperatorField: true);
+  void onTapChooseReporter() => openPeoplePicker(setOperatorField: false);
+
+  void onSameAsOperatorChanged(bool v) {
+    sameAsOperator.value = v;
+    if (v) {
+      if (_selectedOperator != null) {
+        _selectedReporter = _selectedOperator;
+        reporterCtrl.text = _displayFor(_selectedOperator!);
+      } else {
+        reporterCtrl.text = operatorCtrl.text;
+      }
+    }
+    saveToBag();
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -360,12 +506,17 @@ class OperatorInfoController extends GetxController {
       WOKeys.departmentId: locationId.value,
       WOKeys.plantId: plantId.value,
       WOKeys.shiftId: shiftId.value,
+      // Names
       WOKeys.location: location.value,
       WOKeys.plant: plant.value,
-
       WOKeys.shift: shift.value,
+      // People (strings)
       WOKeys.operatorName: operatorCtrl.text,
       WOKeys.reporter: reporterFinal,
+      // Optional: persist IDs if your API needs them
+      'operatorId': _selectedOperator?.id,
+      'reporterId': _selectedReporter?.id,
+      // Other scalars
       WOKeys.employeeId: employeeId.value,
       WOKeys.phoneNumber: phoneNumber.value,
       WOKeys.sameAsOperator: sameAsOperator.value,
@@ -375,21 +526,24 @@ class OperatorInfoController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Dropdown change handlers (call from UI onChanged)
+  // Dropdown change handlers
   // ─────────────────────────────────────────────────────────────────────────
   void onPlantChanged(String name) {
     plant.value = name;
     plantId.value = _plantNameToId[name] ?? '';
+    saveToBag();
   }
 
   void onLocationChanged(String name) {
     location.value = name;
     locationId.value = _deptNameToId[name] ?? '';
+    saveToBag();
   }
 
   void onShiftChanged(String name) {
     shift.value = name;
     shiftId.value = _shiftNameToId[name] ?? '';
+    saveToBag();
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -468,9 +622,14 @@ class OperatorInfoController extends GetxController {
     reportedTime.value = null;
     reportedDate.value = null;
 
+    _selectedOperator = null;
+    _selectedReporter = null;
+
     _bag.merge({
       'operatorName': '',
       'reporter': '',
+      'operatorId': null,
+      'reporterId': null,
       'employeeId': '',
       'phoneNumber': '',
       'location': '',
@@ -483,11 +642,6 @@ class OperatorInfoController extends GetxController {
       'reportedTime': null,
       'reportedDate': null,
     });
-  }
-
-  void onSameAsOperatorChanged(bool v) {
-    sameAsOperator.value = v;
-    if (v) reporterCtrl.text = operatorCtrl.text;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
