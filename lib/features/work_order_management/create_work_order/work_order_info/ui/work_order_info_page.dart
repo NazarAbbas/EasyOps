@@ -908,23 +908,26 @@ class _OperatorInfoFooter extends GetView<WorkorderInfoController> {
             style: TextStyle(
               color: Color(0xFF5B667A),
               fontWeight: FontWeight.w700,
-              fontSize: 16,
+              fontSize: 12,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             name.isEmpty ? '—' : name,
-            style: const TextStyle(color: _C.text, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+                color: _C.text, fontWeight: FontWeight.w700, fontSize: 12),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 5),
           Text(
             mobile.isEmpty ? '—' : mobile,
-            style: const TextStyle(color: _C.text, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+                color: _C.text, fontWeight: FontWeight.w700, fontSize: 12),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 5),
           Text(
             info.isEmpty ? '—' : info,
-            style: const TextStyle(color: _C.text, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+                color: _C.text, fontWeight: FontWeight.w700, fontSize: 12),
           ),
         ],
       );

@@ -121,3 +121,42 @@ class LoginPersonAttendanceEntity {
     this.shiftName,
   });
 }
+
+@Entity(
+  tableName: 'login_person_assets',
+  foreignKeys: [
+    ForeignKey(
+      childColumns: ['personId'],
+      parentColumns: ['id'],
+      entity: LoginPersonDetailsEntity,
+      onDelete: ForeignKeyAction.cascade,
+    ),
+  ],
+  indices: [
+    Index(value: ['personId']),
+    Index(value: ['assetId']),
+  ],
+)
+class LoginPersonAssetEntity {
+  @primaryKey
+  final String id;
+
+  final int recordStatus;
+  final String? createdAt;
+  final String? personId;
+  final String? personName;
+  final String? assetId;
+  final String? assetName;
+  final String? assetSerialNumber;
+
+  const LoginPersonAssetEntity({
+    required this.id,
+    required this.recordStatus,
+    required this.personId,
+    this.createdAt,
+    this.personName,
+    this.assetId,
+    this.assetName,
+    this.assetSerialNumber,
+  });
+}

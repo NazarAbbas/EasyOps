@@ -78,6 +78,8 @@ class _$AppDatabase extends AppDatabase {
 
   LoginPersonAttendanceDao? _loginPersonAttendanceDaoInstance;
 
+  LoginPersonAssetDao? _loginPersonAssetDaoInstance;
+
   LookupDao? _lookupDaoInstance;
 
   AssetDao? _assetDaoInstance;
@@ -85,6 +87,8 @@ class _$AppDatabase extends AppDatabase {
   ShiftDao? _shiftDaoInstance;
 
   OfflineWorkOrderDao? _offlineWorkOrderDaoInstance;
+
+  OperatorsDetailsDao? _operatorsDetailsDaoInstance;
 
   Future<sqflite.Database> open(
     String path,
@@ -122,6 +126,10 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_contact` (`id` TEXT NOT NULL, `label` TEXT NOT NULL, `relationship` TEXT, `phone` TEXT, `email` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `login_person_assets` (`id` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT, `personId` TEXT, `personName` TEXT, `assetId` TEXT, `assetName` TEXT, `assetSerialNumber` TEXT, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `operators_details_entity` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `dob` INTEGER, `updatedAt` INTEGER, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `userId` TEXT, `organizationId` TEXT, `parentStaffId` TEXT, `managerId` TEXT, `shiftId` TEXT, `departmentId` TEXT, `userEmail` TEXT, `organizationName` TEXT, `parentStaffName` TEXT, `managerName` TEXT, `shiftName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_lookup_tenantId_clientId_lookupType_code` ON `lookup` (`tenantId`, `clientId`, `lookupType`, `code`)');
@@ -141,6 +149,22 @@ class _$AppDatabase extends AppDatabase {
             'CREATE INDEX `index_shifts_tenantId_clientId` ON `shifts` (`tenantId`, `clientId`)');
         await database.execute(
             'CREATE INDEX `index_shifts_updatedAt` ON `shifts` (`updatedAt`)');
+        await database.execute(
+            'CREATE INDEX `index_login_person_assets_personId` ON `login_person_assets` (`personId`)');
+        await database.execute(
+            'CREATE INDEX `index_login_person_assets_assetId` ON `login_person_assets` (`assetId`)');
+        await database.execute(
+            'CREATE INDEX `index_operators_details_entity_name` ON `operators_details_entity` (`name`)');
+        await database.execute(
+            'CREATE INDEX `index_operators_details_entity_tenantId` ON `operators_details_entity` (`tenantId`)');
+        await database.execute(
+            'CREATE INDEX `index_operators_details_entity_clientId` ON `operators_details_entity` (`clientId`)');
+        await database.execute(
+            'CREATE INDEX `index_operators_details_entity_organizationId` ON `operators_details_entity` (`organizationId`)');
+        await database.execute(
+            'CREATE INDEX `index_operators_details_entity_shiftId` ON `operators_details_entity` (`shiftId`)');
+        await database.execute(
+            'CREATE INDEX `index_operators_details_entity_departmentId` ON `operators_details_entity` (`departmentId`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -167,6 +191,12 @@ class _$AppDatabase extends AppDatabase {
   }
 
   @override
+  LoginPersonAssetDao get loginPersonAssetDao {
+    return _loginPersonAssetDaoInstance ??=
+        _$LoginPersonAssetDao(database, changeListener);
+  }
+
+  @override
   LookupDao get lookupDao {
     return _lookupDaoInstance ??= _$LookupDao(database, changeListener);
   }
@@ -185,6 +215,12 @@ class _$AppDatabase extends AppDatabase {
   OfflineWorkOrderDao get offlineWorkOrderDao {
     return _offlineWorkOrderDaoInstance ??=
         _$OfflineWorkOrderDao(database, changeListener);
+  }
+
+  @override
+  OperatorsDetailsDao get operatorsDetailsDao {
+    return _operatorsDetailsDaoInstance ??=
+        _$OperatorsDetailsDao(database, changeListener);
   }
 }
 
@@ -413,6 +449,65 @@ class _$LoginPersonAttendanceDao extends LoginPersonAttendanceDao {
   Future<void> upsertAttendance(
       List<LoginPersonAttendanceEntity> entities) async {
     await _loginPersonAttendanceEntityInsertionAdapter.insertList(
+        entities, OnConflictStrategy.replace);
+  }
+}
+
+class _$LoginPersonAssetDao extends LoginPersonAssetDao {
+  _$LoginPersonAssetDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _loginPersonAssetEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'login_person_assets',
+            (LoginPersonAssetEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'recordStatus': item.recordStatus,
+                  'createdAt': item.createdAt,
+                  'personId': item.personId,
+                  'personName': item.personName,
+                  'assetId': item.assetId,
+                  'assetName': item.assetName,
+                  'assetSerialNumber': item.assetSerialNumber
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<LoginPersonAssetEntity>
+      _loginPersonAssetEntityInsertionAdapter;
+
+  @override
+  Future<List<LoginPersonAssetEntity>> getAssetForPerson(
+      String personId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM login_person_assets WHERE personId = ?1',
+        mapper: (Map<String, Object?> row) => LoginPersonAssetEntity(
+            id: row['id'] as String,
+            recordStatus: row['recordStatus'] as int,
+            personId: row['personId'] as String?,
+            createdAt: row['createdAt'] as String?,
+            personName: row['personName'] as String?,
+            assetId: row['assetId'] as String?,
+            assetName: row['assetName'] as String?,
+            assetSerialNumber: row['assetSerialNumber'] as String?),
+        arguments: [personId]);
+  }
+
+  @override
+  Future<void> deleteAssetForPerson(String personId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM login_person_assets WHERE personId = ?1',
+        arguments: [personId]);
+  }
+
+  @override
+  Future<void> upsertAssets(List<LoginPersonAssetEntity> entities) async {
+    await _loginPersonAssetEntityInsertionAdapter.insertList(
         entities, OnConflictStrategy.replace);
   }
 }
@@ -694,7 +789,86 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
   }
 }
 
+class _$OperatorsDetailsDao extends OperatorsDetailsDao {
+  _$OperatorsDetailsDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _operatorsDetailsEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'operators_details_entity',
+            (OperatorsDetailsEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'dob': _epochDateTimeConverter.encode(item.dob),
+                  'updatedAt': _epochDateTimeConverter.encode(item.updatedAt),
+                  'bloodGroup': item.bloodGroup,
+                  'designation': item.designation,
+                  'type': item.type,
+                  'recordStatus': item.recordStatus,
+                  'tenantId': item.tenantId,
+                  'clientId': item.clientId,
+                  'userId': item.userId,
+                  'organizationId': item.organizationId,
+                  'parentStaffId': item.parentStaffId,
+                  'managerId': item.managerId,
+                  'shiftId': item.shiftId,
+                  'departmentId': item.departmentId,
+                  'userEmail': item.userEmail,
+                  'organizationName': item.organizationName,
+                  'parentStaffName': item.parentStaffName,
+                  'managerName': item.managerName,
+                  'shiftName': item.shiftName,
+                  'departmentName': item.departmentName
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<OperatorsDetailsEntity>
+      _operatorsDetailsEntityInsertionAdapter;
+
+  @override
+  Future<List<OperatorsDetailsEntity>> findAll() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM operators_details_entity ORDER BY name COLLATE NOCASE ASC',
+        mapper: (Map<String, Object?> row) => OperatorsDetailsEntity(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            type: row['type'] as String,
+            recordStatus: row['recordStatus'] as int,
+            tenantId: row['tenantId'] as String,
+            clientId: row['clientId'] as String,
+            dob: _epochDateTimeConverter.decode(row['dob'] as int?),
+            updatedAt: _epochDateTimeConverter.decode(row['updatedAt'] as int?),
+            bloodGroup: row['bloodGroup'] as String?,
+            designation: row['designation'] as String?,
+            userId: row['userId'] as String?,
+            organizationId: row['organizationId'] as String?,
+            parentStaffId: row['parentStaffId'] as String?,
+            managerId: row['managerId'] as String?,
+            shiftId: row['shiftId'] as String?,
+            departmentId: row['departmentId'] as String?,
+            userEmail: row['userEmail'] as String?,
+            organizationName: row['organizationName'] as String?,
+            parentStaffName: row['parentStaffName'] as String?,
+            managerName: row['managerName'] as String?,
+            shiftName: row['shiftName'] as String?,
+            departmentName: row['departmentName'] as String?));
+  }
+
+  @override
+  Future<void> upsertAll(List<OperatorsDetailsEntity> items) async {
+    await _operatorsDetailsEntityInsertionAdapter.insertList(
+        items, OnConflictStrategy.replace);
+  }
+}
+
 // ignore_for_file: unused_element
+final _epochDateTimeConverter = EpochDateTimeConverter();
 final _lookupTypeConverter = LookupTypeConverter();
 final _dateTimeIsoConverter = DateTimeIsoConverter();
 final _criticalityConverter = CriticalityConverter();

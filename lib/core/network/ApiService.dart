@@ -8,6 +8,7 @@ import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggest
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
 import 'package:easy_ops/features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/login/models/operators_details.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
 import 'package:http_parser/http_parser.dart';
@@ -55,6 +56,15 @@ class ApiService {
   }) async {
     try {
       return await _api.cancelWorkOrder(workOrderId, cancelWorkOrderRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  /// Login with Basic auth. Tokens are captured from headers by interceptor.
+  Future<OperatorsDetailsResponse> operatorDetails() async {
+    try {
+      return await _api.operatorDetails();
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

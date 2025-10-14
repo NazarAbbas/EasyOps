@@ -7,6 +7,7 @@ import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggest
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
 import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
 import 'package:easy_ops/features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/login/models/operators_details.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -76,4 +77,7 @@ abstract class RestClient {
     @Path('id') String workOrderId,
     @Body() CancelWorkOrderRequest body,
   );
+
+  @GET('/person/')
+  Future<OperatorsDetailsResponse> operatorDetails();
 }

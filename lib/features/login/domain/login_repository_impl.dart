@@ -5,6 +5,7 @@ import 'package:easy_ops/core/network/network_exception.dart';
 import 'package:easy_ops/features/login/domain/login_repository.dart';
 import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
+import 'package:easy_ops/features/login/models/operators_details.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
@@ -151,6 +152,33 @@ class LoginRepositoryImpl implements LoginRepository {
       );
     } catch (e) {
       return ApiResult<LoginPersonDetails>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<OperatorsDetailsResponse>> operatorsDetails() async {
+    try {
+      final result = await _apiService.operatorDetails();
+
+      return ApiResult<OperatorsDetailsResponse>(
+        httpCode: 200,
+        data: result,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<OperatorsDetailsResponse>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<OperatorsDetailsResponse>(
         httpCode: 0,
         data: null,
         message: e.toString(),

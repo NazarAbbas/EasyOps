@@ -43,3 +43,15 @@ abstract class LoginPersonAttendanceDao {
   @Query('DELETE FROM login_person_attendance WHERE personId = :personId')
   Future<void> deleteAttendanceForPerson(String personId);
 }
+
+@dao
+abstract class LoginPersonAssetDao {
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> upsertAssets(List<LoginPersonAssetEntity> entities);
+
+  @Query('SELECT * FROM login_person_assets WHERE personId = :personId')
+  Future<List<LoginPersonAssetEntity>> getAssetForPerson(String personId);
+
+  @Query('DELETE FROM login_person_assets WHERE personId = :personId')
+  Future<void> deleteAssetForPerson(String personId);
+}

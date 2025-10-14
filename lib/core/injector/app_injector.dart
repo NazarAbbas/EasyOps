@@ -7,6 +7,7 @@ import 'package:easy_ops/database/db_repository/assets_repository.dart';
 import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/database/db_repository/offline_work_order_repository.dart';
+import 'package:easy_ops/database/db_repository/operators_details_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -33,5 +34,6 @@ class AppInjector {
     Get.put<OfflineWorkOrderRepository>(OfflineWorkOrderRepository(),
         permanent: true);
     Get.put(NetworkSyncService(), permanent: true);
+    Get.put(OperatorDetailsRepository());
   }
 }

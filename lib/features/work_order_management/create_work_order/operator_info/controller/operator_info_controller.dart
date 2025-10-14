@@ -1,17 +1,18 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/operators_details_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OperatorInfoController extends GetxController {
+  final operatorDetailsRepository = Get.find<OperatorDetailsRepository>();
   final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   // ─────────────────────────────────────────────────────────────────────────
   // Config & DI
@@ -186,6 +187,9 @@ class OperatorInfoController extends GetxController {
 
   Future<void> _initAsync() async {
     // Fetch lists
+
+    final operatorsList = await operatorDetailsRepository.getAllOperator();
+
     final List<Shift> shiftList = await shiftRepository.getAllShift();
 
     final List<LookupValues> deptList =

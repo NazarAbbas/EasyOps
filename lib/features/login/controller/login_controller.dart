@@ -4,10 +4,10 @@ import 'package:easy_ops/core/theme/theme_controller.dart';
 import 'package:easy_ops/database/db_repository/assets_repository.dart';
 import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/operators_details_repository.dart';
 import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
 import 'package:easy_ops/features/login/domain/login_repository_impl.dart';
 import 'package:easy_ops/core/utils/app_snackbar.dart';
-import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/login/validator/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,6 +18,7 @@ class LoginPageController extends GetxController {
   final lookupRepository = Get.find<LookupRepository>();
   final assetRepository = Get.find<AssetRepository>();
   final shiftRepository = Get.find<ShiftRepository>();
+  final operatorDetailsRepository = Get.find<OperatorDetailsRepository>();
   final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   // Inputs
   final emailController = TextEditingController();
@@ -71,6 +72,11 @@ class LoginPageController extends GetxController {
       if (result.isSuccess && result.data != null) {
         final loginPersonDetails =
             await repositoryImpl.loginPersonDetails(result.data!.userName);
+
+        final operatorsDetails = await repositoryImpl.operatorsDetails();
+        await operatorDetailsRepository.upsertOperators(operatorsDetails.data!);
+
+        // final details = await operatorDetailsRepository.getAllOperator();
 
         await loginPersonDetailsRepository
             .upsertLoginPersonDetails(loginPersonDetails.data!);

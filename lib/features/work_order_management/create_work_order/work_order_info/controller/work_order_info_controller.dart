@@ -15,6 +15,7 @@ import 'package:easy_ops/features/work_order_management/work_order_management_da
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
@@ -137,14 +138,26 @@ class WorkorderInfoController extends GetxController {
         await loginPersonDetailsRepository.getPersonById(loginPerson!);
     operatorName.value = '${details!.name}(${details.id})';
     operatorMobileNumber.value = details.contacts[0].phone!;
-    operatorInfo.value = 'Assets Shop | 12:20 | 03 Sept | A';
-
+    // ignore: prefer_interpolation_to_compose_strings
+    final dt = DateTime.parse('2025-10-13T05:34:36.926277Z'); // UTC
+    final s = formatTimeDateLocal(dt); // => "11:04 | 13 oct" in Asia/Kolkata
+    operatorInfo.value =
+        '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
     typeText.value = '—';
     descriptionText.value = '—';
 
     // selected dropdown defaults -> placeholders (empty id)
     selectedIssueTypeId.value = '';
     selectedImpactId.value = '';
+  }
+
+  /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
+  String formatTimeDateLocal(DateTime dt) {
+    final d = dt.isUtc ? dt.toLocal() : dt; // convert if it's UTC (ends with Z)
+    final time = DateFormat('HH:mm').format(d); // 24h: 02:30
+    final day = DateFormat('dd').format(d); // 02
+    final mon = DateFormat('MMM').format(d).toLowerCase(); // oct
+    return '$time | $day $mon';
   }
 
   Future<void> _initAsync() async {

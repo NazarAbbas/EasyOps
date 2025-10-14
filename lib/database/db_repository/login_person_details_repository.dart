@@ -1,7 +1,10 @@
 import 'package:easy_ops/database/app_database.dart';
+import 'package:easy_ops/database/dao/login_person_details_dao.dart';
 import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/mappers/login_person_details_mapper.dart';
+
+import '../dao/login_person_details_dao.dart';
 
 class LoginPersonDetailsRepository {
   final AppDatabase _db = Get.find<AppDatabase>();
@@ -12,6 +15,8 @@ class LoginPersonDetailsRepository {
     final contactEntities = model.contacts.map((c) => c.toEntity()).toList();
     final attendanceEntities =
         model.attendance.map((a) => a.toEntity()).toList();
+
+    final assetsEntities = model.assets.map((c) => c.toEntity()).toList();
 
     // Floor doesn't support direct manual transaction() calls.
     // Instead, we ensure ordering manually or use @transaction in a DAO.
@@ -26,6 +31,11 @@ class LoginPersonDetailsRepository {
       await _db.loginPersonAttendanceDao.deleteAttendanceForPerson(model.id);
       await _db.loginPersonAttendanceDao.upsertAttendance(attendanceEntities);
     }
+
+    if (assetsEntities.isNotEmpty) {
+      await _db.loginPersonAssetDao.deleteAssetForPerson(model.id);
+      await _db.loginPersonAssetDao.upsertAssets(assetsEntities);
+    }
   }
 
   /// Fetch a single person by ID (with related contacts & attendance)
@@ -36,6 +46,7 @@ class LoginPersonDetailsRepository {
     final contacts = await _db.loginPersonContactDao.getContactsForPerson(id);
     final attendance =
         await _db.loginPersonAttendanceDao.getAttendanceForPerson(id);
+    final assets = await _db.loginPersonAssetDao.getAssetForPerson(id);
 
     return LoginPersonDetails(
       id: personRow.id,
@@ -69,7 +80,18 @@ class LoginPersonDetailsRepository {
                 personName: e.personName,
               ))
           .toList(),
-      assets: const [], // assets can be handled later
+      assets: assets
+          .map((e) => LoginPersonAsset(
+                id: e.id,
+                recordStatus: e.recordStatus,
+                createdAt: _parseDateTime(e.createdAt), // already DateTime?
+                personId: e.personId,
+                personName: e.personName,
+                assetId: e.assetId,
+                assetName: e.assetName,
+                assetSerialNumber: e.assetSerialNumber,
+              ))
+          .toList(), // assets can be handled later
       attendance: attendance
           .map((e) => LoginPersonAttendance(
                 id: e.id,
@@ -88,6 +110,15 @@ class LoginPersonDetailsRepository {
               ))
           .toList(),
     );
+  }
+
+  DateTime? _parseDateTime(dynamic v) {
+    if (v == null) return null;
+    try {
+      return DateTime.parse(v.toString());
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Optional: Fetch all persons stored in DB
