@@ -35,6 +35,7 @@ class OperatorsDetailsResponse {
 class OperatosDetails {
   final String id;
   final String name;
+  final String userPhone;
   final DateTime? dob; // "1990-01-15"
   final String? bloodGroup; // e.g., "O+"
   final String? designation; // e.g., "Plant Manager"
@@ -62,6 +63,7 @@ class OperatosDetails {
   OperatosDetails({
     required this.id,
     required this.name,
+    required this.userPhone,
     required this.type,
     required this.recordStatus,
     required this.tenantId,
@@ -92,6 +94,7 @@ class OperatosDetails {
     return OperatosDetails(
       id: json['id'] as String,
       name: json['name'] as String,
+      userPhone: json['userPhone'] as String,
       type: json['type'] as String,
       recordStatus: (json['recordStatus'] as num).toInt(),
       tenantId: json['tenantId'] as String,
@@ -118,6 +121,7 @@ class OperatosDetails {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'userPhone': userPhone,
         'dob': dob?.toIso8601String().split('T').first, // keep date-only format
         'bloodGroup': bloodGroup,
         'designation': designation,

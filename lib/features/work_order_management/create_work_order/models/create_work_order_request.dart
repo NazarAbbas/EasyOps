@@ -1,6 +1,14 @@
 import 'dart:convert';
 
 class CreateWorkOrderRequest {
+  final String operatorName;
+  final String operatorId;
+  final String operatorPhoneNumber;
+
+  final String reporterId;
+  final String reporterName;
+  final String reporterPhoneNumber;
+
   final WorkType type;
   final Priority priority;
   final WorkStatus status;
@@ -18,6 +26,12 @@ class CreateWorkOrderRequest {
   final List<MediaFile> mediaFiles;
 
   const CreateWorkOrderRequest({
+    required this.operatorId,
+    required this.operatorName,
+    required this.operatorPhoneNumber,
+    required this.reporterId,
+    required this.reporterName,
+    required this.reporterPhoneNumber,
     required this.type,
     required this.priority,
     required this.status,
@@ -53,6 +67,12 @@ class CreateWorkOrderRequest {
     List<MediaFile>? mediaFiles,
   }) {
     return CreateWorkOrderRequest(
+      operatorId: operatorId ?? this.operatorId,
+      operatorName: operatorName ?? this.operatorName,
+      operatorPhoneNumber: operatorPhoneNumber ?? this.operatorPhoneNumber,
+      reporterId: reporterId ?? this.reporterId,
+      reporterName: reporterName ?? this.reporterName,
+      reporterPhoneNumber: reporterPhoneNumber ?? this.reporterPhoneNumber,
       type: type ?? this.type,
       priority: priority ?? this.priority,
       status: status ?? this.status,
@@ -73,6 +93,12 @@ class CreateWorkOrderRequest {
 
   factory CreateWorkOrderRequest.fromJson(Map<String, dynamic> json) {
     return CreateWorkOrderRequest(
+      operatorId: json['operatorId'] as String,
+      operatorName: json['operatorName'] as String,
+      operatorPhoneNumber: json['operatorPhoneNumber'] as String,
+      reporterId: json['reporterId'] as String,
+      reporterName: json['reporterName'] as String,
+      reporterPhoneNumber: json['reporterPhoneNumber'] as String,
       type: WorkTypeX.fromApi(json['type'] as String?),
       priority: PriorityX.fromApi(json['priority'] as String?),
       status: WorkStatusX.fromApi(json['status'] as String?),

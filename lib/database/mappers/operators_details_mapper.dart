@@ -6,6 +6,7 @@ extension PersonApiToEntityX on OperatosDetails {
   OperatorsDetailsEntity toEntity() => OperatorsDetailsEntity(
         id: id,
         name: name,
+        userPhone: userPhone,
         type: type,
         recordStatus: recordStatus,
         tenantId: tenantId,
@@ -33,6 +34,7 @@ extension PersonEntityToApiX on OperatorsDetailsEntity {
   OperatosDetails toDomain() => OperatosDetails(
         id: id,
         name: name,
+        userPhone: userPhone,
         type: type,
         recordStatus: recordStatus,
         tenantId: tenantId,

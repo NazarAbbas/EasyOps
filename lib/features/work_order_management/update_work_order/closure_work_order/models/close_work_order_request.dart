@@ -1,70 +1,58 @@
 // lib/api/models/cancel_work_order_request.dart
 import 'dart:convert';
-import 'dart:typed_data';
-import 'package:dio/dio.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as p;
 
 class CloseWorkOrderRequest {
-  /// Server expects: { "status": "Cancel", "remark": "...", "comment": "..." }
-  final String status; // usually fixed to "Cancel"
+  /// Typical payload:
+  /// {
+  ///   "status": "Close",
+  ///   "remark": "some note",
+  ///   "comment": "selected reason name or id",
+  ///   "files": ["/path/to/signature.png"] // optional
+  /// }
+  final String status; // e.g., "Close" (default previously was "Cancel")
   final String remark; // required
   final String? comment; // optional
+  final List<String>? files; // optional: file paths to send in JSON
 
   const CloseWorkOrderRequest({
     this.status = 'Cancel',
     required this.remark,
     this.comment,
+    this.files,
   });
 
   Map<String, dynamic> toJson() => {
         'status': status,
         'remark': remark,
         if (comment != null) 'comment': comment,
+        if (files != null && files!.isNotEmpty) 'files': files,
       };
 
-  // ---------- Helpers for multipart ----------
+  /// Convenience: JSON encode the payload if you need a raw string.
+  String toJsonString() => jsonEncode(toJson());
 
-  /// Build the JSON part named "workOrder" with Content-Type: application/json
-  MultipartFile toJsonPart() => MultipartFile.fromString(
-        jsonEncode(toJson()),
-        filename: 'workOrder.json',
-        contentType: MediaType('application', 'json'),
-      );
+  /// Optional helpers if you ever need them:
 
-  /// Build FormData with this JSON part and one/many files (by file paths).
-  FormData toFormDataWithPaths(List<String> filePaths) {
-    final form = FormData();
-    form.files.add(MapEntry('workOrder', toJsonPart()));
-    for (final path in filePaths) {
-      form.files.add(MapEntry(
-        'files',
-        MultipartFile.fromFileSync(
-          path,
-          filename: p.basename(path),
-          // contentType optional; backend usually infers
-        ),
-      ));
-    }
-    return form;
+  CloseWorkOrderRequest copyWith({
+    String? status,
+    String? remark,
+    String? comment,
+    List<String>? files,
+  }) {
+    return CloseWorkOrderRequest(
+      status: status ?? this.status,
+      remark: remark ?? this.remark,
+      comment: comment ?? this.comment,
+      files: files ?? this.files,
+    );
   }
 
-  /// Build FormData with in-memory files (bytes) if you already have them.
-  /// Each tuple: (filename, bytes, optionalMediaType)
-  FormData toFormDataWithBytes(
-      List<({String name, Uint8List bytes, MediaType? type})> files) {
-    final form = FormData();
-    form.files.add(MapEntry('workOrder', toJsonPart()));
-    for (final f in files) {
-      form.files.add(MapEntry(
-        'files',
-        MultipartFile.fromBytes(
-          f.bytes,
-          filename: f.name,
-          contentType: f.type, // can be null
-        ),
-      ));
-    }
-    return form;
+  factory CloseWorkOrderRequest.fromJson(Map<String, dynamic> json) {
+    return CloseWorkOrderRequest(
+      status: json['status'] as String? ?? 'Cancel',
+      remark: json['remark'] as String? ?? '',
+      comment: json['comment'] as String?,
+      files: (json['files'] as List?)?.map((e) => e.toString()).toList(),
+    );
   }
 }

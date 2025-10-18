@@ -10,7 +10,6 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,10 +23,7 @@ class WorkorderInfoController extends GetxController {
   final lookupRepository = Get.find<LookupRepository>();
   final assetRepository = Get.find<AssetRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
-
   final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
-
-  //final WorkOrderConfig cfg = WorkOrderConfig.demo;
 
   // ─────────────────────────────────────────────────────────────────────────
   // UI state: operator footer (editable)
@@ -83,34 +79,19 @@ class WorkorderInfoController extends GetxController {
   void onInit() async {
     super.onInit();
 
+    // load current work order context if present
     final workTabsController = Get.find<WorkTabsController>();
     workOrderInfo = workTabsController.workOrder;
     workOrderStatus = workTabsController.workOrderStatus;
-    if (workOrderInfo != null && workOrderStatus != null) {
-      _bag.merge({
-        WOKeys.issueTypeId:
-            'CLU-24Sep2025120750334005', //workOrderInfo.issueTypeId,
-        WOKeys.impactId: workOrderInfo?.impactId,
-        WOKeys.assetsId: workOrderInfo?.asset.id,
-        WOKeys.issueType: issueType.value,
-        WOKeys.impact: impact.value,
-        WOKeys.assetsNumber: assetsCtrl.text.trim(),
-        WOKeys.problemDescription: problemCtrl.text.trim(),
-        WOKeys.typeText: typeText.value,
-        WOKeys.descriptionText: descriptionText.value,
-        WOKeys.photos: photos.toList(),
-        WOKeys.voiceNotePath: voiceNotePath.value,
-        WOKeys.operatorName: operatorName.value,
-        WOKeys.operatorMobileNumber: operatorMobileNumber.value,
-        WOKeys.operatorInfo: operatorInfo.value,
-        //WOKeys.asset: assetsCtrl.text.trim(),
-      });
 
-      //operatorInfo.value = '-'.obs;
-    }
-
+    // Initialize UI state & async data
     _initDefaults();
-    _initAsync();
+    await _initAsync(); // ensure lookups/assets are available before reactions
+
+    // Keep label Rx in sync with selected IDs
+    _setupReactions();
+
+    // Asset text field listener → auto-apply meta when serial matches
     _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
   }
@@ -127,22 +108,40 @@ class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // Init helpers
   // ─────────────────────────────────────────────────────────────────────────
-  void _initDefaults() async {
-    // operatorName.value = 'Ajay Kumar (MP18292)';
-    // operatorMobileNumber.value = '9876543211';
-    // operatorInfo.value = 'Assets Shop | 12:20 | 03 Sept | A';
+  void _setupReactions() {
+    ever<String>(selectedIssueTypeId, (_) {
+      issueType.value = _labelFor(issueTypeOptions, selectedIssueTypeId.value);
+    });
+    ever<String>(selectedImpactId, (_) {
+      impact.value = _labelFor(impactOptions, selectedImpactId.value);
+    });
+  }
 
+  void _initDefaults() async {
     final prefs = await SharedPreferences.getInstance();
-    final loginPerson = prefs.getString(Constant.loginPersonId); // String?
-    final details =
-        await loginPersonDetailsRepository.getPersonById(loginPerson!);
-    operatorName.value = '${details!.name}(${details.id})';
-    operatorMobileNumber.value = details.contacts[0].phone!;
-    // ignore: prefer_interpolation_to_compose_strings
-    final dt = DateTime.parse('2025-10-13T05:34:36.926277Z'); // UTC
-    final s = formatTimeDateLocal(dt); // => "11:04 | 13 oct" in Asia/Kolkata
-    operatorInfo.value =
-        '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+    final loginPerson = prefs.getString(Constant.loginPersonId);
+
+    if (loginPerson != null) {
+      final details = await loginPersonDetailsRepository.getPersonById(
+        loginPerson,
+      );
+      if (details != null) {
+        operatorName.value = '${details.name}(${details.id})';
+        if (details.contacts.isNotEmpty &&
+            details.contacts.first.phone != null) {
+          operatorMobileNumber.value = details.contacts.first.phone!;
+        }
+
+        final dt = (details.updatedAt ?? DateTime.now()).toUtc();
+        final s = formatTimeDateLocal(dt);
+
+        if (details.assets.isNotEmpty) {
+          operatorInfo.value =
+              '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+        }
+      }
+    }
+
     typeText.value = '—';
     descriptionText.value = '—';
 
@@ -154,18 +153,31 @@ class WorkorderInfoController extends GetxController {
   /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
   String formatTimeDateLocal(DateTime dt) {
     final d = dt.isUtc ? dt.toLocal() : dt; // convert if it's UTC (ends with Z)
-    final time = DateFormat('HH:mm').format(d); // 24h: 02:30
-    final day = DateFormat('dd').format(d); // 02
-    final mon = DateFormat('MMM').format(d).toLowerCase(); // oct
+    final time = DateFormat('HH:mm').format(d); // 24h
+    final day = DateFormat('dd').format(d);
+    final mon = DateFormat('MMM').format(d).toLowerCase();
     return '$time | $day $mon';
   }
 
   Future<void> _initAsync() async {
     await _loadLookups();
     await _loadAssets();
-
     _rebuildAssetSerialIndex();
     _hydrateFromBag();
+
+    // optional: prefill from currently selected work order
+    if (workOrderInfo != null) {
+      if ((workOrderInfo!.issueTypeId ?? '').isNotEmpty) {
+        selectedIssueTypeId.value = workOrderInfo!.issueTypeId!;
+      }
+      if ((workOrderInfo!.impactId ?? '').isNotEmpty) {
+        selectedImpactId.value = workOrderInfo!.impactId!;
+      }
+      if ((workOrderInfo!.asset.id ?? '').isNotEmpty) {
+        assetsId.value = workOrderInfo!.asset.id!;
+      }
+      _syncLabelsFromSelection(); // ensure labels mirror ids
+    }
   }
 
   Future<void> _loadLookups() async {
@@ -184,7 +196,6 @@ class WorkorderInfoController extends GetxController {
   }
 
   Future<void> _loadAssets() async {
-    final assetsId = 'AST-24Sep2025130416546006';
     // pulls once; if you want reactive, expose a stream in repository
     final list = await assetRepository.getAllAssets();
     _storeAssets
@@ -212,65 +223,88 @@ class WorkorderInfoController extends GetxController {
   // Bag hydration & saving
   // ─────────────────────────────────────────────────────────────────────────
   void _hydrateFromBag() {
-    // preferred ids
-    final bagIssueTypeId = _bag.get<String>('issueTypeId', '');
-    final bagImpactId = _bag.get<String>('impactId', '');
+    // preferred ids (MUST use same keys as saveToBag)
+    final bagIssueTypeId = _bag.get<String>(WOKeys.issueTypeId, '');
+    final bagImpactId = _bag.get<String>(WOKeys.impactId, '');
 
     if (bagIssueTypeId.isNotEmpty) selectedIssueTypeId.value = bagIssueTypeId;
     if (bagImpactId.isNotEmpty) selectedImpactId.value = bagImpactId;
 
     // legacy labels
-    final issueTypeLabel = _bag.get<String>('issueType', issueType.value);
-    final impactLabel = _bag.get<String>('impact', impact.value);
+    final issueTypeLabel = _bag.get<String>(WOKeys.issueType, issueType.value);
+    final impactLabel = _bag.get<String>(WOKeys.impact, impact.value);
 
-    // try label->id when id missing
+    // try label->id when id missing (for old bag entries)
     _maybeFixSelectedIdFromLabel(
       selectedIssueTypeId,
       issueTypeOptions,
       issueTypeLabel,
     );
-    _maybeFixSelectedIdFromLabel(
-      selectedImpactId,
-      impactOptions,
-      impactLabel,
-    );
+    _maybeFixSelectedIdFromLabel(selectedImpactId, impactOptions, impactLabel);
 
-    // keep legacy
+    // keep legacy mirrors
     issueType.value = issueTypeLabel;
     impact.value = impactLabel;
 
-    // other fields
+    // other fields (use constants)
     assetsCtrl.text = _bag.get<String>(WOKeys.assetsNumber, assetsCtrl.text);
-    problemCtrl.text =
-        _bag.get<String>(WOKeys.problemDescription, problemCtrl.text);
+    problemCtrl.text = _bag.get<String>(
+      WOKeys.problemDescription,
+      problemCtrl.text,
+    );
 
     typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
-    descriptionText.value =
-        _bag.get<String>(WOKeys.descriptionText, descriptionText.value);
+    descriptionText.value = _bag.get<String>(
+      WOKeys.descriptionText,
+      descriptionText.value,
+    );
 
     final ph = _bag.get<List?>(WOKeys.photos, const []) ?? const [];
     photos.assignAll(ph.map((e) => e.toString()));
-    voiceNotePath.value =
-        _bag.get<String>(WOKeys.voiceNotePath, voiceNotePath.value);
 
-    operatorName.value =
-        _bag.get<String>(WOKeys.operatorName, operatorName.value);
-    operatorMobileNumber.value = _bag.get<String>(
-        WOKeys.operatorMobileNumber, operatorMobileNumber.value);
-    operatorInfo.value =
-        _bag.get<String>(WOKeys.operatorInfo, operatorInfo.value);
+    voiceNotePath.value = _bag.get<String>(
+      WOKeys.voiceNotePath,
+      voiceNotePath.value,
+    );
+
+    operatorName.value = _bag.get<String>(
+      WOKeys.operatorName,
+      operatorName.value,
+    );
 
     // bind asset-derived fields if serial present
     _applyMetaIfSerialMatch(assetsCtrl.text);
+
+    // ensure labels reflect selected IDs *now*
+    _syncLabelsFromSelection();
+  }
+
+  String _labelFor(List<LookupValues> options, String id) {
+    if (id.isEmpty) return '';
+    final hit = _firstWhereOrNull<LookupValues>(options, (e) => e.id == id);
+    return hit?.displayName ?? '';
+  }
+
+  void _syncLabelsFromSelection() {
+    issueType.value = _labelFor(issueTypeOptions, selectedIssueTypeId.value);
+    impact.value = _labelFor(impactOptions, selectedImpactId.value);
   }
 
   void saveToBag() {
+    final issueTypeLabel =
+        _labelFor(issueTypeOptions, selectedIssueTypeId.value);
+    final impactLabel = _labelFor(impactOptions, selectedImpactId.value);
+
+    // keep the reactive mirrors in sync (useful for UI)
+    issueType.value = issueTypeLabel;
+    impact.value = impactLabel;
+
     _bag.merge({
       WOKeys.issueTypeId: selectedIssueTypeId.value,
       WOKeys.impactId: selectedImpactId.value,
       WOKeys.assetsId: assetsId.value,
-      WOKeys.issueType: issueType.value,
-      WOKeys.impact: impact.value,
+      WOKeys.issueType: issueTypeLabel, // label
+      WOKeys.impact: impactLabel, // label
       WOKeys.assetsNumber: assetsCtrl.text.trim(),
       WOKeys.problemDescription: problemCtrl.text.trim(),
       WOKeys.typeText: typeText.value,
@@ -278,9 +312,6 @@ class WorkorderInfoController extends GetxController {
       WOKeys.photos: photos.toList(),
       WOKeys.voiceNotePath: voiceNotePath.value,
       WOKeys.operatorName: operatorName.value,
-      WOKeys.operatorMobileNumber: operatorMobileNumber.value,
-      WOKeys.operatorInfo: operatorInfo.value,
-      //WOKeys.asset: assetsCtrl.text.trim(),
     });
   }
 
@@ -423,29 +454,3 @@ class WorkorderInfoController extends GetxController {
     if (picked != null) _applyAssetFromItem(picked);
   }
 }
-
-/* ------------------------------ DUMMY CONFIG (for initial text only) ------------------------------ */
-
-// class WorkOrderConfig {
-//   final String operatorName;
-//   final String operatorMobileNumber;
-//   final String operatorInfo;
-//   final String typeText;
-//   final String descriptionText;
-
-//   const WorkOrderConfig({
-//     required this.operatorName,
-//     required this.operatorMobileNumber,
-//     required this.operatorInfo,
-//     required this.typeText,
-//     required this.descriptionText,
-//   });
-
-//   static const demo = WorkOrderConfig(
-//     operatorName: 'Ajay Kumar (MP18292)',
-//     operatorMobileNumber: '9876543211',
-//     operatorInfo: 'Assets Shop | 12:20 | 03 Sept | A',
-//     typeText: '—',
-//     descriptionText: '—',
-//   );
-//}

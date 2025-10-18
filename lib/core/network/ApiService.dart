@@ -11,6 +11,8 @@ import 'package:easy_ops/features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/login/models/operators_details.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_request.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/api_factory.dart';
@@ -55,7 +57,46 @@ class ApiService {
     required String workOrderId,
   }) async {
     try {
-      return await _api.cancelWorkOrder(workOrderId, cancelWorkOrderRequest);
+      final jsonString = jsonEncode(cancelWorkOrderRequest.toJson());
+      final workOrderPart = MultipartFile.fromString(
+        jsonString,
+        contentType: MediaType('application', 'json'),
+        filename: 'workOrder.json', // helps some servers
+      );
+      // 3️⃣ Build the FormData (mimics the cURL structure)
+      final formData = FormData();
+      formData.files.add(MapEntry('workOrder', workOrderPart));
+      //formData.files.addAll(fileEntries);
+
+      // 4️⃣ Call Retrofit client (Dio runs internally — no manual post())
+      return _api.cancelWorkOrder(workOrderId, formData);
+
+      // return await _api.cancelWorkOrder(workOrderId, cancelWorkOrderRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<ReopenWorkOrderResponse> reOpenWorkOrder({
+    required ReOpenWorkOrderRequest reOpenWorkOrderRequest,
+    required String workOrderId,
+  }) async {
+    try {
+      final jsonString = jsonEncode(reOpenWorkOrderRequest.toJson());
+      final workOrderPart = MultipartFile.fromString(
+        jsonString,
+        contentType: MediaType('application', 'json'),
+        filename: 'workOrder.json', // helps some servers
+      );
+      // 3️⃣ Build the FormData (mimics the cURL structure)
+      final formData = FormData();
+      formData.files.add(MapEntry('workOrder', workOrderPart));
+      //formData.files.addAll(fileEntries);
+
+      // 4️⃣ Call Retrofit client (Dio runs internally — no manual post())
+      return _api.reOpenWorkOrder(workOrderId, formData);
+
+      // return await _api.cancelWorkOrder(workOrderId, cancelWorkOrderRequest);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }
@@ -154,38 +195,54 @@ class ApiService {
   }
 
   Future<CloseWorkOrderResponse> closeWorkOrder(
-      CloseWorkOrderRequest req, String workOrderId) async {
+    CloseWorkOrderRequest req,
+    String workOrderId,
+  ) async {
     try {
-      // 1️⃣ Encode the workOrder JSON and wrap it as a JSON multipart part
+      // 1) JSON part named "workOrder"
       final jsonString = jsonEncode(req.toJson());
       final workOrderPart = MultipartFile.fromString(
         jsonString,
         contentType: MediaType('application', 'json'),
-        filename: 'workOrder.json', // helps some servers
+        filename: 'workOrder.json',
       );
 
-      // 2️⃣ Collect file parts
+      // 2) Collect file parts from path strings in req.files
       final fileEntries = <MapEntry<String, MultipartFile>>[];
-      // for (final media in req.mediaFiles) {
-      //   final file = File(media.filePath);
-      //   if (await file.exists()) {
-      //     final fileName = file.path.split('/').last;
-      //     fileEntries.add(
-      //       MapEntry(
-      //         'files', // matches your curl's `--form 'files=@...'`
-      //         await MultipartFile.fromFile(file.path, filename: fileName),
-      //       ),
-      //     );
-      //   }
-      // }
 
-      // 3️⃣ Build the FormData (mimics the cURL structure)
+      final paths = (req.files ?? const <String>[])
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
+      for (final path in paths) {
+        final file = File(path);
+        if (await file.exists()) {
+          // Use a filename without needing the path pkg
+          final fileName = file.path.split(Platform.pathSeparator).last;
+
+          fileEntries.add(
+            MapEntry(
+              'files', // must match backend field name
+              await MultipartFile.fromFile(
+                file.path,
+                filename: fileName,
+                // contentType: MediaType('image', 'png'), // optional
+              ),
+            ),
+          );
+        }
+      }
+
+      // 3) Build FormData like the curl structure
       final formData = FormData();
       formData.files.add(MapEntry('workOrder', workOrderPart));
-      formData.files.addAll(fileEntries);
+      if (fileEntries.isNotEmpty) {
+        formData.files.addAll(fileEntries);
+      }
 
-      // 4️⃣ Call Retrofit client (Dio runs internally — no manual post())
-      return _api.closeWorkOrder(workOrderId, formData);
+      // 4) Call Retrofit client
+      return await _api.closeWorkOrder(workOrderId, formData);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

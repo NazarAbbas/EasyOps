@@ -65,9 +65,9 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                             rows: [
                               _KV(
                                 label: 'Reported By :',
-                                value: controller.reportedBy.value.isEmpty
+                                value: controller.reportedName.value.isEmpty
                                     ? '—'
-                                    : controller.reportedBy.value,
+                                    : controller.reportedName.value,
                               ),
                             ],
                           ),

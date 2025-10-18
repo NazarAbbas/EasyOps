@@ -141,7 +141,16 @@ class PageMeta {
 }
 
 /// LookupType enum with robust parsing
-enum LookupType { department, plant, issuetype, impact, suggestion, unknown }
+enum LookupType {
+  department,
+  plant,
+  issuetype,
+  impact,
+  suggestion,
+  resolution,
+  cancellation,
+  unknown
+}
 
 extension LookupTypeX on LookupType {
   static LookupType fromString(String? v) {
@@ -156,6 +165,10 @@ extension LookupTypeX on LookupType {
         return LookupType.impact;
       case 'SUGGESTION':
         return LookupType.suggestion;
+      case 'RESOLUTIONTYPE':
+        return LookupType.resolution;
+      case 'CANCELLATION':
+        return LookupType.cancellation;
       default:
         return LookupType.unknown;
     }

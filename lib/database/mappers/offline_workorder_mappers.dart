@@ -8,6 +8,12 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 extension OfflineWorkOrderEntityX on OfflineWorkOrderEntity {
   OfflineWorkOrder toDomain() => OfflineWorkOrder(
         id: id,
+        operatorId: operatorId,
+        operatorName: operatorName,
+        operatorPhoneNumber: operatorPhoneNumber,
+        reporterId: reporterId,
+        reporterName: reporterName,
+        reporterPhoneNumber: reporterPhoneNumber,
         type: type,
         priority: priority,
         status: status,
@@ -34,6 +40,12 @@ extension OfflineWorkOrderEntityX on OfflineWorkOrderEntity {
 extension OfflineWorkOrderDomainX on OfflineWorkOrder {
   OfflineWorkOrderEntity toEntity() => OfflineWorkOrderEntity(
         id: id,
+        operatorId: operatorId,
+        operatorName: operatorName,
+        operatorPhoneNumber: operatorPhoneNumber,
+        reporterId: reporterId,
+        reporterName: reporterName,
+        reporterPhoneNumber: reporterPhoneNumber,
         type: type,
         priority: priority,
         status: status,
@@ -60,6 +72,13 @@ extension OfflineWorkOrderDomainX on OfflineWorkOrder {
 extension OfflineWorkOrderApiMapper on OfflineWorkOrder {
   CreateWorkOrderRequest toApiRequest() {
     return CreateWorkOrderRequest(
+      operatorId: operatorId,
+      operatorName: operatorName,
+      operatorPhoneNumber: operatorPhoneNumber,
+      reporterId: reporterId,
+      reporterName: reporterName,
+      reporterPhoneNumber: reporterPhoneNumber,
+
       type: WorkType.values.byName(type),
       priority: PriorityX.fromApi(priority),
       status: WorkStatus.values.byName(status),

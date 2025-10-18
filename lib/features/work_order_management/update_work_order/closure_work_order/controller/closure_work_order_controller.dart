@@ -1,36 +1,40 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
+import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/domain/close_repository_impl.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
+import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:signature/signature.dart';
 
+enum SnackType { success, error, warning, info }
+
 class ClosureWorkOrderController extends GetxController {
-  CloseRepositoryImpl closeRepositoryImpl = CloseRepositoryImpl();
+  final CloseRepositoryImpl closeRepositoryImpl = CloseRepositoryImpl();
+  final LookupRepository lookupRepository = Get.find<LookupRepository>();
+
+  final RxList<LookupValues> cancelOrderReason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedCancelOrderReason = Rxn<LookupValues>();
+  bool _isPlaceholder(LookupValues? v) =>
+      v == null || (v.id.isEmpty && v.displayName == 'Select reason');
+
+  WorkOrder? workOrderInfo;
 
   final pageTitle = 'Closure'.obs;
 
-  final issueTitle = 'Tool misalignment and spindle speed issues in Bay 3.'.obs;
-  final priority = 'High'.obs;
-  final statusText = 'In Progress'.obs;
-  final duration = '1h 20m'.obs;
+  final issueTitle = ''.obs;
+  final priority = ''.obs;
+  final statusText = ''.obs;
+  final duration = ''.obs;
 
   final workOrderId = 'BD-102'.obs;
-  final time = '18:08'.obs;
-  final date = '09 Aug'.obs;
-  final category = 'Mechanical'.obs;
-
-  final resolutionTypes = const [
-    'Belt Problem',
-    'Electrical Fix',
-    'Realignment',
-    'Other',
-  ];
-  final selectedResolution = 'Belt Problem'.obs;
+  final time = ''.obs;
+  final category = ''.obs;
   final noteCtrl = TextEditingController();
 
   late final SignatureController signatureCtrl;
@@ -49,12 +53,45 @@ class ClosureWorkOrderController extends GetxController {
 
   final isSubmitting = false.obs;
 
+  String _formatDate(DateTime dt) {
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final day = dt.day.toString().padLeft(2, '0');
+    final month = months[dt.month - 1];
+
+    return '$hh:$mm | $day $month';
+  }
+
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
 
     final workTabsController = Get.find<UpdateWorkTabsController>();
-    final workOrderInfo = workTabsController.workOrder;
+    workOrderInfo = workTabsController.workOrder;
+
+    if (workOrderInfo != null) {
+      issueTitle.value = workOrderInfo!.title;
+      category.value = workOrderInfo!.departmentName;
+      time.value = _formatDate(workOrderInfo!.createdAt);
+      priority.value = workOrderInfo!.priority;
+      duration.value = workOrderInfo!.timeLeft;
+      statusText.value = workOrderInfo!.status;
+    }
 
     signatureCtrl = SignatureController(
       penColor: const Color(0xFF111827),
@@ -62,13 +99,25 @@ class ClosureWorkOrderController extends GetxController {
       exportBackgroundColor: Colors.transparent,
       onDrawEnd: () => hasSignature.value = true,
     );
-  }
 
-  @override
-  void onClose() {
-    noteCtrl.dispose();
-    signatureCtrl.dispose();
-    super.onClose();
+    final list = await lookupRepository.getLookupByType(LookupType.resolution);
+
+    // Placeholder + server list
+    final placeholder = LookupValues(
+      id: '',
+      code: '',
+      displayName: 'Select reason',
+      description: '',
+      lookupType: LookupType.department,
+      sortOrder: -1,
+      recordStatus: 1,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      tenantId: '',
+      clientId: '',
+    );
+
+    cancelOrderReason.assignAll([placeholder, ...list]);
+    selectedCancelOrderReason.value = placeholder;
   }
 
   void clearSignature() {
@@ -83,58 +132,128 @@ class ClosureWorkOrderController extends GetxController {
   }
 
   Future<void> closeWorkOrder() async {
-    if (!hasSignature.value || signatureCtrl.isEmpty) {
-      Get.snackbar(
-        'Signature required',
-        'Please add your signature to proceed.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    if (_isPlaceholder(selectedCancelOrderReason.value)) {
+      _snack('Reason required',
+          'Please select a reason to close this work order.', SnackType.error);
       return;
     }
 
+    final woId = workOrderInfo?.id ?? '';
+    if (woId.isEmpty) {
+      _snack('Missing ID', 'Work order ID not found.', SnackType.error);
+      return;
+    }
+
+    if (!hasSignature.value || signatureCtrl.isEmpty) {
+      _snack('Signature required', 'Please add your signature to proceed.',
+          SnackType.warning);
+      return;
+    }
+
+    // Export signature → bytes
     final bytes = await signatureCtrl.toPngBytes();
     if (bytes == null || bytes.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Could not export signature.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _snack('Error', 'Could not export signature.', SnackType.error);
       return;
     }
 
+    // Save bytes → file and keep the path
     final path = await _saveBytes(bytes);
-    savedSignaturePath.value = path ?? '';
+    if (path == null || path.isEmpty) {
+      _snack('Error', 'Could not save signature image.', SnackType.error);
+      return;
+    }
+    savedSignaturePath.value = path;
 
-    isSubmitting.value = true;
-    await Future.delayed(const Duration(seconds: 2));
-    isSubmitting.value = false;
+    try {
+      isSubmitting.value = true;
 
-    // If the controller already exists (you’re still in the app shell),
-    // set the tab immediately so PageView updates.
-    // if (Get.isRegistered<LandingRootNavController>()) {
-    //   Get.find<LandingRootNavController>().select(3, animate: false);
-    // }
+      // Validate/prepare the signature path for the JSON body
+      final sigPath = savedSignaturePath.value.trim();
+      final files = (sigPath.isNotEmpty && File(sigPath).existsSync())
+          ? <String>[sigPath]
+          : null;
 
-    // // Also pass the target tab as a route argument so it works even if the shell is rebuilt.
-    // Get.offAllNamed(Routes.landingDashboardScreen, arguments: 3);
+      // Build JSON request (include files only when valid)
+      final sel = selectedCancelOrderReason.value!;
+      final req = CloseWorkOrderRequest(
+        status: 'Close',
+        remark: noteCtrl.text.trim(),
+        comment: sel.displayName, // or sel.id / sel.code per your API
+        files: files, // <-- signature image path goes here
+      );
 
-    Get.offAllNamed(
-      Routes.landingDashboardScreen,
-      arguments: {'tab': 3}, // open Work Orders
-    );
+      // Send plain JSON (NO multipart)
+      final result = await closeRepositoryImpl.closeOrder(
+        closeWorkOrderId: woId,
+        closeWorkOrderRequest: req,
+      );
+
+      if (result.httpCode == 200 && result.data != null) {
+        _snack('Closed', 'Work order closed successfully.', SnackType.success);
+        Get.offAllNamed(
+          Routes.landingDashboardScreen,
+          arguments: {'tab': 3}, // Work Orders tab
+        );
+      } else {
+        _snack(
+          'Close failed',
+          (result.message?.trim().isNotEmpty ?? false)
+              ? result.message!
+              : 'Unexpected response (code ${result.httpCode}).',
+          SnackType.warning,
+        );
+      }
+    } catch (e) {
+      _snack('Error', e.toString(), SnackType.error);
+    } finally {
+      isSubmitting.value = false;
+    }
   }
 
   Future<String?> _saveBytes(Uint8List data) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File(
-        '${dir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png',
-      );
+          '${dir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png');
       await file.writeAsBytes(data, flush: true);
       return file.path;
     } catch (_) {
       return null;
     }
+  }
+
+  // ---------- Single Snackbar Helper ----------
+  void _snack(String title, String message, SnackType type) {
+    Color bg;
+    Color fg = Colors.black87;
+
+    switch (type) {
+      case SnackType.success:
+        bg = Colors.green.shade100;
+        break;
+      case SnackType.error:
+        bg = Colors.red.shade100;
+        break;
+      case SnackType.warning:
+        bg = Colors.orange.shade100;
+        break;
+      case SnackType.info:
+      default:
+        bg = Colors.blue.shade100;
+        break;
+    }
+
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: bg,
+      colorText: fg,
+      margin: const EdgeInsets.all(12),
+      borderRadius: 12,
+      duration: const Duration(seconds: 3),
+    );
   }
 }
 

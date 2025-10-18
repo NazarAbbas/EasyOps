@@ -3,6 +3,14 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 class OfflineWorkOrder {
   final int? id;
 
+  final String operatorName;
+  final String operatorId;
+  final String operatorPhoneNumber;
+
+  final String reporterId;
+  final String reporterName;
+  final String reporterPhoneNumber;
+
   final String type;
   final String priority;
   final String status;
@@ -28,6 +36,12 @@ class OfflineWorkOrder {
 
   OfflineWorkOrder({
     this.id,
+    required this.operatorId,
+    required this.operatorName,
+    required this.operatorPhoneNumber,
+    required this.reporterId,
+    required this.reporterName,
+    required this.reporterPhoneNumber,
     required this.type,
     required this.priority,
     required this.status,

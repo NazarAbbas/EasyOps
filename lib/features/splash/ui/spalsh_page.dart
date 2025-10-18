@@ -42,7 +42,7 @@ class SplashPage extends StatelessWidget {
               ),
               SizedBox(width: spacing),
               Text(
-                "EasyOps",
+                "EazyOps",
                 style: TextStyle(
                   fontFamily: 'inter',
                   fontSize: fontSize,

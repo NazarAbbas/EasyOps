@@ -487,7 +487,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
           onHighlightChanged: (v) => setState(() => _pressed = v),
           onTap: () {
             final s = (order.status).toUpperCase();
-            // if (s == 'RESOLVED') {
+            //if (s == 'RESOLVED') {
             if (s == 'OPEN') {
               Get.toNamed(
                 Routes.updateWorkOrderTabScreen,
@@ -650,7 +650,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      order.asset.id,
+                                      order.asset.name,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: textSecondary,

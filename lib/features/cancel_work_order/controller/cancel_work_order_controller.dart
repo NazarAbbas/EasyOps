@@ -1,23 +1,21 @@
-// cancel_work_order_page.dart
-// deps: get: ^4.x
-
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/features/cancel_work_order/domain/cancel_repository_impl.dart'
     show CancelRepositoryImpl;
 import 'package:easy_ops/features/cancel_work_order/domain/cancel_work_order_request.dart';
-import 'package:easy_ops/features/cancel_work_order/models/cancel_work_order_response.dart';
+import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/* ───────── Model (optional) ───────── */
+/* ───────── Optional: sample model ───────── */
 class AssetSummary {
   final String code;
   final String make;
   final String description;
-  final String status; // e.g., Working
-  final String criticality; // e.g., Critical
+  final String status;
+  final String criticality;
   AssetSummary({
     required this.code,
     required this.make,
@@ -29,48 +27,109 @@ class AssetSummary {
 
 /* ───────── Controller ───────── */
 class CancelWorkOrderController extends GetxController {
+  final issueTitle = ''.obs;
+  final priority = ''.obs;
+  final statusText = ''.obs;
+  final duration = ''.obs;
+
+  final workOrderId = 'BD-102'.obs;
+  final time = ''.obs;
+  final category = ''.obs;
+
+  final LookupRepository lookupRepository = Get.find<LookupRepository>();
   final CancelRepositoryImpl cancelRepositoryImpl = CancelRepositoryImpl();
-  // Example asset (wire your real data)
-  final asset = AssetSummary(
-    code: 'CNC-1',
-    make: 'Siemens',
-    description: 'CNC Vertical Assets Center where we make housing',
-    status: 'Working',
-    criticality: 'Critical',
-  ).obs;
 
-  final reasons = <String>[
-    'Customer request',
-    'Duplicate work order',
-    'Wrong asset selected',
-    'Planned shutdown',
-    'Other',
-  ];
+  // Reasons (typed) + selected reason
+  final RxList<LookupValues> cancelOrderReason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedCancelOrderReason = Rxn<LookupValues>();
 
-  final selectedReason = RxnString();
   final remarksCtrl = TextEditingController();
   final isSubmitting = false.obs;
 
   WorkOrder? workOrderInfo;
 
+  // // Optional sample asset
+  // final asset = AssetSummary(
+  //   code: 'CNC-1',
+  //   make: 'Siemens',
+  //   description: 'CNC Vertical Assets Center where we make housing',
+  //   status: 'Working',
+  //   criticality: 'Critical',
+  // ).obs;
+
+  String _formatDate(DateTime dt) {
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final day = dt.day.toString().padLeft(2, '0');
+    final month = months[dt.month - 1];
+
+    return '$hh:$mm | $day $month';
+  }
+
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
     final workTabsController = Get.find<WorkTabsController>();
     workOrderInfo = workTabsController.workOrder;
-    final workOrderStatus = workTabsController.workOrderStatus;
+    issueTitle.value = workOrderInfo!.title;
+    category.value = workOrderInfo!.departmentName;
+    time.value = _formatDate(workOrderInfo!.createdAt); // as String;
+    priority.value = workOrderInfo!.priority;
+    duration.value = workOrderInfo!.timeLeft;
+    statusText.value = workOrderInfo!.status;
+
+    final list = await lookupRepository.getLookupByType(LookupType.resolution);
+
+    // Placeholder + server list
+    final placeholder = LookupValues(
+      id: '',
+      code: '',
+      displayName: 'Select reason',
+      description: '',
+      lookupType: LookupType.department, // keep as-is if your model requires
+      sortOrder: -1,
+      recordStatus: 1,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      tenantId: '',
+      clientId: '',
+    );
+
+    cancelOrderReason.assignAll([placeholder, ...list]);
+    selectedCancelOrderReason.value = placeholder;
   }
 
+  // @override
+  // void onClose() {
+  //   remarksCtrl.dispose();
+  //   super.onClose();
+  // }
+
   void discard() {
-    // Clear inputs or simply pop
-    selectedReason.value = null;
+    // selectedReason.value = null;
     remarksCtrl.clear();
     Get.back();
   }
 
+  bool _isPlaceholder(LookupValues? v) =>
+      v == null || (v.id.isEmpty && v.displayName == 'Select reason');
+
   Future<void> cancelWorkOrder() async {
-    final reason = selectedReason.value;
-    if (reason == null || reason.isEmpty) {
+    if (_isPlaceholder(selectedCancelOrderReason.value)) {
       Get.snackbar(
         'Reason required',
         'Please select a reason to cancel this work order.',
@@ -79,62 +138,74 @@ class CancelWorkOrderController extends GetxController {
         colorText: Colors.white,
         margin: const EdgeInsets.all(12),
       );
-    } else {
-      try {
-        isSubmitting.value = true;
-        await Future.delayed(const Duration(seconds: 2)); // mock API delay
-        CancelWorkOrderRequest cancelWorkOrderRequest = CancelWorkOrderRequest(
-            status: "Cancel", remark: "remark", comment: "comment");
-        final result = cancelRepositoryImpl.cancelOrder(
-            cancelWorkOrderId: workOrderInfo!.id,
-            cancelWorkOrderRequest: cancelWorkOrderRequest);
-
-        // if (result. && result.da != null) {
-        //   Get.snackbar(
-        //     'Cancelled',
-        //     'Work order cancelled successfully.',
-        //     snackPosition: SnackPosition.BOTTOM,
-        //     backgroundColor: Colors.green.shade100,
-        //     colorText: Colors.black87,
-        //     margin: const EdgeInsets.all(12),
-        //   );
-        //   Get.offAllNamed(
-        //     Routes.landingDashboardScreen,
-        //     arguments: {'tab': 3}, // open Work Orders
-        //   );
-        // }
-      } finally {
-        isSubmitting.value = false;
-      }
+      return;
     }
 
-    // isSubmitting.value = true;
-    // try {
-    //   await Future.delayed(const Duration(milliseconds: 900));
-    //   //Get.toNamed(Routes.workOrderScreen);
-    //   Get.offAllNamed(
-    //     Routes.landingDashboardScreen,
-    //     arguments: {'tab': 3}, // open Work Orders
-    //   );
-    //   Get.snackbar(
-    //     'Cancelled',
-    //     'Work order cancelled successfully.',
-    //     snackPosition: SnackPosition.BOTTOM,
-    //     backgroundColor: Colors.green.shade100,
-    //     colorText: Colors.black87,
-    //     margin: const EdgeInsets.all(12),
-    //   );
-    // } catch (e) {
-    //   Get.snackbar(
-    //     'Error',
-    //     'Failed to cancel work order. Please try again.',
-    //     snackPosition: SnackPosition.BOTTOM,
-    //     backgroundColor: Colors.red.shade100,
-    //     colorText: Colors.black87,
-    //     margin: const EdgeInsets.all(12),
-    //   );
-    // } finally {
-    //   isSubmitting.value = false;
-    // }
+    final woId = workOrderInfo?.id ?? '';
+    if (woId.isEmpty) {
+      Get.snackbar(
+        'Missing ID',
+        'Work order ID not found.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.black87,
+        margin: const EdgeInsets.all(12),
+      );
+      return;
+    }
+
+    try {
+      isSubmitting.value = true;
+
+      // Build request (map the reason as needed: id/code/displayName)
+      final sel = selectedCancelOrderReason.value!;
+      final req = CancelWorkOrderRequest(
+        status: 'Cancel',
+        remark: remarksCtrl.text.trim(),
+        comment: sel.displayName, // or sel.id / sel.code per API contract
+      );
+
+      final result = await cancelRepositoryImpl.cancelOrder(
+        cancelWorkOrderId: woId,
+        cancelWorkOrderRequest: req,
+      );
+
+      if (result.httpCode == 200 && result.data != null) {
+        Get.snackbar(
+          'Cancelled',
+          'Work order cancelled successfully.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+        Get.offAllNamed(
+          Routes.landingDashboardScreen,
+          arguments: {'tab': 3},
+        );
+      } else {
+        Get.snackbar(
+          'Cancel failed',
+          (result.message?.trim().isNotEmpty ?? false)
+              ? result.message!
+              : 'Unexpected response (code ${result.httpCode}).',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.black87,
+        margin: const EdgeInsets.all(12),
+      );
+    } finally {
+      isSubmitting.value = false;
+    }
   }
 }

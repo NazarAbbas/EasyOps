@@ -1,8 +1,8 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
-
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
+import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/offline_work_order_repository.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/domain/create_work_order_repository_impl.dart'
     show CreateWorkOrderRepositoryImpl;
@@ -12,52 +12,116 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class WorkOrderDetailsController extends GetxController {
+  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
   final CreateWorkOrderRepositoryImpl repositoryImpl =
       CreateWorkOrderRepositoryImpl();
 
-  final line = ''.obs;
-  final cnc_1 = ''.obs;
-
+  // Header / UI labels
   final title = 'Work Order Details'.obs;
   final successTitle = 'Work Order Created\nSuccessfully'.obs;
   final successSub = 'Work Order ID - BD265'.obs;
 
+  // Misc shown on UI
+  final line = ''.obs; // e.g., "Line-1"
+  final cnc_1 = ''.obs; // e.g., "CNC-1 (AST-123)"
+
+  // People
   final operatorName = ''.obs;
-  final operatorInfo = ''.obs;
+  final operatorInfo = ''.obs; // optional remark area if needed
   final operatorPhoneNumber = ''.obs;
-  final reportedBy = ''.obs;
+  final reportedName = ''.obs;
 
+  // Details
   final descriptionText = ''.obs;
-  final priority = ''.obs;
-  final issueType = ''.obs;
-
-  final time = ''.obs;
-  final date = ''.obs;
-
-  final location = ''.obs;
-  //final headline = ''.obs;
+  final priority = ''.obs; // raw priority text (API → PriorityX.fromApi)
+  final issueType = ''.obs; // display name for title fallback
   final problemDescription = ''.obs;
 
+  // When/Where
+  final time = ''.obs; // "HH:mm"
+  final date = ''.obs; // "dd Mon"
+  final location = ''.obs; // "Dept | Plant"
+
+  // Media
   final photoPaths = <String>[].obs;
   final voiceNotePath = ''.obs;
+
+  // State
   final isLoading = false.obs;
+
+  void _initDefaults() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loginPerson = prefs.getString(Constant.loginPersonId);
+
+    if (loginPerson != null) {
+      final details = await loginPersonDetailsRepository.getPersonById(
+        loginPerson,
+      );
+      if (details != null) {
+        operatorName.value = '${details.name}(${details.id})';
+        if (details.contacts.isNotEmpty &&
+            details.contacts.first.phone != null) {
+          operatorPhoneNumber.value = details.contacts.first.phone!;
+        }
+        // example timestamp → format into local
+        final dt = (details.updatedAt ?? DateTime.now()).toUtc();
+        final s = formatTimeDateLocal(dt);
+
+        if (details.assets.isNotEmpty) {
+          operatorInfo.value =
+              '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+        }
+      }
+    }
+  }
+
+  /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
+  String formatTimeDateLocal(DateTime dt) {
+    final d = dt.isUtc ? dt.toLocal() : dt; // convert if it's UTC (ends with Z)
+    final time = DateFormat('HH:mm').format(d); // 24h: 02:30
+    final day = DateFormat('dd').format(d); // 02
+    final mon = DateFormat('MMM').format(d).toLowerCase(); // oct
+    return '$time | $day $mon';
+  }
 
   @override
   void onInit() {
     super.onInit();
-    cnc_1.value = 'CNC-1 (${_bag.get<String>(WOKeys.assetsNumber, '')})';
-    reportedBy.value = _bag.get<String>(WOKeys.reporter, '');
-    operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
-    operatorPhoneNumber.value = _bag.get<String>(WOKeys.phoneNumber, '');
-    operatorInfo.value = _bag.get<String>(WOKeys.operatorInfo, '');
+
+    // Header with asset number if present
+    final assetNumber = _bag.get<String>(WOKeys.assetsNumber, '');
+    cnc_1.value = 'CNC-1 (${assetNumber.isEmpty ? '-' : assetNumber})';
+
+    // Reporter / Operator basics
+    reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
+
+    final isSameAsOperator = _bag.get<String>(WOKeys.sameAsOperator, 'false');
+
+    if (isSameAsOperator == 'true') {
+      _initDefaults();
+    } else {
+      operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
+      operatorPhoneNumber.value =
+          _bag.get<String>(WOKeys.operatorPhoneNumber, '');
+
+      // if (details.assets.isNotEmpty) {
+      //   operatorInfo.value =
+      //       '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+      // }
+    }
+
+    // Types / Priority / Descriptions
     issueType.value = _bag.get<String>(WOKeys.issueType, '');
     priority.value = _bag.get<String>(WOKeys.typeText, '');
     descriptionText.value = _bag.get<String>(WOKeys.descriptionText, '');
-    //headline.value = _bag.get<String>(WOKeys.typeText, '');
     problemDescription.value = _bag.get<String>(WOKeys.problemDescription, '');
+
+    // Media: images (dedupe + validate) and voice note (single)
     final cleanedPhotos = <String>[];
     final seen = <String>{};
     for (final raw in _bag.get<List<String>>(WOKeys.photos, const <String>[])) {
@@ -67,9 +131,10 @@ class WorkOrderDetailsController extends GetxController {
     }
     photoPaths.assignAll(cleanedPhotos);
 
-    final voice = _bag.get(WOKeys.voiceNotePath, '').trim();
+    final voice = _bag.get<String>(WOKeys.voiceNotePath, '').trim();
     voiceNotePath.value = _isAudioPath(voice) ? voice : '';
 
+    // Time / Date
     final tStr = _bag.get<String?>(WOKeys.reportedTime, null);
     final dStr = _bag.get<String?>(WOKeys.reportedDate, null);
     final t = _decodeTime(tStr);
@@ -77,59 +142,71 @@ class WorkOrderDetailsController extends GetxController {
     time.value = t == null ? '' : _formatTime(t);
     date.value = d == null ? '' : _formatDate(d);
 
+    // Location (Department | Plant)
     final loc = _bag.get<String>(WOKeys.location, '');
     final plant = _bag.get<String>(WOKeys.plant, '');
     location.value = _joinNonEmpty([loc, plant], ' | ');
   }
 
+  String _joinNonEmpty(List<String> parts, String sep) =>
+      parts.where((p) => p.trim().isNotEmpty).join(sep);
+
   MediaFile _mediaFromPath(String path) {
     final p = path.trim();
     final lower = p.toLowerCase();
     String mime = 'application/octet-stream';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg'))
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
       mime = 'image/jpeg';
-    else if (lower.endsWith('.png'))
+    } else if (lower.endsWith('.png')) {
       mime = 'image/png';
-    else if (lower.endsWith('.webp'))
+    } else if (lower.endsWith('.webp')) {
       mime = 'image/webp';
-    else if (lower.endsWith('.heic'))
+    } else if (lower.endsWith('.heic')) {
       mime = 'image/heic';
-    else if (lower.endsWith('.mp4'))
+    } else if (lower.endsWith('.mp4')) {
       mime = 'video/mp4';
-    else if (lower.endsWith('.mov'))
+    } else if (lower.endsWith('.mov')) {
       mime = 'video/quicktime';
-    else if (lower.endsWith('.m4a'))
+    } else if (lower.endsWith('.m4a')) {
       mime = 'audio/m4a';
-    else if (lower.endsWith('.aac'))
+    } else if (lower.endsWith('.aac')) {
       mime = 'audio/aac';
-    else if (lower.endsWith('.mp3'))
+    } else if (lower.endsWith('.mp3')) {
       mime = 'audio/mpeg';
-    else if (lower.endsWith('.wav')) mime = 'audio/wav';
+    } else if (lower.endsWith('.wav')) {
+      mime = 'audio/wav';
+    }
     return MediaFile(filePath: p, fileType: mime);
   }
 
-  String _joinNonEmpty(List<String> parts, String sep) =>
-      parts.where((p) => p.trim().isNotEmpty).join(sep);
-
-  void create() async {
+  Future<void> create() async {
     if (isLoading.value) return;
     isLoading.value = true;
 
     try {
-      reportedBy.value = _bag.get<String>(WOKeys.reporter, '');
+      // Re-read latest values from the bag (user might have changed tabs)
+      reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
+      final reporterId = _bag.get<String>(WOKeys.reporterId, '');
+      final reporterPhoneNumber =
+          _bag.get<String>(WOKeys.reporterPhoneNumber, '');
+
+      final isSameAsOperator = _bag.get<String>(WOKeys.sameAsOperator, 'false');
+
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
-      operatorPhoneNumber.value = _bag.get<String>(WOKeys.phoneNumber, '');
-      operatorInfo.value = _bag.get<String>(WOKeys.operatorInfo, '');
+      operatorPhoneNumber.value =
+          _bag.get<String>(WOKeys.operatorPhoneNumber, '');
+      final operatorId = _bag.get<String>(WOKeys.operatorId, '');
+
       issueType.value = _bag.get<String>(WOKeys.issueType, '');
       priority.value = _bag.get<String>(WOKeys.typeText, '');
       descriptionText.value = _bag.get<String>(WOKeys.descriptionText, '');
-      // headline.value = _bag.get<String>(WOKeys.typeText, '');
       problemDescription.value =
           _bag.get<String>(WOKeys.problemDescription, '');
+
       location.value = _joinNonEmpty(
         [
           _bag.get<String>(WOKeys.location, ''),
-          _bag.get<String>(WOKeys.plant, '')
+          _bag.get<String>(WOKeys.plant, ''),
         ],
         ' | ',
       );
@@ -140,6 +217,8 @@ class WorkOrderDetailsController extends GetxController {
       final d = _decodeDate(dStr);
       time.value = t == null ? '' : _formatTime(t);
       date.value = d == null ? '' : _formatDate(d);
+
+      // Build media list (images + optional voice note)
       final mediaFiles = <MediaFile>[];
       final cleanedPhotos = <String>[];
       final seen = <String>{};
@@ -149,18 +228,16 @@ class WorkOrderDetailsController extends GetxController {
         final p = raw.trim();
         if (p.isEmpty || !seen.add(p) || !_isImagePath(p)) continue;
         cleanedPhotos.add(p);
-        mediaFiles.add(_mediaFromPath(p)); // image only
+        mediaFiles.add(_mediaFromPath(p));
       }
-
-// voice note: do NOT add to photoPaths; only to mediaFiles
       final voice = _bag.get<String>(WOKeys.voiceNotePath, '').trim();
       if (voice.isNotEmpty && _isAudioPath(voice)) {
         voiceNotePath.value = voice;
-        mediaFiles.add(_mediaFromPath(voice)); // audio only
+        mediaFiles.add(_mediaFromPath(voice));
       }
-
       photoPaths.assignAll(cleanedPhotos);
 
+      // IDs / schedule
       final issueTypeId = _bag.get<String>(WOKeys.issueTypeId, '');
       final impactId = _bag.get<String>(WOKeys.impactId, '');
       final assetId = _bag.get<String>(WOKeys.assetsId, '');
@@ -177,7 +254,6 @@ class WorkOrderDetailsController extends GetxController {
       final priorityEnum = PriorityX.fromApi(priority.value);
       final statusEnum = WorkStatus.open;
 
-      ///final titleText = issueType.value;
       final descText = problemDescription.value.isNotEmpty
           ? problemDescription.value
           : descriptionText.value;
@@ -186,10 +262,16 @@ class WorkOrderDetailsController extends GetxController {
           : 'Created from mobile app';
 
       final req = CreateWorkOrderRequest(
+        operatorId: operatorId,
+        operatorName: operatorName.value,
+        operatorPhoneNumber: operatorPhoneNumber.value,
+        reporterId: reporterId,
+        reporterName: reportedName.value,
+        reporterPhoneNumber: reporterPhoneNumber,
         type: typeEnum,
         priority: priorityEnum,
         status: statusEnum,
-        title: "dsds", //titleText.trim(),
+        title: issueType.value.isNotEmpty ? issueType.value : 'Work Order',
         description: descText.trim(),
         remark: remarkText.trim(),
         scheduledStart: DateTime.parse(schedStartStr).toUtc(),
@@ -203,30 +285,7 @@ class WorkOrderDetailsController extends GetxController {
         mediaFiles: mediaFiles,
       );
 
-      //final res = await repositoryImpl.createWorkOrderRequest(req);
-      createWorkOrder(req);
-
-      // if (res.httpCode == 201 && res.data != null) {
-      //   // Get.offAllNamed(Routes.landingDashboardScreen, arguments: {'tab': 3});
-      //   // _bag.clear();
-
-      //   Get.snackbar(
-      //     'Create',
-      //     'Work Order Created Successfully',
-      //     snackPosition: SnackPosition.TOP,
-      //     backgroundColor: AppColors.successGreen,
-      //     colorText: AppColors.white,
-      //   );
-      // } else {
-      //   // Not OK
-      //   Get.snackbar(
-      //     'Create',
-      //     res.message!,
-      //     snackPosition: SnackPosition.TOP,
-      //     backgroundColor: AppColors.red,
-      //     colorText: AppColors.white,
-      //   );
-      // }
+      await createWorkOrder(req);
     } finally {
       isLoading.value = false;
     }
@@ -234,52 +293,57 @@ class WorkOrderDetailsController extends GetxController {
 
   Future<void> createWorkOrder(CreateWorkOrderRequest req) async {
     final offlineRepo = Get.find<OfflineWorkOrderRepository>();
-    //final apiRepo = Get.find<WorkOrderApiRepository>();
 
     try {
       // Check connectivity
       final connectivity = await Connectivity().checkConnectivity();
 
-      // ignore: unrelated_type_equality_checks
       if (connectivity == ConnectivityResult.none) {
-        /// No network at all → save offline
+        // No network → save offline
         await _saveOffline(req, offlineRepo);
-        return;
-      }
-
-      /// Try API call
-      final res = await repositoryImpl.createWorkOrderRequest(req);
-
-      if (res.httpCode == 201 && res.data != null) {
-        /// Success online
-        Get.snackbar(
-          'Create',
-          'Work Order Created Successfully',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.successGreen,
-          colorText: AppColors.white,
-        );
       } else {
-        /// Server error or bad response → fallback to offline
-        await _saveOffline(req, offlineRepo);
+        // Try API
+        final res = await repositoryImpl.createWorkOrderRequest(req);
+
+        if (res.httpCode == 201 && res.data != null) {
+          Get.snackbar(
+            'Create',
+            'Work Order Created Successfully',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: AppColors.successGreen,
+            colorText: AppColors.white,
+          );
+        } else {
+          // Server error → fallback offline
+          await _saveOffline(req, offlineRepo);
+        }
       }
     } catch (e) {
-      /// Exception (timeout, parsing, etc.) → fallback to offline
+      // Any exception → fallback offline
       await _saveOffline(req, offlineRepo);
       if (kDebugMode) {
-        print("❌ Error creating Work Order online: $e");
+        print('❌ Error creating Work Order online: $e');
       }
     }
+
+    // Navigate to Work Orders tab
     Get.offAllNamed(
       Routes.landingDashboardScreen,
-      arguments: {'tab': 3}, // open Work Orders
+      arguments: {'tab': 3},
     );
   }
 
-  /// helper to save offline work order
-  Future<void> _saveOffline(CreateWorkOrderRequest req,
-      OfflineWorkOrderRepository offlineRepo) async {
+  Future<void> _saveOffline(
+    CreateWorkOrderRequest req,
+    OfflineWorkOrderRepository offlineRepo,
+  ) async {
     final offlineOrder = OfflineWorkOrder(
+      operatorId: req.operatorId,
+      operatorName: req.operatorName,
+      operatorPhoneNumber: req.operatorPhoneNumber,
+      reporterId: req.reporterId,
+      reporterName: req.reporterName,
+      reporterPhoneNumber: req.reporterPhoneNumber,
       type: req.type.name,
       priority: req.priority.name,
       status: req.status.name,
@@ -311,6 +375,7 @@ class WorkOrderDetailsController extends GetxController {
 
   void goBack() => Get.back();
 
+  // ───────────── Helpers ─────────────
   TimeOfDay? _decodeTime(String? s) {
     if (s == null || s.isEmpty) return null;
     final parts = s.split(':');
@@ -340,7 +405,7 @@ class WorkOrderDetailsController extends GetxController {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     final dd = d.day.toString().padLeft(2, '0');
     final mon = months[d.month - 1];

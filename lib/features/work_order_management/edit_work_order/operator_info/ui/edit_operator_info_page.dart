@@ -75,11 +75,11 @@ class EditOperatorInfoPage extends GetView<OperatorInfoController> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: Theme.of(ctx).colorScheme.copyWith(
-            primary: AppColors.primaryBlue,
-            onPrimary: Colors.white,
-            surface: Colors.white,
-            onSurface: AppColors.text,
-          ),
+                primary: AppColors.primaryBlue,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: AppColors.text,
+              ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(foregroundColor: AppColors.primaryBlue),
           ),
@@ -129,7 +129,6 @@ class EditOperatorInfoPage extends GetView<OperatorInfoController> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -179,7 +178,6 @@ class EditOperatorInfoPage extends GetView<OperatorInfoController> {
           ),
         ),
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
@@ -222,13 +220,13 @@ class EditOperatorInfoPage extends GetView<OperatorInfoController> {
                       left: Obx(
                         () => _LabelValuePlain(
                           'Employee ID',
-                          controller.employeeId.value,
+                          controller.reporterId.value,
                         ),
                       ),
                       right: Obx(
                         () => _LabelValuePlain(
                           'Phone Number',
-                          controller.phoneNumber.value,
+                          controller.reporterPhoneNumber.value,
                         ),
                       ),
                     ),
@@ -409,13 +407,13 @@ class EditOperatorInfoPage extends GetView<OperatorInfoController> {
                           left: Obx(
                             () => _LabelValuePlain(
                               'Employee ID',
-                              controller.employeeId.value,
+                              controller.reporterId.value,
                             ),
                           ),
                           right: Obx(
                             () => _LabelValuePlain(
                               'Phone Number',
-                              controller.phoneNumber.value,
+                              controller.reporterPhoneNumber.value,
                             ),
                           ),
                         ),
@@ -555,8 +553,7 @@ class _TapField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPlaceholder =
-        text == 'Select' ||
+    final isPlaceholder = text == 'Select' ||
         text == 'Select Shift' ||
         text == 'hh:mm' ||
         text == 'dd/mm/yyyy';

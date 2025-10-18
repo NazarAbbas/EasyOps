@@ -26,8 +26,9 @@ class WorkTabsController extends GetxController {
 
     // ✅ Expect a Map of arguments
     final map = args as Map;
-
-    workOrder = map[Constant.workOrderInfo] as WorkOrder;
-    workOrderStatus = map[Constant.workOrderStatus] as WorkOrderStatus;
+    try {
+      workOrder = map[Constant.workOrderInfo] as WorkOrder;
+      workOrderStatus = map[Constant.workOrderStatus] as WorkOrderStatus;
+    } catch (e) {}
   }
 }

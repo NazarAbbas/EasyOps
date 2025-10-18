@@ -118,7 +118,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `shifts` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -128,7 +128,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_assets` (`id` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT, `personId` TEXT, `personName` TEXT, `assetId` TEXT, `assetName` TEXT, `assetSerialNumber` TEXT, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `operators_details_entity` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `dob` INTEGER, `updatedAt` INTEGER, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `userId` TEXT, `organizationId` TEXT, `parentStaffId` TEXT, `managerId` TEXT, `shiftId` TEXT, `departmentId` TEXT, `userEmail` TEXT, `organizationName` TEXT, `parentStaffName` TEXT, `managerName` TEXT, `shiftName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `operators_details_entity` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` INTEGER, `updatedAt` INTEGER, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `userId` TEXT, `organizationId` TEXT, `parentStaffId` TEXT, `managerId` TEXT, `shiftId` TEXT, `departmentId` TEXT, `userEmail` TEXT, `organizationName` TEXT, `parentStaffName` TEXT, `managerName` TEXT, `shiftName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
         await database.execute(
@@ -687,6 +687,12 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
             'offline_workorders',
             (OfflineWorkOrderEntity item) => <String, Object?>{
                   'id': item.id,
+                  'operatorName': item.operatorName,
+                  'operatorId': item.operatorId,
+                  'operatorPhoneNumber': item.operatorPhoneNumber,
+                  'reporterId': item.reporterId,
+                  'reporterName': item.reporterName,
+                  'reporterPhoneNumber': item.reporterPhoneNumber,
                   'type': item.type,
                   'priority': item.priority,
                   'status': item.status,
@@ -711,6 +717,12 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
             ['id'],
             (OfflineWorkOrderEntity item) => <String, Object?>{
                   'id': item.id,
+                  'operatorName': item.operatorName,
+                  'operatorId': item.operatorId,
+                  'operatorPhoneNumber': item.operatorPhoneNumber,
+                  'reporterId': item.reporterId,
+                  'reporterName': item.reporterName,
+                  'reporterPhoneNumber': item.reporterPhoneNumber,
                   'type': item.type,
                   'priority': item.priority,
                   'status': item.status,
@@ -748,6 +760,12 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
         'SELECT * FROM offline_workorders WHERE synced = \"false\"',
         mapper: (Map<String, Object?> row) => OfflineWorkOrderEntity(
             id: row['id'] as int?,
+            operatorId: row['operatorId'] as String,
+            operatorName: row['operatorName'] as String,
+            operatorPhoneNumber: row['operatorPhoneNumber'] as String,
+            reporterId: row['reporterId'] as String,
+            reporterName: row['reporterName'] as String,
+            reporterPhoneNumber: row['reporterPhoneNumber'] as String,
             type: row['type'] as String,
             priority: row['priority'] as String,
             status: row['status'] as String,
@@ -800,6 +818,7 @@ class _$OperatorsDetailsDao extends OperatorsDetailsDao {
             (OperatorsDetailsEntity item) => <String, Object?>{
                   'id': item.id,
                   'name': item.name,
+                  'userPhone': item.userPhone,
                   'dob': _epochDateTimeConverter.encode(item.dob),
                   'updatedAt': _epochDateTimeConverter.encode(item.updatedAt),
                   'bloodGroup': item.bloodGroup,
@@ -838,6 +857,7 @@ class _$OperatorsDetailsDao extends OperatorsDetailsDao {
         mapper: (Map<String, Object?> row) => OperatorsDetailsEntity(
             id: row['id'] as String,
             name: row['name'] as String,
+            userPhone: row['userPhone'] as String,
             type: row['type'] as String,
             recordStatus: row['recordStatus'] as int,
             tenantId: row['tenantId'] as String,

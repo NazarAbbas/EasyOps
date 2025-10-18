@@ -17,6 +17,7 @@ class OperatorsDetailsEntity {
   final String id;
 
   final String name;
+  final String userPhone;
 
   // Dates stored via converter (epoch millis)
   final DateTime? dob;
@@ -50,6 +51,7 @@ class OperatorsDetailsEntity {
   const OperatorsDetailsEntity({
     required this.id,
     required this.name,
+    required this.userPhone,
     required this.type,
     required this.recordStatus,
     required this.tenantId,

@@ -5,6 +5,14 @@ class OfflineWorkOrderEntity {
   @PrimaryKey(autoGenerate: true)
   final int? id;
 
+  final String operatorName;
+  final String operatorId;
+  final String operatorPhoneNumber;
+
+  final String reporterId;
+  final String reporterName;
+  final String reporterPhoneNumber;
+
   // Core fields
   final String type;
   final String priority;
@@ -35,6 +43,12 @@ class OfflineWorkOrderEntity {
 
   OfflineWorkOrderEntity({
     this.id,
+    required this.operatorId,
+    required this.operatorName,
+    required this.operatorPhoneNumber,
+    required this.reporterId,
+    required this.reporterName,
+    required this.reporterPhoneNumber,
     required this.type,
     required this.priority,
     required this.status,

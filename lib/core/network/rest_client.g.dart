@@ -152,7 +152,7 @@ class _RestClient implements RestClient {
     )
         .compose(
           _dio.options,
-          '/v1/api/work-order/${workOrderId}',
+          '/work-order/${workOrderId}/with-media',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -408,21 +408,22 @@ class _RestClient implements RestClient {
   @override
   Future<CancelWorkOrderResponse> cancelWorkOrder(
     String workOrderId,
-    CancelWorkOrderRequest body,
+    FormData formData,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(body.toJson());
+    final _headers = <String, dynamic>{r'Content-Type': 'multipart/form-data'};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = formData;
     final _options = _setStreamType<CancelWorkOrderResponse>(Options(
       method: 'PUT',
       headers: _headers,
       extra: _extra,
+      contentType: 'multipart/form-data',
     )
         .compose(
           _dio.options,
-          '/v1/api/work-order/${workOrderId}',
+          '/work-order/${workOrderId}/with-media',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -435,6 +436,44 @@ class _RestClient implements RestClient {
     late CancelWorkOrderResponse _value;
     try {
       _value = CancelWorkOrderResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ReopenWorkOrderResponse> reOpenWorkOrder(
+    String workOrderId,
+    FormData formData,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Content-Type': 'multipart/form-data'};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = formData;
+    final _options = _setStreamType<ReopenWorkOrderResponse>(Options(
+      method: 'PUT',
+      headers: _headers,
+      extra: _extra,
+      contentType: 'multipart/form-data',
+    )
+        .compose(
+          _dio.options,
+          '/work-order/${workOrderId}/with-media',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ReopenWorkOrderResponse _value;
+    try {
+      _value = ReopenWorkOrderResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

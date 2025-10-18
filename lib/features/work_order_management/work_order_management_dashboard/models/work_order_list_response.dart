@@ -51,6 +51,9 @@ class WorkOrder {
   final String? plantId;
   final String? plantName;
 
+  final String? issueTypeId;
+  final String? issueTypeName;
+
   final String departmentId;
   final String departmentName;
 
@@ -88,6 +91,8 @@ class WorkOrder {
   WorkOrder({
     required this.id,
     required this.type,
+    required this.issueTypeId,
+    required this.issueTypeName,
     required this.plantId,
     required this.plantName,
     required this.departmentId,
@@ -126,6 +131,8 @@ class WorkOrder {
       type: _string(json['type'])!,
       plantId: _string(json['plantId']), // could be null
       plantName: _string(json['plantName']),
+      issueTypeId: _string(json['issueTypeId']), // could be null
+      issueTypeName: _string(json['issueTypeName']),
       departmentId: _string(json['departmentId'])!,
       departmentName: _string(json['departmentName'])!,
       impactId: _string(json['impactId']),
@@ -160,6 +167,8 @@ class WorkOrder {
         'type': type,
         'plantId': plantId,
         'plantName': plantName,
+        'issueTypeId': issueTypeId,
+        'issueTypeName': issueTypeName,
         'departmentId': departmentId,
         'departmentName': departmentName,
         'impactId': impactId,

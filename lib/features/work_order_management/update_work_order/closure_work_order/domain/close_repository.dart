@@ -4,7 +4,7 @@ import 'package:easy_ops/features/work_order_management/update_work_order/closur
 
 abstract class CloseRepository {
   Future<ApiResult<CloseWorkOrderResponse>> closeOrder({
-    required String cancelWorkOrderId,
+    required String closeWorkOrderId,
     required CloseWorkOrderRequest closeWorkOrderRequest,
   });
 }

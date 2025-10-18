@@ -12,11 +12,11 @@ class CloseRepositoryImpl implements CloseRepository {
 
   @override
   Future<ApiResult<CloseWorkOrderResponse>> closeOrder(
-      {required String cancelWorkOrderId,
+      {required String closeWorkOrderId,
       required CloseWorkOrderRequest closeWorkOrderRequest}) async {
     try {
       final model = await _apiService.closeWorkOrder(
-          closeWorkOrderRequest, cancelWorkOrderId);
+          closeWorkOrderRequest, closeWorkOrderId);
       return ApiResult<CloseWorkOrderResponse>(
         httpCode: 200,
         data: model,

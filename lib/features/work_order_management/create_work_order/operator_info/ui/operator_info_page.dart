@@ -211,9 +211,9 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                     _Row2(
                       spacing: 12,
                       left: Obx(() => _LabelValuePlain(
-                          'Employee ID', controller.employeeId.value)),
-                      right: Obx(() => _LabelValuePlain(
-                          'Phone Number', controller.phoneNumber.value)),
+                          'Employee ID', controller.reporterId.value)),
+                      right: Obx(() => _LabelValuePlain('Phone Number',
+                          controller.reporterPhoneNumber.value)),
                     ),
                   ],
                 ),

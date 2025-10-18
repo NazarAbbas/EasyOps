@@ -13,6 +13,7 @@ import 'package:easy_ops/features/work_order_management/create_work_order/models
 import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
+import 'package:easy_ops/features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
 import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:easy_ops/features/login/models/login_response.dart';
@@ -41,7 +42,7 @@ abstract class RestClient {
   Future<CreateWorkOrderResponse> createWorkOrderRequest(
       @Body() FormData formData);
 
-  @PUT('/v1/api/work-order/{id}')
+  @PUT('/work-order/{id}/with-media')
   @Headers(<String, String>{'Content-Type': 'multipart/form-data'})
   Future<CloseWorkOrderResponse> closeWorkOrder(@Path('id') String workOrderId,
       @Body() FormData formData // <- FormData body
@@ -72,11 +73,19 @@ abstract class RestClient {
     @Query('username') String username,
   );
 
-  @PUT('/v1/api/work-order/{id}')
+  @Headers(<String, String>{'Content-Type': 'multipart/form-data'})
+  @PUT('/work-order/{id}/with-media')
   Future<CancelWorkOrderResponse> cancelWorkOrder(
-    @Path('id') String workOrderId,
-    @Body() CancelWorkOrderRequest body,
-  );
+      @Path('id') String workOrderId,
+      @Body() FormData formData // <- accepts your JSON string
+      );
+
+  @Headers(<String, String>{'Content-Type': 'multipart/form-data'})
+  @PUT('/work-order/{id}/with-media')
+  Future<ReopenWorkOrderResponse> reOpenWorkOrder(
+      @Path('id') String workOrderId,
+      @Body() FormData formData // <- accepts your JSON string
+      );
 
   @GET('/person/')
   Future<OperatorsDetailsResponse> operatorDetails();

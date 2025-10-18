@@ -28,16 +28,9 @@ class _LandingDashboardTabShellState extends State<LandingDashboardTabShell> {
 
     _pageController = PageController(initialPage: startTab);
 
-    // keep GetX index in sync with initial page
     if (c.index.value != startTab) {
       c.setIndex(startTab);
     }
-
-    // (Optional) listen to page changes if you ever enable swiping
-    // _pageController.addListener(() {
-    //   final p = _pageController.page?.round() ?? 0;
-    //   if (p != c.index.value) c.setIndex(p);
-    // });
   }
 
   @override

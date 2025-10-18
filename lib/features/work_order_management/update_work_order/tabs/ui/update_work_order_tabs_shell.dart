@@ -17,8 +17,7 @@ class WorkOrderTabsDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctrl = Get.put(UpdateWorkTabsController());
     final isTablet = _isTablet(context);
-    final primary =
-        Theme.of(context).appBarTheme.backgroundColor ??
+    final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
     return Scaffold(
@@ -115,9 +114,8 @@ class _HeaderTabs extends GetView<UpdateWorkTabsController> {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14.5,
-                                fontWeight: active
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
+                                fontWeight:
+                                    active ? FontWeight.w700 : FontWeight.w500,
                               ),
                             );
                           }),
