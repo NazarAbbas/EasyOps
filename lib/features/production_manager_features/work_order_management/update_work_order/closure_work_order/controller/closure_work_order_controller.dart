@@ -89,7 +89,7 @@ class ClosureWorkOrderController extends GetxController {
       category.value = workOrderInfo!.departmentName;
       time.value = _formatDate(workOrderInfo!.createdAt);
       priority.value = workOrderInfo!.priority;
-      duration.value = workOrderInfo!.timeLeft;
+      duration.value = workOrderInfo!.estimatedTimeToFix;
       statusText.value = workOrderInfo!.status;
     }
 

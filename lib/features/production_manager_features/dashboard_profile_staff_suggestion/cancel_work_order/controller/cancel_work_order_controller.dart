@@ -90,7 +90,7 @@ class CancelWorkOrderController extends GetxController {
     category.value = workOrderInfo!.departmentName;
     time.value = _formatDate(workOrderInfo!.createdAt); // as String;
     priority.value = workOrderInfo!.priority;
-    duration.value = workOrderInfo!.timeLeft;
+    duration.value = workOrderInfo!.estimatedTimeToFix;
     statusText.value = workOrderInfo!.status;
 
     final list = await lookupRepository.getLookupByType(LookupType.resolution);

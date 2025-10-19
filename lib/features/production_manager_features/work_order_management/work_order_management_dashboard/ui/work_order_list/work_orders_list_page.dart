@@ -3,6 +3,7 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/controller/work_order_list_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
     show WorkOrder, Status, Priority;
@@ -20,7 +21,6 @@ class WorkOrdersListPage extends GetView<WorkOrdersController> {
   @override
   Widget build(BuildContext context) {
     final isTablet = _isTablet(context);
-
     final double headerH = isTablet ? 148 : 120;
     final double hPad = isTablet ? 16 : 12;
     final double btnH = isTablet ? 56 : 52;
@@ -66,101 +66,109 @@ class WorkOrdersListPage extends GetView<WorkOrdersController> {
               );
             }),
           ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 12),
-              child: SizedBox(
-                height: btnH,
-                width: double.infinity,
-                child: Stack(
-                  children: [
-                    // Background: gradient + soft outline + shadow
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF2F6BFF), Color(0xFF3F84FF)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
-                            width: 1,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x332F6BFF),
-                              blurRadius: 16,
-                              offset: Offset(0, 8),
+          // Show "Create Work Order" only for Production Manager
+          Obx(() {
+            final isPm = controller.userRole.value ==
+                SharePreferences.productionManagerRole;
+            return isPm
+                ? SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 12),
+                      child: SizedBox(
+                        height: btnH,
+                        width: double.infinity,
+                        child: Stack(
+                          children: [
+                            // Background: gradient + soft outline + shadow
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF2F6BFF),
+                                      Color(0xFF3F84FF)
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.18),
+                                    width: 1,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x332F6BFF),
+                                      blurRadius: 16,
+                                      offset: Offset(0, 8),
+                                    ),
+                                    BoxShadow(
+                                      color: Color(0x1A000000),
+                                      blurRadius: 3,
+                                      offset: Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            BoxShadow(
-                              color: Color(0x1A000000),
-                              blurRadius: 3,
-                              offset: Offset(0, 1),
+                            // Subtle gloss highlight
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(14),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.white.withOpacity(0.10),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Tap layer with ripple
+                            Positioned.fill(
+                              child: Material(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(14),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => Get.toNamed(
+                                      Routes.workOrderTabShellScreen),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons.add_circled_solid,
+                                        color: Colors.white,
+                                        size: btnFs + 4,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Create Work Order',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: btnFs,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-
-                    // Subtle gloss highlight
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.white.withOpacity(0.10),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Tap layer with ripple
-                    Positioned.fill(
-                      child: Material(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(14),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () =>
-                              Get.toNamed(Routes.workOrderTabShellScreen),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                CupertinoIcons.add_circled_solid,
-                                color: Colors.white,
-                                size: btnFs + 4,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Create Work Order',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: btnFs,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  )
+                : const SizedBox.shrink();
+          })
         ],
       ),
       // bottomNavigationBar: const BottomBar(currentIndex: 2),
@@ -571,12 +579,13 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                       children: [
                         // left: code + date
                         Expanded(
-                          child: Column(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _MetaChip(
-                                  icon: CupertinoIcons.number, label: order.id),
-                              const SizedBox(height: 8),
+                                  icon: CupertinoIcons.number,
+                                  label: order.issueNo),
+                              const SizedBox(width: 8),
                               _MetaChip(
                                   icon: null,
                                   label: _formatDate(order.createdAt)),
@@ -670,19 +679,19 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            _MetaChip(
-                              icon: CupertinoIcons.clock,
-                              label: order.timeLeft ?? '—',
-                              dense: true,
-                            ),
+                            if (order.estimatedTimeToFix != null &&
+                                order.estimatedTimeToFix != '')
+                              _MetaChip(
+                                icon: CupertinoIcons.clock,
+                                label: order.estimatedTimeToFix ?? '—',
+                                dense: true,
+                              ),
                             const SizedBox(height: 10),
                             if (order.escalated > 0)
                               _MetaChip(
                                   icon: CupertinoIcons.flag_fill,
                                   label: 'Escalated',
                                   dense: true)
-                            else
-                              _MetaChip(label: 'Not escalated', dense: true),
                           ],
                         ),
                       ],
@@ -1167,24 +1176,6 @@ class _EmptyState extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
               ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Try a different search or create a new work order.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF7C8698)),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: onCreate,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF2F6BFF)),
-                foregroundColor: const Color(0xFF2F6BFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text('Create Work Order'),
             ),
           ],
         ),

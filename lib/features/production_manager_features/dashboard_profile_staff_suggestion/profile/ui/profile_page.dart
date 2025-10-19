@@ -1,4 +1,3 @@
-import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,12 +8,13 @@ class ProfilePage extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     final c = controller;
-
+    final primary = Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.primary;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.primary,
+        backgroundColor: primary,
         centerTitle: true,
         title: const Text(
           'My Profile',

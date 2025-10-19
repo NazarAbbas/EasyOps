@@ -1,13 +1,13 @@
-// work_order_details_page.dart
+// update_work_order_details_page.dart
 // ignore_for_file: deprecated_member_use
 
-import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/work_order/controller/update_work_order_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:get/get.dart';
+
+// Import your controller
+import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/work_order/controller/update_work_order_controller.dart';
 
 class UpdateWorkOrderDetailsPage
     extends GetView<UpdateWorkOrderDetailsController> {
@@ -22,12 +22,13 @@ class UpdateWorkOrderDetailsPage
   @override
   Widget build(BuildContext context) {
     final isTablet = _isTablet(context);
-    final double headerH = isTablet ? 120 : 110;
     final double hPad = isTablet ? 18 : 14;
     final double btnH = isTablet ? 56 : 52;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
+
+      /* ---------- Bottom Buttons ---------- */
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -38,20 +39,15 @@ class UpdateWorkOrderDetailsPage
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     minimumSize: Size.fromHeight(btnH),
-                    side: const BorderSide(
-                      color: AppColors.primary,
-                      width: 1.4,
-                    ),
+                    side: const BorderSide(color: _C.primary, width: 1.4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    foregroundColor: AppColors.primary,
+                    foregroundColor: _C.primary,
                   ),
                   onPressed: controller.reOpenWorkOrder,
-                  child: const Text(
-                    'Re-Open',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
+                  child: const Text('Re-Open',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -59,7 +55,7 @@ class UpdateWorkOrderDetailsPage
                 child: FilledButton(
                   style: FilledButton.styleFrom(
                     minimumSize: Size.fromHeight(btnH),
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: _C.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -67,16 +63,16 @@ class UpdateWorkOrderDetailsPage
                     elevation: 1.5,
                   ),
                   onPressed: controller.closeWorkOrder,
-                  child: const Text(
-                    'Close',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
+                  child: const Text('Close',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
           ),
         ),
       ),
+
+      /* ---------- Body ---------- */
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
         child: Container(
@@ -96,41 +92,38 @@ class UpdateWorkOrderDetailsPage
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
             child: Obx(() {
               final pillColor = _priorityColor(controller.priority.value);
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Reporter
-                  _KVBlock(
-                    rows: [
-                      _KV(
-                        label: 'Reported By :',
-                        value: controller.reportedBy.value.isEmpty
-                            ? '—'
-                            : controller.reportedBy.value,
-                      ),
-                    ],
-                  ),
+                  /* Reporter */
+                  _KVBlock(rows: [
+                    _KV(
+                      label: 'Reported By :',
+                      value: controller.reportedBy.value.isEmpty
+                          ? '—'
+                          : controller.reportedBy.value,
+                    ),
+                  ]),
                   const SizedBox(height: 8),
 
-                  // ── Replace your current "Operator" KVBlock with this:
-                  // Operator (left-aligned)
+                  /* Operator */
                   _OperatorSection(
                     name: controller.operatorName.value,
                     phone: controller.operatorPhoneNumber.value,
                     info: controller.operatorInfo.value,
                   ),
-
                   const _DividerPad(),
 
-                  // Issue summary + priority pill + category
+                  /* Summary + priority */
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
-                          controller.problemDescription.value.isEmpty
+                          controller.workOrderTitle.value.isEmpty
                               ? '—'
-                              : controller.problemDescription.value,
+                              : controller.workOrderTitle.value,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -142,34 +135,23 @@ class UpdateWorkOrderDetailsPage
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _Pill(
-                            text: controller.priority.value.isEmpty
-                                ? '—'
-                                : controller.priority.value,
-                            color: pillColor,
-                          ),
-                        ],
+                      _Pill(
+                        text: controller.priority.value.isEmpty
+                            ? '—'
+                            : controller.priority.value,
+                        color: pillColor,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
 
-                  // Time | Date (only render the separator if both present)
+                  /* Time | Date + Issue type */
                   Row(
                     children: [
                       Text(
-                        [
-                          // controller.time.value.isEmpty
-                          //     ? '—'
-                          //     : controller.time.value,
-                          controller.date.value.isEmpty
-                              ? '—'
-                              : controller.date.value,
-                        ].join(' | '),
+                        controller.date.value.isEmpty
+                            ? '—'
+                            : controller.date.value,
                         style: const TextStyle(
                           color: _C.muted,
                           fontWeight: FontWeight.w700,
@@ -188,6 +170,8 @@ class UpdateWorkOrderDetailsPage
                     ],
                   ),
                   const SizedBox(height: 6),
+
+                  /* Location-ish line (your CNC text) */
                   Row(
                     children: [
                       const Icon(
@@ -200,7 +184,7 @@ class UpdateWorkOrderDetailsPage
                         child: Text(
                           controller.cnc_1.value,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -209,10 +193,8 @@ class UpdateWorkOrderDetailsPage
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-
-                  // Line (render only if non-empty)
                   if (controller.line.value.isNotEmpty) ...[
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         const Icon(
@@ -232,11 +214,9 @@ class UpdateWorkOrderDetailsPage
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
                   ],
-
-                  // Location
-                  if (controller.location.value.isNotEmpty)
+                  if (controller.location.value.isNotEmpty) ...[
+                    const SizedBox(height: 6),
                     Text(
                       controller.location.value,
                       style: const TextStyle(
@@ -244,14 +224,14 @@ class UpdateWorkOrderDetailsPage
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-
+                  ],
                   const _DividerPad(),
 
-                  // Headline & Description
+                  /* Descriptions */
                   Text(
-                    controller.descriptionText.value.isEmpty
+                    controller.remark.value.isEmpty
                         ? '—'
-                        : controller.descriptionText.value,
+                        : controller.remark.value,
                     style: const TextStyle(
                       color: _C.text,
                       fontWeight: FontWeight.w800,
@@ -260,47 +240,60 @@ class UpdateWorkOrderDetailsPage
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    controller.problemDescription.value.isEmpty
+                    controller.description.value.isEmpty
                         ? '—'
-                        : controller.problemDescription.value,
+                        : controller.description.value,
                     style: const TextStyle(color: _C.text, height: 1.35),
                   ),
                   const SizedBox(height: 12),
 
-                  // Media row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Thumbnails
-                      Expanded(
-                        child: controller.photoPaths.isEmpty
-                            ? const SizedBox()
-                            : Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: controller.photoPaths
-                                    .where((p) => p.isNotEmpty)
-                                    .map((p) => _Thumb(path: p))
-                                    .toList(),
-                              ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Audio on the right (no Flexible)
-                      _AudioTile(path: controller.voiceNotePath.value),
-                    ],
-                  ),
+                  /* -------- Media (GRID then full-width AUDIO) -------- */
+                  Obx(() {
+                    final imgs = controller.photoPaths
+                        .where((p) => p.isNotEmpty)
+                        .toList();
+                    final hasImages = imgs.isNotEmpty;
+
+                    final isTablet =
+                        MediaQuery.of(context).size.shortestSide >= 600;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (hasImages)
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics:
+                                const NeverScrollableScrollPhysics(), // parent scrolls
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: isTablet ? 4 : 3,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 88 / 64,
+                            ),
+                            itemCount: imgs.length,
+                            itemBuilder: (_, i) => _Thumb(path: imgs[i]),
+                          ),
+                        if (hasImages) const SizedBox(height: 12),
+
+                        // FULL-WIDTH AUDIO
+                        if (controller.voiceNotePath.value.isNotEmpty)
+                          _AudioBar(path: controller.voiceNotePath.value),
+                      ],
+                    );
+                  }),
                 ],
               );
             }),
           ),
         ),
-        //  ),
       ),
     );
   }
 }
 
-/* ───────────────────────── Helpers ───────────────────────── */
+/* ------------------------------ Helpers ------------------------------ */
 
 Color _priorityColor(String s) {
   switch (s.toLowerCase()) {
@@ -315,7 +308,8 @@ Color _priorityColor(String s) {
   }
 }
 
-/* ───────────────────────── Widgets ───────────────────────── */
+/* ------------------------------ Widgets ------------------------------ */
+
 class _KV {
   final String label;
   final String value;
@@ -386,36 +380,75 @@ class _Pill extends StatelessWidget {
   }
 }
 
+/* ------------------------------ Media ------------------------------ */
+
 class _Thumb extends StatelessWidget {
-  final String path;
+  final String path; // absolute URL
   const _Thumb({required this.path});
   @override
   Widget build(BuildContext context) {
-    final file = File(path);
-    if (!file.existsSync()) {
-      // Skip invalid paths quietly
-      return const SizedBox(width: 0, height: 0);
-    }
-    return Container(
-      width: 88,
-      height: 64,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
+    if (path.isEmpty) return const SizedBox.shrink();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        color: const Color(0xFFF1F5FB),
+        child: Image.network(
+          path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const _BrokenThumb(),
+          loadingBuilder: (c, w, p) => p == null ? w : const _ThumbSkeleton(),
+        ),
       ),
     );
   }
 }
 
-class _AudioTile extends StatefulWidget {
-  final String path;
-  const _AudioTile({required this.path});
-
+class _ThumbSkeleton extends StatelessWidget {
+  const _ThumbSkeleton();
   @override
-  State<_AudioTile> createState() => _AudioTileState();
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFEFF3FA),
+      child: const Center(
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+    );
+  }
 }
 
-class _AudioTileState extends State<_AudioTile> {
+class _BrokenThumb extends StatelessWidget {
+  const _BrokenThumb();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFFDECEC),
+      child: const Center(
+        child: Icon(
+          CupertinoIcons.exclamationmark_triangle_fill,
+          size: 18,
+          color: Color(0xFFE25555),
+        ),
+      ),
+    );
+  }
+}
+
+/* ------------------------------ Full-width Audio Bar ------------------------------ */
+
+class _AudioBar extends StatefulWidget {
+  final String path; // absolute URL
+  const _AudioBar({required this.path});
+
+  @override
+  State<_AudioBar> createState() => _AudioBarState();
+}
+
+class _AudioBarState extends State<_AudioBar> {
   late final AudioPlayer _player;
   bool _isPlaying = false;
 
@@ -427,14 +460,12 @@ class _AudioTileState extends State<_AudioTile> {
     super.initState();
     _player = AudioPlayer();
 
-    // Keep duration/position in sync with the actual audio
     _player.onDurationChanged.listen((d) {
       if (!mounted) return;
       setState(() => _duration = d);
     });
     _player.onPositionChanged.listen((p) {
       if (!mounted) return;
-      // Clamp to duration to avoid weird overflows from some backends
       if (_duration != Duration.zero && p > _duration) p = _duration;
       setState(() => _position = p);
     });
@@ -446,19 +477,16 @@ class _AudioTileState extends State<_AudioTile> {
       });
     });
 
-    // Preload so total time is known before first play
-    _preloadDuration();
+    _preload();
   }
 
-  Future<void> _preloadDuration() async {
-    if (widget.path.isEmpty || !File(widget.path).existsSync()) return;
+  Future<void> _preload() async {
+    if (widget.path.isEmpty) return;
     try {
-      await _player.setSource(DeviceFileSource(widget.path));
+      await _player.setSource(UrlSource(widget.path));
       final d = await _player.getDuration();
       if (mounted && d != null) setState(() => _duration = d);
-    } catch (_) {
-      // ignore preload errors
-    }
+    } catch (_) {}
   }
 
   @override
@@ -468,21 +496,25 @@ class _AudioTileState extends State<_AudioTile> {
   }
 
   Future<void> _toggle() async {
-    if (widget.path.isEmpty || !File(widget.path).existsSync()) return;
+    if (widget.path.isEmpty) return;
 
     if (_isPlaying) {
       await _player.pause();
       setState(() => _isPlaying = false);
     } else {
-      // Resume if paused mid-way, otherwise start from the beginning
       if (_position > Duration.zero && _position < _duration) {
         await _player.resume();
       } else {
         await _player.stop();
-        await _player.play(DeviceFileSource(widget.path));
+        await _player.play(UrlSource(widget.path));
       }
       setState(() => _isPlaying = true);
     }
+  }
+
+  Future<void> _seek(double v) async {
+    final target = Duration(milliseconds: v.round());
+    await _player.seek(target);
   }
 
   String _fmt(Duration d) {
@@ -493,60 +525,66 @@ class _AudioTileState extends State<_AudioTile> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.path.isEmpty || !File(widget.path).existsSync()) {
-      return const SizedBox(); // nothing to play
-    }
+    if (widget.path.isEmpty) return const SizedBox.shrink();
 
-    const blue = _C.primary;
-    final totalText = _duration == Duration.zero ? '--:--' : _fmt(_duration);
-    final pos = (_duration != Duration.zero && _position > _duration)
-        ? _duration
-        : _position;
-    final posText = _fmt(pos);
+    final max = _duration.inMilliseconds.toDouble();
+    final value =
+        _position.inMilliseconds.clamp(0, _duration.inMilliseconds).toDouble();
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 64, minWidth: 88),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFF3FF),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        // Use a Row (not Stack) + Flexible text to avoid overflow
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: _toggle,
-              icon: Icon(
-                _isPlaying
-                    ? CupertinoIcons.pause_fill
-                    : CupertinoIcons.play_fill,
-                color: blue,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                '$posText / $totalText',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: blue,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF3FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDFE6F5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              // Play / Pause
+              IconButton(
+                onPressed: _toggle,
+                icon: Icon(
+                  _isPlaying
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_fill,
+                  color: _C.primary,
+                  size: 28,
                 ),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 8),
+
+              // Slider (expanded)
+              Expanded(
+                child: Slider(
+                  value: max == 0 ? 0 : value,
+                  min: 0,
+                  max: max == 0 ? 1 : max,
+                  onChanged: max == 0 ? null : _seek,
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Time label
+              Text(
+                '${_fmt(_position)} / ${max == 0 ? '--:--' : _fmt(_duration)}',
+                style: const TextStyle(
+                  color: _C.primary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-/* ---------- tiny helpers ---------- */
+/* ------------------------------ Tiny bits ------------------------------ */
 
 class _OperatorSection extends StatelessWidget {
   final String name;
@@ -563,26 +601,20 @@ class _OperatorSection extends StatelessWidget {
     const labelStyle = TextStyle(color: _C.muted, fontWeight: FontWeight.w800);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // ← hard left
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Operator', style: labelStyle),
         const SizedBox(height: 6),
-
-        // Name (full width, left aligned)
         _LineWithIcon(
           icon: CupertinoIcons.person,
           text: name.isEmpty ? '—' : name,
         ),
         const SizedBox(height: 4),
-
-        // Phone (full width, left aligned)
         _LineWithIcon(
           icon: CupertinoIcons.phone,
           text: phone.isEmpty ? '—' : phone,
         ),
         const SizedBox(height: 4),
-
-        // Info (full width, left aligned)
         _LineWithIcon(
           icon: CupertinoIcons.location,
           text: info.isEmpty ? '—' : info,
@@ -618,7 +650,7 @@ class _LineWithIcon extends StatelessWidget {
   }
 }
 
-/* ───────────────────────── Style ───────────────────────── */
+/* ------------------------------ Style ------------------------------ */
 
 class _C {
   static const primary = Color(0xFF2F6BFF);

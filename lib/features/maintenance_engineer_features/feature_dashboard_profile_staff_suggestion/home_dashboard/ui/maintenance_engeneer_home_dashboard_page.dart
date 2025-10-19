@@ -24,13 +24,13 @@ class MaintenanceEngineerHomeDashboardPage
             onMenuSelect: (value) {
               switch (value) {
                 case 'profile':
-                  Get.toNamed(Routes.maintenanceEngeneerprofileScreen);
+                  Get.toNamed(Routes.profileScreen);
                   break;
                 case 'support':
-                  Get.toNamed(Routes.maintenanceEngeneersupportScreen);
+                  Get.toNamed(Routes.supportScreen);
                   break;
                 case 'suggestions':
-                  Get.toNamed(Routes.maintenanceEngeneersuggestionScreen);
+                  Get.toNamed(Routes.suggestionScreen);
                   break;
                 case 'signout':
                   c.signOut();

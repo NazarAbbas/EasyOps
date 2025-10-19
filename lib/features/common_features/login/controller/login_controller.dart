@@ -71,9 +71,8 @@ class LoginPageController extends GetxController {
       debugPrint('Login HTTP code: ${result.httpCode}');
 
       if (result.isSuccess && result.data != null) {
-        final themeCtrl = Get.put(ThemeController(), permanent: true);
-        const userRole = 'maintenance_engineer';
-        themeCtrl.setThemeByRole(userRole);
+        // const userRole = 'maintenance_engineer';
+        const userRole = 'production_manager';
 
         final loginPersonDetails =
             await repositoryImpl.loginPersonDetails(result.data!.userName);
@@ -102,13 +101,18 @@ class LoginPageController extends GetxController {
           await assetRepository.upsertAssetData(assetsData.data!);
           await shiftRepository.upsertAllShift(shiftData.data!);
 
+          final themeCtrl = Get.put(ThemeController(), permanent: true);
+          themeCtrl.setThemeByRole(userRole);
           if (userRole == 'maintenance_engineer') {
-            await SharePreferences.put(SharePreferences.userRole, 'engineer');
-            Get.toNamed(Routes.maintenanceEngeneerlandingDashboardScreen);
+            await SharePreferences.put(
+                SharePreferences.userRole, SharePreferences.engineerRole);
+            // Get.toNamed(Routes.maintenanceEngeneerlandingDashboardScreen);
           } else {
-            await SharePreferences.put(SharePreferences.userRole, 'operator');
-            Get.toNamed(Routes.landingDashboardScreen);
+            await SharePreferences.put(SharePreferences.userRole,
+                SharePreferences.productionManagerRole);
+            //Get.toNamed(Routes.landingDashboardScreen);
           }
+          Get.toNamed(Routes.landingDashboardScreen);
           AppSnackbar.success(
             'Logged in successfully)',
             duration: Duration(seconds: Constant.snackbarSmallDuration),

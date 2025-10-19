@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SharePreferences {
 // ------- Keys (const) -------
   static const String userRole = 'userRole';
+  static const String engineerRole = 'engineerRole';
+  static const String productionManagerRole = 'productionManagerRole';
 
   SharePreferences._(); // no instances
 

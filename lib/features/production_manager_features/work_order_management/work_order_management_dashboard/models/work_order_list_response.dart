@@ -46,6 +46,7 @@ class WorkOrderListResponse {
 class WorkOrder {
   final String id;
   final String type;
+  final String issueNo;
 
   // Nullable in API -> nullable in model
   final String? plantId;
@@ -76,13 +77,14 @@ class WorkOrder {
   final DateTime updatedAt;
 
   final int escalated;
-  final String timeLeft; // <-- non-nullable, defaults to "0" on parse
+  final String estimatedTimeToFix; // <-- non-nullable, defaults to "0" on parse
 
   final Tenant tenant;
   final Client client;
   final Asset asset;
 
-  final dynamic reportedBy;
+  final Person? reportedBy;
+  final Person? operator;
   final dynamic createdBy;
   final dynamic updatedBy;
 
@@ -90,6 +92,7 @@ class WorkOrder {
 
   WorkOrder({
     required this.id,
+    required this.issueNo,
     required this.type,
     required this.issueTypeId,
     required this.issueTypeName,
@@ -111,11 +114,12 @@ class WorkOrder {
     required this.createdAt,
     required this.updatedAt,
     required this.escalated,
-    required this.timeLeft,
+    required this.estimatedTimeToFix,
     required this.tenant,
     required this.client,
     required this.asset,
     required this.reportedBy,
+    required this.operator,
     required this.createdBy,
     required this.updatedBy,
     required this.mediaFiles,
@@ -128,6 +132,7 @@ class WorkOrder {
 
     return WorkOrder(
       id: _string(json['id'])!, // non-nullable: throw if truly missing
+      issueNo: _string(json['issueNo'])!, // no
       type: _string(json['type'])!,
       plantId: _string(json['plantId']), // could be null
       plantName: _string(json['plantName']),
@@ -149,11 +154,16 @@ class WorkOrder {
       createdAt: _date(json['createdAt'])!,
       updatedAt: _date(json['updatedAt'])!,
       escalated: _int(json['escalated']) ?? 0,
-      timeLeft: _string(json['timeLeft']) ?? '0h:0m', // <-- default to "0"
+      estimatedTimeToFix:
+          _string(json['estimatedTimeToFix']) ?? '', // <-- default to "0"
       tenant: Tenant.fromJson((json['tenant'] as Map).cast<String, dynamic>()),
       client: Client.fromJson((json['client'] as Map).cast<String, dynamic>()),
       asset: Asset.fromJson((json['asset'] as Map).cast<String, dynamic>()),
-      reportedBy: json['reportedBy'],
+      reportedBy: json['reportedBy'] != null
+          ? Person.fromJson(json['reportedBy'])
+          : null,
+      operator:
+          json['operator'] != null ? Person.fromJson(json['operator']) : null,
       createdBy: json['createdBy'],
       updatedBy: json['updatedBy'],
       mediaFiles: mf
@@ -164,6 +174,7 @@ class WorkOrder {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'issueNo': issueNo,
         'type': type,
         'plantId': plantId,
         'plantName': plantName,
@@ -185,14 +196,47 @@ class WorkOrder {
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
         'escalated': escalated,
-        'timeLeft': timeLeft,
+        'estimatedTimeToFix': estimatedTimeToFix,
         'tenant': tenant.toJson(),
         'client': client.toJson(),
         'asset': asset.toJson(),
-        'reportedBy': reportedBy,
+        'reportedBy': reportedBy?.toJson(),
+        'operator': operator?.toJson(),
         'createdBy': createdBy,
         'updatedBy': updatedBy,
         'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),
+      };
+}
+
+class Person {
+  final String id;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? phone;
+
+  Person({
+    required this.id,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.phone,
+  });
+
+  factory Person.fromJson(Map<String, dynamic> json) => Person(
+        id: json['id'] ?? '',
+        firstName: json['firstName'],
+        lastName: json['lastName'],
+        email: json['email'],
+        phone: json['phone'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phone': phone,
       };
 }
 
@@ -227,12 +271,14 @@ class Client {
 class Asset {
   final String id;
   final String name;
+  final String assetNo;
   final String serialNumber;
   final String status;
 
   Asset({
     required this.id,
     required this.name,
+    required this.assetNo,
     required this.serialNumber,
     required this.status,
   });
@@ -240,6 +286,7 @@ class Asset {
   factory Asset.fromJson(Map<String, dynamic> json) => Asset(
         id: _string(json['id'])!,
         name: _string(json['name'])!,
+        assetNo: _string(json['assetNo'])!,
         serialNumber: _string(json['serialNumber'])!,
         status: _string(json['status'])!,
       );
@@ -247,6 +294,7 @@ class Asset {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'assetNo': assetNo,
         'serialNumber': serialNumber,
         'status': status,
       };
@@ -361,7 +409,7 @@ DateTime? _date(dynamic v) {
 }
 
 extension WorkOrderX on WorkOrder {
-  int get timeLeftMinutes => int.tryParse(timeLeft) ?? 0;
+  int get timeLeftMinutes => int.tryParse(estimatedTimeToFix) ?? 0;
 
   String get timeLeftHm {
     final m = timeLeftMinutes;

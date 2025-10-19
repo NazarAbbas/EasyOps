@@ -172,10 +172,10 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => MaintenanceEnginnerPMChecklistController());
     Get.lazyPut(() => MaintenanceEnginnerAssetsHistoryController());
     Get.lazyPut(() => MaintenanceEnginnerHomeDashboardController());
-    Get.lazyPut(() => MaintenanceEnginnerProfileController());
-    Get.lazyPut(() => MaintenanceEnginnerSupportController());
-    Get.lazyPut(() => MaintenanceEnginnerSuggestionsController());
-    Get.lazyPut(() => MaintenanceEnginnerNewSuggestionController());
+    // Get.lazyPut(() => MaintenanceEnginnerProfileController());
+    //  Get.lazyPut(() => MaintenanceEnginnerSupportController());
+    //Get.lazyPut(() => MaintenanceEnginnerSuggestionsController());
+    //  Get.lazyPut(() => MaintenanceEnginnerNewSuggestionController());
     Get.lazyPut(() => MaintenanceEnginnerSuggestionDetailController());
     Get.lazyPut(() => MaintenanceEnginnerAlertsController());
     Get.lazyPut(() => MaintenanceEnginnerReturnSparePartsController());

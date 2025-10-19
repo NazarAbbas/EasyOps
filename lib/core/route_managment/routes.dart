@@ -52,118 +52,139 @@ class Routes {
 
   //Maintenance Engineer
 
-  static String maintenanceEngeneerWorkOrderScreen = '/WORK_ORDER_SCREEN';
-  static String maintenanceEngeneerhomeDashboardScreen = '/HOME_SCREEN';
+  static String maintenanceEngeneerWorkOrderScreen =
+      '/MAINTENANCE_ENGINEER_WORK_ORDER_SCREEN';
+  static String maintenanceEngeneerhomeDashboardScreen =
+      '/MAINTENANCE_ENGINEER_HOME_SCREEN';
   static String maintenanceEngeneerbottomNavigationAssetsScreen =
-      '/ASSETS_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_SCREEN';
   static String maintenanceEngeneerworkOrderInfoScreen =
-      '/WORK_ORDER_INFO_SCREEN';
-  static String maintenanceEngeneeroperatorInfoScreen = '/OPERATOR_INFO_SCREEN';
-  static String maintenanceEngeneermcHistoryScreen = '/MC_HISTORY_SCREEN';
+      '/MAINTENANCE_ENGINEER_WORK_ORDER_INFO_SCREEN';
+  static String maintenanceEngeneeroperatorInfoScreen =
+      '/MAINTENANCE_ENGINEER_OPERATOR_INFO_SCREEN';
+  static String maintenanceEngeneermcHistoryScreen =
+      '/MAINTENANCE_ENGINEER_MC_HISTORY_SCREEN';
   static String maintenanceEngeneerworkOrderTabShellScreen =
-      '/WORK_ORDER_TAB_SHELL_SCREEN';
+      '/MAINTENANCE_ENGINEER_WORK_ORDER_TAB_SHELL_SCREEN';
   static String maintenanceEngeneerworkOrderDetailScreen =
-      '/WORK_ORDER_DETAIL_SCREEN';
+      '/MAINTENANCE_ENGINEER_WORK_ORDER_DETAIL_SCREEN';
   static String maintenanceEngeneerupdateWorkOrderTabScreen =
-      '/UPDATE_WORK_ORDER_TAB_SCREEN';
+      '/MAINTENANCE_ENGINEER_UPDATE_WORK_ORDER_TAB_SCREEN';
   static String maintenanceEngeneerreOpenWorkOrderScreen =
-      '/REOPEN_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_REOPEN_WORK_ORDER_SCREEN';
   static String maintenanceEngeneerclosureWorkOrderScreen =
-      '/CLOSURE_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_CLOSURE_WORK_ORDER_SCREEN';
   static String maintenanceEngeneerassetsManagementDashboardScreen =
-      '/ASSETS_MANAGEMENT_DASHBOARD_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_MANAGEMENT_DASHBOARD_SCREEN';
   static String maintenanceEngeneerassetsDetailsScreen =
-      '/ASSETS_DETAILS_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_DETAILS_SCREEN';
   static String maintenanceEngeneerassetsSpecificationScreen =
-      '/ASSETS_SPECIFICATION_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_SPECIFICATION_SCREEN';
   static String maintenanceEngeneerassetsDashboardScreen =
-      '/ASSETS_DASHBOARD_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_DASHBOARD_SCREEN';
   static String maintenanceEngeneerassetsPMSchedular =
-      '/ASSETS_PM_SCHEDULAR_SCREEN';
-  static String maintenanceEngeneerpMCheckListScreen = '/PM_CHECKLIST_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_PM_SCHEDULAR_SCREEN';
+  static String maintenanceEngeneerpMCheckListScreen =
+      '/MAINTENANCE_ENGINEER_PM_CHECKLIST_SCREEN';
   static String maintenanceEngeneerassetsHistoryScreen =
-      '/ASSETS_HISTORY_SCREEN';
-  static String maintenanceEngeneerprofileScreen = '/PROFILE_SCREEN';
-  static String maintenanceEngeneersupportScreen = '/SUPPORT_SCREEN';
-  static String maintenanceEngeneersuggestionScreen = '/SUGGESTION_SCREEN';
-  static String maintenanceEngeneernewSuggestionScreen =
-      '/NEW_SUGGESTION_SCREEN';
+      '/MAINTENANCE_ENGINEER_ASSETS_HISTORY_SCREEN';
+  // static String maintenanceEngeneerprofileScreen = '/PROFILE_SCREEN';
+  // static String maintenanceEngeneersupportScreen =
+  //     '/MAINTENANCE_ENGINEER_SUPPORT_SCREEN';
+  // static String maintenanceEngeneersuggestionScreen =
+  //     '/MAINTENANCE_ENGINEER_SUGGESTION_SCREEN';
+  // static String maintenanceEngeneernewSuggestionScreen =
+  //     '/MAINTENANCE_ENGINEER_NEW_SUGGESTION_SCREEN';
   static String maintenanceEngeneersuggestionDetailsScreen =
-      '/SUGGESTION_DETAILS_SCREEN';
-  static String maintenanceEngeneeralertScreen = '/ALERT_SCREEN';
+      '/MAINTENANCE_ENGINEER_SUGGESTION_DETAILS_SCREEN';
+  static String maintenanceEngeneeralertScreen =
+      '/MAINTENANCE_ENGINEER_ALERT_SCREEN';
   static String maintenanceEngeneersparePartsTabsShellScreen =
-      '/SPARE_PARTS_TABS_SHELL_SCREEN';
+      '/MAINTENANCE_ENGINEER_SPARE_PARTS_TABS_SHELL_SCREEN';
   static String maintenanceEngeneerworkOrderManagementScreen =
-      '/WORK_ORDER_MANAGEMENT_SCREEN';
+      '/MAINTENANCE_ENGINEER_WORK_ORDER_MANAGEMENT_SCREEN';
   static String maintenanceEngeneerworkOrderDetailsTabScreen =
-      '/WORK_ORDER_DETAILS_TAB_SCREEN';
+      '/MAINTENANCE_ENGINEER_WORK_ORDER_DETAILS_TAB_SCREEN';
   static String maintenanceEngeneerstartWorkOrderScreen =
-      '/START_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_START_WORK_ORDER_SCREEN';
   static String maintenanceEngeneerreassignWorkOrderScreen =
-      '/REASSIGN_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_REASSIGN_WORK_ORDER_SCREEN';
   static String maintenanceEngeneerstartWorkSubmitScreen =
-      '/START_WORK_SUBMIT_SCREEN';
+      '/MAINTENANCE_ENGINEER_START_WORK_SUBMIT_SCREEN';
   static String maintenanceEngeneerholdWorkOrderScreen =
-      '/HOLD_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_HOLD_WORK_ORDER_SCREEN';
   static String maintenanceEngeneermaintenanceEngeneercancelWorkOrderScreen =
-      '/CANCEL_WORK_ORDER_SCREEN';
-  static String maintenanceEngeneerdiagnosticsScreen = '/DIAGNOSTICS_SCREEN';
+      '/MAINTENANCE_ENGINEER_CANCEL_WORK_ORDER_SCREEN';
+  static String maintenanceEngeneerdiagnosticsScreen =
+      '/MAINTENANCE_ENGINEER_DIAGNOSTICS_SCREEN';
   static String maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen =
-      '/CANCEL_WORK_ORDER_FROM_DIAGNOSTICS_SCREEN';
-  static String maintenanceEngeneerclosureScreen = '/CLOSURE_SCREEN';
+      '/MAINTENANCE_ENGINEER_CANCEL_WORK_ORDER_FROM_DIAGNOSTICS_SCREEN';
+  static String maintenanceEngeneerclosureScreen =
+      '/MAINTENANCE_ENGINEER_CLOSURE_SCREEN';
   static String maintenanceEngeneeracceptedWorkOrderDetailScreen =
-      '/ACCEPTED_WORK_ORDER_DETAIL_SCREEN';
-  static String maintenanceEngeneersignOffScreen = '/SIGN_OFF_SCREEN';
-  static String maintenanceEngeneerreturnSpareScreen = '/RETURN_SPARE_SCREEN';
-  static String maintenanceEngeneerrcaAnalysisScreen = '/RCA_ANALYSIS_SCREEN';
+      '/MAINTENANCE_ENGINEER_ACCEPTED_WORK_ORDER_DETAIL_SCREEN';
+  static String maintenanceEngeneersignOffScreen =
+      '/MAINTENANCE_ENGINEER_SIGN_OFF_SCREEN';
+  static String maintenanceEngeneerreturnSpareScreen =
+      '/MAINTENANCE_ENGINEER_RETURN_SPARE_SCREEN';
+  static String maintenanceEngeneerrcaAnalysisScreen =
+      '/MAINTENANCE_ENGINEER_RCA_ANALYSIS_SCREEN';
   static String maintenanceEngeneerpendingActivityScreen =
-      '/PENDING_ACTIVITY_SCREEN';
+      '/MAINTENANCE_ENGINEER_PENDING_ACTIVITY_SCREEN';
   static String maintenanceEngeneerrequestSparesScreen =
-      '/REQUEST_SPARES_SCREEN';
-  static String maintenanceEngeneersparesCartScreen = '/SPARES_CART_SCREEN';
-  static String maintenanceEngeneerhistorytScreen = '/HISTORY__SCREEN';
-  static String maintenanceEngeneertimeLineScreen = '/TIMELINE__SCREEN';
+      '/MAINTENANCE_ENGINEER_REQUEST_SPARES_SCREEN';
+  static String maintenanceEngeneersparesCartScreen =
+      '/SMAINTENANCE_ENGINEER_PARES_CART_SCREEN';
+  static String maintenanceEngeneerhistorytScreen =
+      '/MAINTENANCE_ENGINEER_HISTORY__SCREEN';
+  static String maintenanceEngeneertimeLineScreen =
+      '/MAINTENANCE_ENGINEER_TIMELINE__SCREEN';
   static String maintenanceEngeneerpreventiveMaintenanceDashboardScreen =
-      '/PREVENTIVE_MAINTENANCE_DASHBOARD_SCREEN';
+      '/MAINTENANCE_ENGINEER_PREVENTIVE_MAINTENANCE_DASHBOARD_SCREEN';
   static String maintenanceEngeneerpreventiveWorkOrderScreen =
-      '/PREVENTIVE_WORK__SCREEN';
+      '/MAINTENANCE_ENGINEER_PREVENTIVE_WORK__SCREEN';
   static String maintenanceEngeneerpurposedNewSlotScreen =
-      '/PURPOSED_NEW_SLOT_SCREEN';
+      '/MAINTENANCE_ENGINEER_PURPOSED_NEW_SLOT_SCREEN';
   static String maintenanceEngeneerpreventiveStartWorkScreen =
-      '/PREVENTIVE_START_WORK_SCREEN';
-  static String maintenanceEngeneeraddResourceScreen = '/ADD_RESOURCE_SCREEN';
-  static String maintenanceEngeneerrescheduleScreen = '/TIMELINE__SCREEN';
+      '/MAINTENANCE_ENGINEER_PREVENTIVE_START_WORK_SCREEN';
+  static String maintenanceEngeneeraddResourceScreen =
+      '/MAINTENANCE_ENGINEER_ADD_RESOURCE_SCREEN';
+  static String maintenanceEngeneerrescheduleScreen =
+      '/MAINTENANCE_ENGINEER_TIMELINE__SCREEN';
   static String maintenanceEngeneerpreventiveDashboardScreen =
-      '/PREVENTIVE_DASHBOARD_SCREEN';
+      '/MAINTENANCE_ENGINEER_PREVENTIVE_DASHBOARD_SCREEN';
   static String maintenanceEngeneerlandingDashboardScreen =
-      '/LANDING_DASHBOARD_SCREEN';
-  static String maintenanceEngeneerstaffScreen = '/STAFF_SCREEN';
-  static String maintenanceEngeneermyDashboardScreen = '/MY_DASHBOARD_SCREEN';
+      '/MAINTENANCE_ENGINEER_LANDING_DASHBOARD_SCREEN';
+  static String maintenanceEngeneerstaffScreen =
+      '/MAINTENANCE_ENGINEER_STAFF_SCREEN';
+  static String maintenanceEngeneermyDashboardScreen =
+      '/MAINTENANCE_ENGINEER_MY_DASHBOARD_SCREEN';
   static String maintenanceEngeneergeneralWorkOrderScreen =
-      '/GENERAL_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_WORK_ORDER_SCREEN';
   static String maintenanceEngeneergeneralWorkOrderDetailScreen =
-      '/GENERAL_WORK_ORDER_DETAIL_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_WORK_ORDER_DETAIL_SCREEN';
   static String maintenanceEngeneergeneralStartWorkOrderScreen =
-      '/GENERAL_START_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_START_WORK_ORDER_SCREEN';
   static String maintenanceEngeneergeneralReassignStartWorkOrderScreen =
-      '/GENERAL_REASSIGN_START_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_REASSIGN_START_WORK_ORDER_SCREEN';
   static String maintenanceEngeneergeneralSubmitWorkOrderScreen =
-      '/GENERAL_SUBMIT_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_SUBMIT_WORK_ORDER_SCREEN';
   static String maintenanceEngeneergeneralDiagnosticsWorkOrderScreen =
-      '/GENERAL_DIAGNOSTICS_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_DIAGNOSTICS_WORK_ORDER_SCREEN';
 
   static String maintenanceEngeneergeneralReOpensWorkOrderScreen =
-      '/GENERAL_RE_OPEN_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_RE_OPEN_WORK_ORDER_SCREEN';
   static String maintenanceEngeneergeneralCancelWorkOrderScreen =
-      '/GENERAL_CANCEL_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_CANCEL_WORK_ORDER_SCREEN';
   static String maintenanceEngeneergeneralHoldWorkOrderScreen =
-      '/GENERAL_HOLD_WORK_ORDER_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_HOLD_WORK_ORDER_SCREEN';
 
-  static String maintenanceEngeneergeneralRCAScreen = '/GENERAL_RCA_SCREEN';
+  static String maintenanceEngeneergeneralRCAScreen =
+      '/MAINTENANCE_ENGINEER_GENERAL_RCA_SCREEN';
   static String maintenanceEngeneergeneralRetuenSpareScreen =
-      '/GENERAL_RETURN_SPARE_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_RETURN_SPARE_SCREEN';
   static String maintenanceEngeneergeneralSignOffScreen =
-      '/GENERAL_SIGN_OFF_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_SIGN_OFF_SCREEN';
   static String maintenanceEngeneergeneralClosureScreen =
-      '/GENERAL_CLOSURE_SCREEN';
+      '/MAINTENANCE_ENGINEER_GENERAL_CLOSURE_SCREEN';
 }

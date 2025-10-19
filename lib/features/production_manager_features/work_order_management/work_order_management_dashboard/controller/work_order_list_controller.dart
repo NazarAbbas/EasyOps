@@ -1,3 +1,5 @@
+import 'package:easy_ops/core/utils/share_preference.dart'
+    show SharePreferences, engineerRole;
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/domain/work_order_list_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
     show WorkOrder, Tenant, Client, Asset;
@@ -5,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WorkOrdersController extends GetxController {
+  var userRole = ''.obs;
+
   final WorkOrderListRepositoryImpl repositoryImpl =
       WorkOrderListRepositoryImpl();
 
@@ -27,9 +31,22 @@ class WorkOrdersController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     // Recompute visible list whenever any of these change
     everAll([orders, query, selectedTab], (_) => _recomputeVisible());
     _loadInitial();
+  }
+
+  @override
+  void onReady() async {
+    super.onReady();
+    await _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    // use typed helper + default (no cast!)
+    userRole.value =
+        await SharePreferences.get<String>(SharePreferences.userRole) as String;
   }
 
   // ---------------- API / Initial Load ----------------

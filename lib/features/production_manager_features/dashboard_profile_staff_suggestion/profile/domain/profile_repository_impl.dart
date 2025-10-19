@@ -14,7 +14,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       await _apiService.logout(); // returns Future<void>
       return ApiResult<LogoutResponse>(
-        httpCode: 204,
+        httpCode: 200,
         message: 'Success',
       );
     } on DioException catch (e) {
