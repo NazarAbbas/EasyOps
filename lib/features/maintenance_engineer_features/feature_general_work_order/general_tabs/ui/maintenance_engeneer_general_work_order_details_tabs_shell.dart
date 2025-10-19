@@ -1,21 +1,22 @@
 // The screen with header tabs + body that swaps content
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/accept_work_order/ui/accept_work_order_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/history/ui/history_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/timeline/ui/timeline_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_assets/ui/general_work_order_assets_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_start_work_order/ui/maintenance_engineer_general_start_work_order_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_tabs/controller/general_work_order_details_tabs_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_timeline/ui/general_work_order_timeline_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MaintenanceEngineerWorkOrderDetailsTabsShell extends StatelessWidget {
-  const MaintenanceEngineerWorkOrderDetailsTabsShell({super.key});
+class MaintenanceEngineerGeneralOrderDetailsTabsShell extends StatelessWidget {
+  const MaintenanceEngineerGeneralOrderDetailsTabsShell({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = Get.put(MaintenanceEngineerWorkTabsController());
+    final ctrl =
+        Get.put(MaintenanceEnginnerGenreralOrderDetailsTabsController());
     final isTablet = _isTablet(context);
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
@@ -74,9 +75,9 @@ class MaintenanceEngineerWorkOrderDetailsTabsShell extends StatelessWidget {
         () => IndexedStack(
           index: ctrl.selectedTab.value, // 0 shows WorkOrderInfoPage first
           children: [
-            const MaintenanceEngineerAcceptWorkOrderPage(),
-            const MaintenanceEngineerHistoryPage(),
-            const MaintenanceEngineerTimelinePage(),
+            const MaintenanceEngineerGeneralStartWorkOrderPage(),
+            const GeneralWorkOrderAssetsPage(),
+            const GeneralWorkOrderTimelinePage(),
           ],
         ),
       ),
@@ -84,7 +85,8 @@ class MaintenanceEngineerWorkOrderDetailsTabsShell extends StatelessWidget {
   }
 }
 
-class _HeaderTabs extends GetView<MaintenanceEngineerWorkTabsController> {
+class _HeaderTabs
+    extends GetView<MaintenanceEnginnerGenreralOrderDetailsTabsController> {
   const _HeaderTabs();
 
   @override

@@ -1,8 +1,8 @@
 // lib/core/navigation/main_tab_shell.dart
-import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_management_dashboard/ui/assets_management_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_management_dashboard/ui/maintenance_engeneer_assets_management_dashboard_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/preventive_dashboard/controller/preventive_dashboard_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/ui/preventive_work_order_list_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/tabs/ui/spare_parts_tabs_shell.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/ui/maintenance_engeneer_preventive_work_order_list_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/tabs/ui/maintenance_engeneer_spare_parts_tabs_shell.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

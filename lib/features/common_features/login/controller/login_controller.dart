@@ -1,6 +1,7 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/theme_controller.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/assets_repository.dart';
 import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
 import 'package:easy_ops/database/db_repository/lookup_repository.dart';
@@ -70,9 +71,9 @@ class LoginPageController extends GetxController {
       debugPrint('Login HTTP code: ${result.httpCode}');
 
       if (result.isSuccess && result.data != null) {
-        // final themeCtrl = Get.put(ThemeController(), permanent: true);
-        // const userRoleFromApi = 'maintenance_engineer';
-        // themeCtrl.setThemeByRole(userRoleFromApi);
+        final themeCtrl = Get.put(ThemeController(), permanent: true);
+        const userRole = 'maintenance_engineer';
+        themeCtrl.setThemeByRole(userRole);
 
         final loginPersonDetails =
             await repositoryImpl.loginPersonDetails(result.data!.userName);
@@ -100,7 +101,14 @@ class LoginPageController extends GetxController {
           await lookupRepository.upsertLookupData(dropDownData.data!);
           await assetRepository.upsertAssetData(assetsData.data!);
           await shiftRepository.upsertAllShift(shiftData.data!);
-          Get.toNamed(Routes.landingDashboardScreen);
+
+          if (userRole == 'maintenance_engineer') {
+            await SharePreferences.put(SharePreferences.userRole, 'engineer');
+            Get.toNamed(Routes.maintenanceEngeneerlandingDashboardScreen);
+          } else {
+            await SharePreferences.put(SharePreferences.userRole, 'operator');
+            Get.toNamed(Routes.landingDashboardScreen);
+          }
           AppSnackbar.success(
             'Logged in successfully)',
             duration: Duration(seconds: Constant.snackbarSmallDuration),

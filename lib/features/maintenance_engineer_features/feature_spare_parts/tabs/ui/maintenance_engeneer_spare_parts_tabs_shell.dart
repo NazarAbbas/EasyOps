@@ -1,7 +1,7 @@
 // The screen with header tabs + body that swaps content
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/consume_spare_parts/ui/consume_spare_parts_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/return_spare_parts/ui/return_spare_parts_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/consume_spare_parts/ui/maintenance_engineer_consume_spare_parts_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/return_spare_parts/ui/maintenance_engineer_return_spare_parts_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/tabs/controller/spare_parts_tabs_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

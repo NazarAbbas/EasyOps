@@ -1,4 +1,4 @@
-import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_dashboard/ui/assets_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_dashboard/ui/maintenance_engeneer_assets_dashboard_page.dart';
 import 'package:get/get.dart';
 
 class AssetSummary {

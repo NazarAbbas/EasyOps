@@ -1,27 +1,25 @@
 // lib/core/navigation/main_tab_shell.dart
-import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_management_dashboard/ui/assets_management_dashboard_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart'
-    show MaintenanceEngineerHomeDashboardPage;
-import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/general_work_order/controller/genral_work_order_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/home_dashboard/ui/maintenance_engeneer_home_dashboard_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../feature_assets_management/assets_management_dashboard/ui/maintenance_engeneer_assets_management_dashboard_page.dart';
+import '../../../feature_maintenance_work_order/maintenance_wotk_order_management/ui/maintenance_engeneer_work_order_management_list_page.dart';
+import '../controller/landing_dashboard_nav_controller.dart';
 
-import '../../../feature_general_work_order/general_work_order_list/ui/general_work_order_list_page.dart';
-
-class MaintenanceEngineerGeneralWorkOrderPage extends StatefulWidget {
-  const MaintenanceEngineerGeneralWorkOrderPage({super.key});
+class MaintenanceEngineerLandingDashboardTabShell extends StatefulWidget {
+  const MaintenanceEngineerLandingDashboardTabShell({super.key});
 
   @override
-  State<MaintenanceEngineerGeneralWorkOrderPage> createState() =>
-      _LandingDashboardTabShellState();
+  State<MaintenanceEngineerLandingDashboardTabShell> createState() =>
+      _MaintenanceEngineerLandingDashboardTabShellState();
 }
 
-class _LandingDashboardTabShellState
-    extends State<MaintenanceEngineerGeneralWorkOrderPage> {
+class _MaintenanceEngineerLandingDashboardTabShellState
+    extends State<MaintenanceEngineerLandingDashboardTabShell> {
   late final PageController _pageController;
   final c = Get.find<
-      MaintenanceEnginnerGenralWorkOrderRootNavController>(); // don't put() here
+      MaintenanceEnginnerLandingRootNavController>(); // don't put() here
 
   @override
   void initState() {
@@ -70,9 +68,12 @@ class _LandingDashboardTabShellState
         children: const [
           MaintenanceEngineerHomeDashboardPage(
               key: PageStorageKey('tab-0-home')),
+          MaintenanceEngineerHomeDashboardPage(
+              key: PageStorageKey('tab-1-inventory')),
           MaintenanceEngineerHomeDashboardPageAssetsManagementDashboardPage(
-              key: PageStorageKey('tab-1-assets')),
-          GeneralWorkOrderListPage(key: PageStorageKey('tab-2-workorders')),
+              key: PageStorageKey('tab-2-assets')),
+          MaintenanceEngineerWorkOrdersManagementListPage(
+              key: PageStorageKey('tab-3-workorders')),
         ],
       ),
       bottomNavigationBar: Obx(
@@ -83,6 +84,10 @@ class _LandingDashboardTabShellState
             NavigationDestination(
               icon: Icon(CupertinoIcons.house),
               label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(CupertinoIcons.increase_indent),
+              label: 'Inventory',
             ),
             NavigationDestination(
               icon: Icon(CupertinoIcons.cube_box),
