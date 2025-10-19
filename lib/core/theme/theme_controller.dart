@@ -51,16 +51,18 @@ class ThemeController extends GetxController {
   }
 
   // Map roles -> precise themes
-  late final ThemeData userTheme = _exactTheme(const Color(0xFF2F6BFF));
-  late final ThemeData adminTheme = _exactTheme(AppColors.darkGray);
+  late final ThemeData productionManagerTheme =
+      _exactTheme(const Color(0xFF2F6BFF));
+  late final ThemeData maintenanceEngineerTheme =
+      _exactTheme(AppColors.darkGray);
   late final ThemeData sellerTheme = _exactTheme(Colors.teal);
   late final ThemeData superUserTheme = _exactTheme(Colors.deepPurple);
   late final ThemeData auditorTheme = _exactTheme(Colors.indigo);
   late final ThemeData guestTheme = _exactTheme(Colors.grey);
 
   late final Map<String, ThemeData> _byRole = {
-    'user': userTheme,
-    'admin': adminTheme,
+    'production_manager': productionManagerTheme,
+    'maintenance_engineer': maintenanceEngineerTheme,
     'seller': sellerTheme,
     'superuser': superUserTheme,
     'super user': superUserTheme,
@@ -73,12 +75,12 @@ class ThemeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    currentTheme.value = userTheme;
+    currentTheme.value = productionManagerTheme;
   }
 
   void setThemeByRole(String role) {
     final key = role.trim().toLowerCase();
-    final t = _byRole[key] ?? userTheme;
+    final t = _byRole[key] ?? productionManagerTheme;
     currentTheme.value = t; // rebuilds GetMaterialApp(theme: ...)
     Get.changeTheme(t); // also update Get’s theme context-wide
   }

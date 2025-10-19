@@ -1,22 +1,22 @@
 // lib/network/rest_client.dart
 import 'package:dio/dio.dart' hide Headers;
-import 'package:easy_ops/features/cancel_work_order/domain/cancel_work_order_request.dart';
-import 'package:easy_ops/features/cancel_work_order/models/cancel_work_order_response.dart';
-import 'package:easy_ops/features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
-import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
-import 'package:easy_ops/features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
-import 'package:easy_ops/features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
-import 'package:easy_ops/features/login/models/login_person_details.dart';
-import 'package:easy_ops/features/login/models/operators_details.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_response.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
-import 'package:easy_ops/features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
-import 'package:easy_ops/features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
-import 'package:easy_ops/features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_response.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
+import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:easy_ops/features/login/models/login_response.dart';
+import 'package:easy_ops/features/common_features/login/models/login_response.dart';
 
 part 'rest_client.g.dart';
 

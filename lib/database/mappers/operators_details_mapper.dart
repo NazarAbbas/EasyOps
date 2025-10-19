@@ -1,6 +1,6 @@
 // lib/features/persons/data/mappers/person_mappers.dart
 import 'package:easy_ops/database/entity/operators_details_entity.dart';
-import 'package:easy_ops/features/login/models/operators_details.dart';
+import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 
 extension PersonApiToEntityX on OperatosDetails {
   OperatorsDetailsEntity toEntity() => OperatorsDetailsEntity(

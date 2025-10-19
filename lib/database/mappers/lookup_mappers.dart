@@ -1,5 +1,5 @@
 import 'package:easy_ops/database/entity/lookup_entity.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 
 extension LookupEntityDomain on LookupEntity {
   LookupValues toDomain() => LookupValues(

@@ -1,5 +1,5 @@
 import 'package:floor/floor.dart';
-import '../../features/work_order_management/create_work_order/models/lookup_data.dart';
+import '../../features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 
 class LookupTypeConverter extends TypeConverter<LookupType, String> {
   @override

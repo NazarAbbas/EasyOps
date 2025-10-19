@@ -1,7 +1,7 @@
 // lib/database/mappers/asset_mappers.dart
 import 'package:easy_ops/database/converter/criticality_converter.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 
 extension AssetEntityDomainX on AssetEntity {
   AssetItem toDomain() => AssetItem(

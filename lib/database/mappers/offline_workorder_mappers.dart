@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:easy_ops/database/entity/offline_work_order_entity.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/create_work_order_request.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/offline_work_order.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/offline_work_order.dart';
 
 /// ------------------ ENTITY -> DOMAIN ------------------
 extension OfflineWorkOrderEntityX on OfflineWorkOrderEntity {

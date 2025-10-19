@@ -1,5 +1,5 @@
 import 'package:easy_ops/database/entity/login_person_details_entity.dart';
-import 'package:easy_ops/features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 
 /// Format YYYY-MM-DD for date-only fields
 String? _formatDate(DateTime? d) {

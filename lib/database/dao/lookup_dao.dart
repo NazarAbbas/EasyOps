@@ -1,6 +1,6 @@
 import 'package:easy_ops/database/entity/lookup_entity.dart';
 import 'package:floor/floor.dart';
-import '../../features/work_order_management/create_work_order/models/lookup_data.dart';
+import '../../features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 // lib/database/dao/dropdown_dao.dart
 
 @dao

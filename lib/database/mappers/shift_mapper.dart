@@ -1,6 +1,6 @@
 // lib/database/mappers/shift_mappers.dart
 import 'package:easy_ops/database/entity/shift_entity.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/shift_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 // ^ shift_data.dart contains ShiftData (page) AND Shift (row).
 // We will map entity <-> Shift (row). Do NOT import/return ShiftData here.
 

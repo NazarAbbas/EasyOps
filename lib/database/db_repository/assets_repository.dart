@@ -3,7 +3,7 @@ import 'package:easy_ops/database/mappers/assets_mapper.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
-import 'package:easy_ops/features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 
 /// Repository for caching and reading Assets using AssetDao.
 class AssetRepository {

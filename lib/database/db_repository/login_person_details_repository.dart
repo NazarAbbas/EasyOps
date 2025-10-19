@@ -1,6 +1,6 @@
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/dao/login_person_details_dao.dart';
-import 'package:easy_ops/features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/mappers/login_person_details_mapper.dart';
 

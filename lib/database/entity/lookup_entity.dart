@@ -1,6 +1,6 @@
 import 'package:easy_ops/database/converter/converters.dart';
 import 'package:floor/floor.dart';
-import '../../features/work_order_management/create_work_order/models/lookup_data.dart';
+import '../../features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 
 @TypeConverters([LookupTypeConverter, DateTimeIsoConverter])
 @Entity(

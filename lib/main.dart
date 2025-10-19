@@ -40,7 +40,7 @@ void main() async {
 
   final themeCtrl = Get.put(ThemeController(), permanent: true);
   // Example: set role once you know it (e.g., after login/api)
-  const userRoleFromApi = 'user';
+  const userRoleFromApi = 'production_manager';
   themeCtrl.setThemeByRole(userRoleFromApi);
   await AuthStore.instance.init(); // restores token into memory
   runApp(MyApp());

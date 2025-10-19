@@ -1,7 +1,7 @@
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/entity/operators_details_entity.dart';
 import 'package:easy_ops/database/mappers/operators_details_mapper.dart';
-import 'package:easy_ops/features/login/models/operators_details.dart';
+import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:get/get.dart';
 
 class OperatorDetailsRepository {
