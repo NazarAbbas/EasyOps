@@ -24,7 +24,7 @@ class SectionStats {
       : items = RxList<StatItem>(initial);
 }
 
-class HomeDashboardController extends GetxController {
+class MaintenanceEnginnerHomeDashboardController extends GetxController {
   // Work Orders (top row)
   final summary = SectionStats(
     title: 'Work Orders',

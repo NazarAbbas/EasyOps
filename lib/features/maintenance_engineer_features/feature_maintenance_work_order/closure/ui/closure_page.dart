@@ -10,11 +10,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ClosurePage extends GetView<ClosureController> {
+class ClosurePage extends GetView<MaintenanceEnginnerClosureController> {
   const ClosurePage({super.key});
 
   @override
-  ClosureController get controller => Get.put(ClosureController());
+  MaintenanceEnginnerClosureController get controller =>
+      Get.put(MaintenanceEnginnerClosureController());
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +68,7 @@ class ClosurePage extends GetView<ClosureController> {
 
 /* ─────────────────────── BOTTOM BAR ─────────────────────── */
 
-class _BottomBar extends GetView<ClosureController> {
+class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
   final VoidCallback onResolve;
   const _BottomBar({required this.onResolve});
 
@@ -248,7 +249,8 @@ class _PriorityPill extends StatelessWidget {
 
 /* ───────────── Closure Comments (form + signature) ───────────── */
 
-class _ClosureCommentsCard extends GetView<ClosureController> {
+class _ClosureCommentsCard
+    extends GetView<MaintenanceEnginnerClosureController> {
   const _ClosureCommentsCard();
 
   String _fmt(DateTime dt) {
@@ -380,7 +382,8 @@ class _ClosureCommentsCard extends GetView<ClosureController> {
 
 /* ───────────── Spares Consumed (accordion) ───────────── */
 
-class _SparesConsumedCard extends GetView<ClosureController> {
+class _SparesConsumedCard
+    extends GetView<MaintenanceEnginnerClosureController> {
   const _SparesConsumedCard();
 
   @override
@@ -519,7 +522,7 @@ class _IconChip extends StatelessWidget {
 
 /* ───────────── RCA Summary (accordion) ───────────── */
 
-class _RcaCard extends GetView<ClosureController> {
+class _RcaCard extends GetView<MaintenanceEnginnerClosureController> {
   const _RcaCard();
 
   @override
@@ -608,7 +611,8 @@ class _RcaLine extends StatelessWidget {
 
 /* ───────────── Pending Activity (accordion) ───────────── */
 
-class _PendingActivityCard extends GetView<ClosureController> {
+class _PendingActivityCard
+    extends GetView<MaintenanceEnginnerClosureController> {
   const _PendingActivityCard();
 
   String _fmtDate(DateTime d) =>
@@ -784,7 +788,7 @@ class _SectionTitle extends StatelessWidget {
       );
 }
 
-class _EnterRowRCA extends GetView<ClosureController> {
+class _EnterRowRCA extends GetView<MaintenanceEnginnerClosureController> {
   final String text;
   final IconData icon;
   const _EnterRowRCA({required this.text, required this.icon});
@@ -819,7 +823,7 @@ class _EnterRowRCA extends GetView<ClosureController> {
       );
 }
 
-class _PendingActivity extends GetView<ClosureController> {
+class _PendingActivity extends GetView<MaintenanceEnginnerClosureController> {
   final String text;
   final IconData icon;
   const _PendingActivity({required this.text, required this.icon});

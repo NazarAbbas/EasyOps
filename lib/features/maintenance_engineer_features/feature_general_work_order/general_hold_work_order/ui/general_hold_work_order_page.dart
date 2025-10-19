@@ -19,8 +19,9 @@ class _C {
 }
 
 /// ───────────────────────── Page ─────────────────────────
-class GeneralHoldWorkOrderPage extends GetView<GeneralHoldWorkOrderController> {
-  const GeneralHoldWorkOrderPage({super.key});
+class MaintenanceEngineerGeneralHoldWorkOrderPage
+    extends GetView<MaintenanceEnginnerGeneralHoldWorkOrderController> {
+  const MaintenanceEngineerGeneralHoldWorkOrderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +80,7 @@ class GeneralHoldWorkOrderPage extends GetView<GeneralHoldWorkOrderController> {
 /// ───────────────────────── Widgets ─────────────────────────
 class _WoInfoCard extends StatelessWidget {
   const _WoInfoCard(this.c);
-  final GeneralHoldWorkOrderController c;
+  final MaintenanceEnginnerGeneralHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +143,7 @@ class _WoInfoCard extends StatelessWidget {
 
 class _HoldContextCard extends StatelessWidget {
   const _HoldContextCard(this.c);
-  final GeneralHoldWorkOrderController c;
+  final MaintenanceEnginnerGeneralHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +202,7 @@ class _HoldContextCard extends StatelessWidget {
 
 class _FormCard extends StatelessWidget {
   const _FormCard(this.c);
-  final GeneralHoldWorkOrderController c;
+  final MaintenanceEnginnerGeneralHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +290,7 @@ class _FormCard extends StatelessWidget {
 
 class _BottomBar extends StatelessWidget {
   const _BottomBar(this.c);
-  final GeneralHoldWorkOrderController c;
+  final MaintenanceEnginnerGeneralHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {

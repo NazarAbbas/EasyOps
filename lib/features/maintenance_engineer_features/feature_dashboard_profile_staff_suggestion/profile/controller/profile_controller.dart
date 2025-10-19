@@ -45,7 +45,7 @@ class UserProfile {
   String get displayName => '$name ($employeeCode)';
 }
 
-class ProfileController extends GetxController {
+class MaintenanceEnginnerProfileController extends GetxController {
   final profile = const UserProfile(
     avatarUrl:
         'https://i.pravatar.cc/256?img=12', // replace or set null to show icon

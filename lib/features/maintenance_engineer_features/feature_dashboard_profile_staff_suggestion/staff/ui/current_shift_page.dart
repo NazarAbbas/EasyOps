@@ -5,14 +5,15 @@ import 'package:get/get.dart';
 
 import '../controller/current_shift_controller.dart';
 
-class StaffCurrentShiftPage extends GetView<CurrentShiftController> {
+class StaffCurrentShiftPage
+    extends GetView<MaintenanceEnginnerCurrentShiftController> {
   const StaffCurrentShiftPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
-    Get.put(CurrentShiftController(), permanent: true);
+    Get.put(MaintenanceEnginnerCurrentShiftController(), permanent: true);
 
     final isTab = _isTablet(context);
     return ListView.builder(
@@ -123,9 +124,8 @@ class _GroupCard extends StatelessWidget {
             ),
           ),
           AnimatedCrossFade(
-            crossFadeState: expanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
+            crossFadeState:
+                expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 160),
             firstChild: const SizedBox.shrink(),
             secondChild: Padding(
@@ -158,9 +158,8 @@ class _StaffCard extends StatelessWidget {
     final statusColor = member.presence == Presence.present
         ? const Color(0xFF1D7A3D)
         : const Color(0xFFE25555);
-    final statusText = member.presence == Presence.present
-        ? 'Present'
-        : 'Absent';
+    final statusText =
+        member.presence == Presence.present ? 'Present' : 'Absent';
 
     return Container(
       decoration: BoxDecoration(

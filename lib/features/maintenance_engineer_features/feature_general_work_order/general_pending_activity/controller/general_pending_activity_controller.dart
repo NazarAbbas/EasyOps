@@ -60,7 +60,8 @@ class PendingActivityResult {
   const PendingActivityResult({required this.action, required this.activities});
 }
 
-class GeneralPendingActivityController extends GetxController {
+class MaintenanceEnginnerGeneralPendingActivityController
+    extends GetxController {
   final RxList<ActivityItem> activities = <ActivityItem>[].obs;
 
   // form fields

@@ -1,7 +1,7 @@
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:get/get.dart';
 
-class AssetsDetailController extends GetxController {
+class MaintenanceEngineerAssetsDetailController extends GetxController {
   // Page
   final pageTitle = 'Assets Detail'.obs;
 

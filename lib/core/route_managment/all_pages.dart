@@ -1,6 +1,24 @@
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/binding/screen_binding.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_dashboard/ui/assets_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_details/ui/assets_details_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_history/ui/assets_history_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_management_dashboard/ui/assets_management_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_specification/ui/assets_specification_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/pm_checklist/ui/pm_checklist_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/pm_schedular/ui/pm_schedular_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/alerts/ui/alerts_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/home_dashboard/ui/home_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/my_dashboard/ui/my_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/new_suggestion/ui/new_suggestion_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/profile/ui/profile_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/staff/ui/staff_tabs_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/suggestion/ui/suggestion_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/suggestions_details/ui/suggestions_details_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/support/ui/support_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/general_work_order/ui/general_work_order_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/landing_dashboard/ui/landing_dashboard_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/preventive_dashboard/ui/preventive_dashboard_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_cancel_work_order/ui/general_cancel_work_order_page_from_diagnostic.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_closure/ui/general_closure_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_closure_signature/ui/general_sign_off_page.dart';
@@ -34,6 +52,8 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/add_resource/ui/add_resource_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/ui/confirm_work_order_slot_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_start_work/ui/preventive_start_work_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/ui/preventive_work_order_list_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/puposed_new_slot/ui/purposed_new_slot_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/reschedular/ui/reschedule_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/tabs/ui/spare_parts_tabs_shell.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/assets_management/assets_dashboard/ui/assets_dashboard_page.dart';
@@ -326,325 +346,326 @@ class AllPages {
 
       GetPage(
         name: Routes.maintenanceEngeneerworkOrderManagementScreen,
-        page: () => WorkOrdersManagementListPage(),
+        page: () => MaintenanceEngineerWorkOrdersManagementListPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerhomeDashboardScreen,
-        page: () => HomeDashboardPage(),
+        page: () => MaintenanceEngineerHomeDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerassetsManagementDashboardScreen,
-        page: () => AssetsManagementDashboardPage(),
+        page: () =>
+            MaintenanceEngineerHomeDashboardPageAssetsManagementDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerassetsDetailsScreen,
-        page: () => AssetsDetailPage(),
+        page: () => MaintenanceEngineerAssetsDetailPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerassetsSpecificationScreen,
-        page: () => AssetsSpecificationPage(),
+        page: () => MaintenanceEngineerAssetsSpecificationPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerassetsDashboardScreen,
-        page: () => AssetsDashboardPage(),
+        page: () => MaintenanceEngineerAssetsDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerassetsPMSchedular,
-        page: () => PMSchedulePage(),
+        page: () => MaintenanceEngineerPMSchedulePage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpMCheckListScreen,
-        page: () => PMChecklistPage(),
+        page: () => MaintenanceEngineerPMChecklistPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerassetsHistoryScreen,
-        page: () => AssetsHistoryPage(),
+        page: () => MaintenanceEngineerAssetsHistoryPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerprofileScreen,
-        page: () => ProfilePage(),
+        page: () => MaintenanceEngineerProfilePage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneersupportScreen,
-        page: () => SupportPage(),
+        page: () => MaintenanceEngineerSupportPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneersuggestionScreen,
-        page: () => SuggestionsPage(),
+        page: () => MaintenanceEngineerSuggestionsPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneernewSuggestionScreen,
-        page: () => NewSuggestionPage(),
+        page: () => MaintenanceEngineerNewSuggestionPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneersuggestionDetailsScreen,
-        page: () => SuggestionDetailPage(),
+        page: () => MaintenanceEngineerSuggestionDetailPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
       GetPage(
         name: Routes.maintenanceEngeneeralertScreen,
-        page: () => AlertsPage(),
+        page: () => MaintenanceEngineerAlertsPage(),
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneersparePartsTabsShellScreen,
-        page: () => SparePartsTabsShell(),
+        page: () => MaintenanceEngineerSparePartsTabsShell(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerworkOrderDetailsTabScreen,
-        page: () => WorkOrderDetailsTabsShell(),
+        page: () => MaintenanceEngineerWorkOrderDetailsTabsShell(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerstartWorkOrderScreen,
-        page: () => StartWorkOrderPage(),
+        page: () => MaintenanceEngineerStartWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerreassignWorkOrderScreen,
-        page: () => ReassignWorkOrderPage(),
+        page: () => MaintenanceEngineerReassignWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerstartWorkSubmitScreen,
-        page: () => StartWorkSubmitPage(),
+        page: () => MaintenanceEngineerStartWorkSubmitPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerholdWorkOrderScreen,
-        page: () => HoldWorkOrderPage(),
+        page: () => MaintenanceEngineerHoldWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerdiagnosticsScreen,
-        page: () => DiagnosticsPage(),
+        page: () => MaintenanceEngineerDiagnosticsPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen,
-        page: () => CancelWorkOrderPageFromDiagnostic(),
+        page: () => MaintenanceEngineerCancelWorkOrderPageFromDiagnostic(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerclosureScreen,
-        page: () => ClosurePage(),
+        page: () => MaintenanceEngineerClosurePage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneersignOffScreen,
-        page: () => SignOffPage(),
+        page: () => MaintenanceEngineerSignOffPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerreturnSpareScreen,
-        page: () => ReturnSparesPage(),
+        page: () => MaintenanceEngineerReturnSparesPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerrcaAnalysisScreen,
-        page: () => RcaAnalysisPage(),
+        page: () => MaintenanceEngineerRcaAnalysisPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpendingActivityScreen,
-        page: () => PendingActivityPage(),
+        page: () => MaintenanceEngineerPendingActivityPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerrequestSparesScreen,
-        page: () => RequestSparesPage(),
+        page: () => MaintenanceEngineerRequestSparesPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneersparesCartScreen,
-        page: () => SparesCartPage(),
+        page: () => MaintenanceEngineerSparesCartPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerhistorytScreen,
-        page: () => HistoryPage(),
+        page: () => MaintenanceEngineerHistoryPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneertimeLineScreen,
-        page: () => TimelinePage(),
+        page: () => MaintenanceEngineerTimelinePage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpreventiveMaintenanceDashboardScreen,
-        page: () => PreventiveWorkOrderListPage(),
+        page: () => MaintenanceEngineerPreventiveWorkOrderListPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpreventiveWorkOrderScreen,
-        page: () => ConfirmSlotPage(),
+        page: () => MaintenanceEngineerConfirmSlotPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpurposedNewSlotScreen,
-        page: () => PurposedNewSlotPage(),
+        page: () => MaintenanceEngineerPurposedNewSlotPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpreventiveStartWorkScreen,
-        page: () => PreventiveStartWorkPage(),
+        page: () => MaintenanceEngineerPreventiveStartWorkPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneeraddResourceScreen,
-        page: () => AddResourcePage(),
+        page: () => MaintenanceEngineerAddResourcePage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerrescheduleScreen,
-        page: () => ReschedulePage(),
+        page: () => MaintenanceEngineerReschedulePage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerworkOrderDetailScreen,
-        page: () => AcceptWorkOrderPage(),
+        page: () => MaintenanceEngineerAcceptWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpreventiveDashboardScreen,
-        page: () => PreventiveDashboardPage(),
+        page: () => MaintenanceEngineerPreventiveDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerlandingDashboardScreen,
-        page: () => LandingDashboardTabShell(),
+        page: () => MaintenanceEngineerLandingDashboardTabShell(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerstaffScreen,
-        page: () => StaffTabsPage(),
+        page: () => MaintenanceEngineerStaffTabsPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneermyDashboardScreen,
-        page: () => MyDashboardPage(),
+        page: () => MaintenanceEngineerMyDashboardPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneergeneralWorkOrderScreen,
-        page: () => GeneralWorkOrderPage(),
+        page: () => MaintenanceEngineerGeneralWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralWorkOrderDetailScreen,
-        page: () => GeneralOrderDetailsTabsShell(),
+        page: () => MaintenanceEngineerGeneralOrderDetailsTabsShell(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneergeneralStartWorkOrderScreen,
-        page: () => GeneralStartWorkOrderPage(),
+        page: () => MaintenanceEngineerGeneralStartWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralReOpensWorkOrderScreen,
-        page: () => GeneralReOpenWorkOrderPage(),
+        page: () => MaintenanceEngineerGeneralReOpenWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralDiagnosticsWorkOrderScreen,
-        page: () => GeneralDiagnosticsPage(),
+        page: () => MaintenanceEngineerGeneralDiagnosticsPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneergeneralReassignStartWorkOrderScreen,
-        page: () => GeneralReassignWorkOrderPage(),
+        page: () => MaintenanceEnginnerGeneralReassignWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneergeneralCancelWorkOrderScreen,
-        page: () => GeneralCancelWorkOrderPage(),
+        page: () => MaintenanceEngineerGeneralCancelWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneergeneralHoldWorkOrderScreen,
-        page: () => GeneralHoldWorkOrderPage(),
+        page: () => MaintenanceEngineerGeneralHoldWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralSubmitWorkOrderScreen,
-        page: () => GeneralWorkOrderSubmitPage(),
+        page: () => MaintenanceEngineerGeneralWorkOrderSubmitPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
@@ -657,26 +678,26 @@ class AllPages {
       // ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralSignOffScreen,
-        page: () => GeneralSignOffPage(),
+        page: () => MaintenanceEngineerGeneralSignOffPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
 
       GetPage(
         name: Routes.maintenanceEngeneerpendingActivityScreen,
-        page: () => GeneralPandingActivityPage(),
+        page: () => MaintenanceEngineerGeneralPandingActivityPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralRCAScreen,
-        page: () => GeneralRcaAnalysisPage(),
+        page: () => MaintenanceEngineerGeneralRcaAnalysisPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneergeneralRetuenSpareScreen,
-        page: () => GeneralReturnSparePage(),
+        page: () => MaintenanceEngineerGeneralReturnSparePage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),

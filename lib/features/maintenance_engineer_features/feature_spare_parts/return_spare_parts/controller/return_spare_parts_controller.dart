@@ -38,7 +38,7 @@ class SpareTicket {
   int get totalQty => lines.fold(0, (p, e) => p + e.qty);
 }
 
-class ReturnSparePartsController extends GetxController {
+class MaintenanceEnginnerReturnSparePartsController extends GetxController {
   final tabIndex = 0.obs;
 
   final returns = <SpareTicket>[

@@ -10,12 +10,13 @@ import 'package:get/get.dart';
 
 /* ───────────────────────── Page ───────────────────────── */
 
-class AcceptWorkOrderPage extends GetView<AcceptWorkOrderController> {
-  const AcceptWorkOrderPage({super.key});
+class MaintenanceEngineerAcceptWorkOrderPage
+    extends GetView<MaintenanceEnginnerAcceptWorkOrderController> {
+  const MaintenanceEngineerAcceptWorkOrderPage({super.key});
 
   @override
-  AcceptWorkOrderController get controller =>
-      Get.put(AcceptWorkOrderController());
+  MaintenanceEnginnerAcceptWorkOrderController get controller =>
+      Get.put(MaintenanceEnginnerAcceptWorkOrderController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -262,7 +263,7 @@ class _MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<AcceptWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerAcceptWorkOrderController>();
 
     return Obx(() {
       final photos = c.photoPaths.where((p) => p.isNotEmpty).toList();
@@ -594,7 +595,8 @@ class _AudioBubbleState extends State<_AudioBubble> {
     _player = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
     // register with controller so it can stop us on navigation
-    Get.find<AcceptWorkOrderController>().registerPlayer(_player);
+    Get.find<MaintenanceEnginnerAcceptWorkOrderController>()
+        .registerPlayer(_player);
 
     _player.onDurationChanged.listen((d) {
       if (!mounted) return;
@@ -621,7 +623,8 @@ class _AudioBubbleState extends State<_AudioBubble> {
     // best-effort stop; don't await in dispose
     _player.stop();
     // unregister from controller
-    Get.find<AcceptWorkOrderController>().unregisterPlayer(_player);
+    Get.find<MaintenanceEnginnerAcceptWorkOrderController>()
+        .unregisterPlayer(_player);
     _player.dispose();
     super.dispose();
   }

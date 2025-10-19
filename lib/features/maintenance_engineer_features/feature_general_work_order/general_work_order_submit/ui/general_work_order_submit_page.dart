@@ -19,9 +19,9 @@ class _C {
 }
 
 /// ───────────────────────── Page ─────────────────────────
-class GeneralWorkOrderSubmitPage
-    extends GetView<GeneralWorkOrderSubmitController> {
-  const GeneralWorkOrderSubmitPage({super.key});
+class MaintenanceEngineerGeneralWorkOrderSubmitPage
+    extends GetView<MaintenanceEnginnerGeneralWorkOrderSubmitController> {
+  const MaintenanceEngineerGeneralWorkOrderSubmitPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +77,7 @@ class GeneralWorkOrderSubmitPage
 /// ───────────────────────── Widgets ─────────────────────────
 class _WoInfoCard extends StatelessWidget {
   const _WoInfoCard(this.c);
-  final GeneralWorkOrderSubmitController c;
+  final MaintenanceEnginnerGeneralWorkOrderSubmitController c;
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +140,7 @@ class _WoInfoCard extends StatelessWidget {
 
 class _FormCard extends StatelessWidget {
   const _FormCard(this.c);
-  final GeneralWorkOrderSubmitController c;
+  final MaintenanceEnginnerGeneralWorkOrderSubmitController c;
 
   @override
   Widget build(BuildContext context) {
@@ -243,7 +243,7 @@ class _FormCard extends StatelessWidget {
 
 class _BottomBar extends StatelessWidget {
   const _BottomBar(this.c);
-  final GeneralWorkOrderSubmitController c;
+  final MaintenanceEnginnerGeneralWorkOrderSubmitController c;
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 /// -----------------------------
 /// Controller
 /// -----------------------------
-class StaffSearchController extends GetxController {
+class MaintenanceEnginnerStaffSearchController extends GetxController {
   // Text query
   final queryCtrl = TextEditingController();
 

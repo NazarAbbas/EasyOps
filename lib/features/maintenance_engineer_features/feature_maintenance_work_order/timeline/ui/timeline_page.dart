@@ -6,8 +6,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class TimelinePage extends GetView<TimelineController> {
-  const TimelinePage({super.key});
+class MaintenanceEngineerTimelinePage
+    extends GetView<MaintenanceEnginnerTimelineController> {
+  const MaintenanceEngineerTimelinePage({super.key});
 
   // @override
   // WorkOrderTimelineController get controller =>
@@ -69,7 +70,7 @@ class TimelinePage extends GetView<TimelineController> {
 /* ---------------- ISSUE HEADER ---------------- */
 
 class _IssueHeaderCard extends StatelessWidget {
-  final TimelineController controller;
+  final MaintenanceEnginnerTimelineController controller;
   const _IssueHeaderCard({required this.controller});
 
   @override
@@ -263,7 +264,7 @@ const double _lineLeft = _tilePadL + (_gutterW / 2) - (_lineW / 2);
 /* ---------------- TIMELINE LIST (continuous line) ---------------- */
 
 class _TimelineList extends StatelessWidget {
-  final TimelineController controller;
+  final MaintenanceEnginnerTimelineController controller;
   const _TimelineList({required this.controller});
 
   @override

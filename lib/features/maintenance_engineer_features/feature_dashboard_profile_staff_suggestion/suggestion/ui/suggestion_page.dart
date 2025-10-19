@@ -2,8 +2,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboar
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SuggestionsPage extends GetView<SuggestionsController> {
-  const SuggestionsPage({super.key});
+class MaintenanceEngineerSuggestionsPage
+    extends GetView<MaintenanceEnginnerSuggestionsController> {
+  const MaintenanceEngineerSuggestionsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

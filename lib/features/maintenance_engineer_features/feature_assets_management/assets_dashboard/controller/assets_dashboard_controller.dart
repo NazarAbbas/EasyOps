@@ -29,7 +29,7 @@ class MetricItem {
 //   ChartPoint(this.x, this.y);
 // }
 
-class AssetsDashboardController extends GetxController {
+class MaintenanceEnginnerAssetsDashboardController extends GetxController {
   final Rx<AssetSummary> asset = Rx<AssetSummary>(
     AssetSummary(
       code: 'CNC-1',

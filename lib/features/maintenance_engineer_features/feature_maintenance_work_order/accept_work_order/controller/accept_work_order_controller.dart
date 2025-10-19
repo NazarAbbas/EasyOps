@@ -4,7 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:get/get.dart';
 
-class AcceptWorkOrderController extends GetxController {
+class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   // Header
   final title = 'Work Order Details'.obs;
 

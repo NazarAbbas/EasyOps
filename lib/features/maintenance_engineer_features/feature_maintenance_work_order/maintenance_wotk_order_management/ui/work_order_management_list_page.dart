@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class WorkOrdersManagementListPage
-    extends GetView<WorkOrdersManagementController> {
-  const WorkOrdersManagementListPage({super.key});
+class MaintenanceEngineerWorkOrdersManagementListPage
+    extends GetView<MaintenanceEnginnerWorkOrdersManagementController> {
+  const MaintenanceEngineerWorkOrdersManagementListPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -72,13 +72,14 @@ class WorkOrdersManagementListPage
 
 /* ───────────────────────── Header (drop-in) ───────────────────────── */
 
-class _GradientHeader extends GetView<WorkOrdersManagementController>
+class _GradientHeader
+    extends GetView<MaintenanceEnginnerWorkOrdersManagementController>
     implements PreferredSizeWidget {
   const _GradientHeader();
 
   @override
-  WorkOrdersManagementController get controller =>
-      Get.find<WorkOrdersManagementController>();
+  MaintenanceEnginnerWorkOrdersManagementController get controller =>
+      Get.find<MaintenanceEnginnerWorkOrdersManagementController>();
 
   @override
   Size get preferredSize => const Size.fromHeight(120);
@@ -223,7 +224,8 @@ class _GradientHeader extends GetView<WorkOrdersManagementController>
 
 /* ───────────────────────── Calendar ───────────────────────── */
 
-class _CalendarCard extends GetView<WorkOrdersManagementController> {
+class _CalendarCard
+    extends GetView<MaintenanceEnginnerWorkOrdersManagementController> {
   const _CalendarCard();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -726,12 +728,12 @@ class _Dot extends StatelessWidget {
 
 /* ───────────────────────── Top Tabs ───────────────────────── */
 
-class _Tabs extends GetView<WorkOrdersManagementController> {
+class _Tabs extends GetView<MaintenanceEnginnerWorkOrdersManagementController> {
   const _Tabs();
 
   @override
-  WorkOrdersManagementController get controller =>
-      Get.find<WorkOrdersManagementController>();
+  MaintenanceEnginnerWorkOrdersManagementController get controller =>
+      Get.find<MaintenanceEnginnerWorkOrdersManagementController>();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 /// ───────────────────────── Controller ─────────────────────────
-class GeneralWorkOrderSubmitController extends GetxController {
+class MaintenanceEnginnerGeneralWorkOrderSubmitController
+    extends GetxController {
   // Work-order info (normally injected)
   final String woTitle = 'Conveyor Belt Stopped Abruptly During Operation';
   final String priority = 'High';

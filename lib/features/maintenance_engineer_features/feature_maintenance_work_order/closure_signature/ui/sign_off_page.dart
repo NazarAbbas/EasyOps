@@ -21,11 +21,13 @@ class SignaturePadController {
   }
 }
 
-class SignOffPage extends GetView<SignOffController> {
-  SignOffPage({super.key});
+class MaintenanceEngineerSignOffPage
+    extends GetView<MaintenanceEnginnerSignOffController> {
+  MaintenanceEngineerSignOffPage({super.key});
 
   @override
-  SignOffController get controller => Get.put(SignOffController());
+  MaintenanceEnginnerSignOffController get controller =>
+      Get.put(MaintenanceEnginnerSignOffController());
 
   // Controller to access the pad (no GlobalKey)
   final SignaturePadController _sigController = SignaturePadController();

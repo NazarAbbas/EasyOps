@@ -3,11 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RcaAnalysisPage extends GetView<RcaAnalysisController> {
-  const RcaAnalysisPage({super.key});
+class MaintenanceEngineerRcaAnalysisPage
+    extends GetView<MaintenanceEnginnerRcaAnalysisController> {
+  const MaintenanceEngineerRcaAnalysisPage({super.key});
 
   @override
-  RcaAnalysisController get controller => Get.put(RcaAnalysisController());
+  MaintenanceEnginnerRcaAnalysisController get controller =>
+      Get.put(MaintenanceEnginnerRcaAnalysisController());
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +201,7 @@ class _SummaryCard extends StatelessWidget {
 
 /* ───────────────── Problem Identified ──────────────── */
 
-class _ProblemCard extends GetView<RcaAnalysisController> {
+class _ProblemCard extends GetView<MaintenanceEnginnerRcaAnalysisController> {
   const _ProblemCard();
 
   @override
@@ -230,7 +232,7 @@ class _ProblemCard extends GetView<RcaAnalysisController> {
 
 /* ───────────────── 5 Why Analysis ──────────────── */
 
-class _FiveWhyCard extends GetView<RcaAnalysisController> {
+class _FiveWhyCard extends GetView<MaintenanceEnginnerRcaAnalysisController> {
   const _FiveWhyCard();
 
   @override
@@ -290,7 +292,7 @@ class _FiveWhyCard extends GetView<RcaAnalysisController> {
   }
 }
 
-class _WhyField extends GetView<RcaAnalysisController> {
+class _WhyField extends GetView<MaintenanceEnginnerRcaAnalysisController> {
   final int index; // 1..5
   const _WhyField({required this.index});
 
@@ -321,7 +323,8 @@ class _WhyField extends GetView<RcaAnalysisController> {
 
 /* ───────────────── Root Cause + Corrective Action ──────────────── */
 
-class _CauseActionCard extends GetView<RcaAnalysisController> {
+class _CauseActionCard
+    extends GetView<MaintenanceEnginnerRcaAnalysisController> {
   const _CauseActionCard();
 
   @override

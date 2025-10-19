@@ -6,10 +6,11 @@ import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/models/confirm_work_order_slot_model.dart';
 import 'package:get/get.dart';
 
-class PreventiveWorkOrderController extends GetxController {
+class MaintenanceEnginnerPreventiveWorkOrderController extends GetxController {
   // Make api optional with a sensible default so bindings are easy.
   final SlotsApi api;
-  PreventiveWorkOrderController({SlotsApi? api}) : api = api ?? SlotsApi();
+  MaintenanceEnginnerPreventiveWorkOrderController({SlotsApi? api})
+      : api = api ?? SlotsApi();
 
   // UI state
   final isLoading = true.obs;

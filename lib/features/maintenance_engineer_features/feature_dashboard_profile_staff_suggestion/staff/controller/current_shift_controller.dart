@@ -46,7 +46,7 @@ class DeptGroup {
 
 /* ============================ CONTROLLER ============================ */
 
-class CurrentShiftController extends GetxController {
+class MaintenanceEnginnerCurrentShiftController extends GetxController {
   final selectedTab = 0.obs; // 0 = Current Shift, 1 = Search (UI only here)
   final groups = <DeptGroup>[].obs;
 

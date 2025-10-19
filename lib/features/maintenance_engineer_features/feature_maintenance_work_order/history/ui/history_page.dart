@@ -6,8 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HistoryPage extends GetView<HistoryController> {
-  const HistoryPage({super.key});
+class MaintenanceEngineerHistoryPage
+    extends GetView<MaintenanceEnginnerHistoryController> {
+  const MaintenanceEngineerHistoryPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

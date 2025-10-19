@@ -16,7 +16,7 @@ class SupportDoc {
   });
 }
 
-class SupportController extends GetxController {
+class MaintenanceEnginnerSupportController extends GetxController {
   // Static / fetched device info
   final softwareVersion = '1.0.39'.obs;
   final deviceModel = 'Samsung A22 5G (2021)'.obs;

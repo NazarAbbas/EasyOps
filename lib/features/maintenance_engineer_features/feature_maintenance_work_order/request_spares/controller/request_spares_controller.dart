@@ -4,8 +4,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:get/get.dart';
 
 /// Use ONE shared SpareCartController across the app (bound in GlobalBindings).
-class SparesRequestController extends GetxController {
-  final SpareCartController cartCtrl = Get.find<SpareCartController>();
+class MaintenanceEnginnerSparesRequestController extends GetxController {
+  final MaintenanceEnginnerSpareCartController cartCtrl =
+      Get.find<MaintenanceEnginnerSpareCartController>();
 
   // ───────── Filters ─────────
   final cat1List = <String>['Option 1', 'Option 2', 'Option 3'].obs;

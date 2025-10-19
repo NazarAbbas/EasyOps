@@ -3,12 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GeneralRcaAnalysisPage extends GetView<GeneralRcaAnalysisController> {
-  const GeneralRcaAnalysisPage({super.key});
+class MaintenanceEngineerGeneralRcaAnalysisPage
+    extends GetView<MaintenanceEnginnerGeneralRcaAnalysisController> {
+  const MaintenanceEngineerGeneralRcaAnalysisPage({super.key});
 
   @override
-  GeneralRcaAnalysisController get controller =>
-      Get.put(GeneralRcaAnalysisController());
+  MaintenanceEnginnerGeneralRcaAnalysisController get controller =>
+      Get.put(MaintenanceEnginnerGeneralRcaAnalysisController());
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +201,8 @@ class _SummaryCard extends StatelessWidget {
 
 /* ───────────────── Problem Identified ──────────────── */
 
-class _ProblemCard extends GetView<GeneralRcaAnalysisController> {
+class _ProblemCard
+    extends GetView<MaintenanceEnginnerGeneralRcaAnalysisController> {
   const _ProblemCard();
 
   @override
@@ -231,7 +233,8 @@ class _ProblemCard extends GetView<GeneralRcaAnalysisController> {
 
 /* ───────────────── 5 Why Analysis ──────────────── */
 
-class _FiveWhyCard extends GetView<GeneralRcaAnalysisController> {
+class _FiveWhyCard
+    extends GetView<MaintenanceEnginnerGeneralRcaAnalysisController> {
   const _FiveWhyCard();
 
   @override
@@ -291,7 +294,8 @@ class _FiveWhyCard extends GetView<GeneralRcaAnalysisController> {
   }
 }
 
-class _WhyField extends GetView<GeneralRcaAnalysisController> {
+class _WhyField
+    extends GetView<MaintenanceEnginnerGeneralRcaAnalysisController> {
   final int index; // 1..5
   const _WhyField({required this.index});
 
@@ -322,7 +326,8 @@ class _WhyField extends GetView<GeneralRcaAnalysisController> {
 
 /* ───────────────── Root Cause + Corrective Action ──────────────── */
 
-class _CauseActionCard extends GetView<GeneralRcaAnalysisController> {
+class _CauseActionCard
+    extends GetView<MaintenanceEnginnerGeneralRcaAnalysisController> {
   const _CauseActionCard();
 
   @override

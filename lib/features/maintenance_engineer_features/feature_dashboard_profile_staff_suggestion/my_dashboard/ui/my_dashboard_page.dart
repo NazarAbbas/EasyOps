@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class MyDashboardPage extends GetView<MyDashboardController> {
-  const MyDashboardPage({super.key});
+class MaintenanceEngineerMyDashboardPage
+    extends GetView<MaintenanceEnginnerMyDashboardController> {
+  const MaintenanceEngineerMyDashboardPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

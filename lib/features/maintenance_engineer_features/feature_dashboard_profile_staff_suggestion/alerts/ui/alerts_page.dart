@@ -3,8 +3,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboar
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AlertsPage extends GetView<AlertsController> {
-  const AlertsPage({super.key});
+class MaintenanceEngineerAlertsPage
+    extends GetView<MaintenanceEnginnerAlertsController> {
+  const MaintenanceEngineerAlertsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +79,7 @@ class _EmptyAlertsView extends StatelessWidget {
 }
 
 /// =============== Alerts List ===============
-class _AlertsList extends GetView<AlertsController> {
+class _AlertsList extends GetView<MaintenanceEnginnerAlertsController> {
   @override
   Widget build(BuildContext context) {
     final newAlerts = controller.newAlerts;

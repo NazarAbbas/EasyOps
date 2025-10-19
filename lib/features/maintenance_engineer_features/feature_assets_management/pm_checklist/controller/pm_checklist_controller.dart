@@ -26,7 +26,7 @@ class ChecklistItem {
   });
 }
 
-class PMChecklistController extends GetxController {
+class MaintenanceEnginnerPMChecklistController extends GetxController {
   final Rx<AssetSummary> asset = Rx<AssetSummary>(
     const AssetSummary(
       code: 'CNC-1',

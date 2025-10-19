@@ -16,8 +16,9 @@ class _C {
   static const danger = Color(0xFFED3B40);
 }
 
-class SparesCartPage extends GetView<SpareCartController> {
-  const SparesCartPage({super.key});
+class MaintenanceEngineerSparesCartPage
+    extends GetView<MaintenanceEnginnerSpareCartController> {
+  const MaintenanceEngineerSparesCartPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -297,7 +298,7 @@ class _ListHeader extends StatelessWidget {
 
 /* ───────── Line Row (with swipe-to-delete + inline edit) ───────── */
 
-class _CartLineRow extends GetView<SpareCartController> {
+class _CartLineRow extends GetView<MaintenanceEnginnerSpareCartController> {
   const _CartLineRow({required this.line});
   final CartLine line;
 

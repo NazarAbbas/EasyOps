@@ -3,9 +3,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CancelWorkOrderPageFromDiagnostic
-    extends GetView<CancelWorkOrderControllerFromDiagnostics> {
-  const CancelWorkOrderPageFromDiagnostic({super.key});
+class MaintenanceEngineerCancelWorkOrderPageFromDiagnostic extends GetView<
+    MaintenanceEnginnerCancelWorkOrderControllerFromDiagnostics> {
+  const MaintenanceEngineerCancelWorkOrderPageFromDiagnostic({super.key});
 
   @override
   Widget build(BuildContext context) {

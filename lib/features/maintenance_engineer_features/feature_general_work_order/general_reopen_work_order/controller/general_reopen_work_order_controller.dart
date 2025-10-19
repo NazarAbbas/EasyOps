@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// ───────────────────────── Controller ─────────────────────────
-class GeneralReOpenWorkOrderController extends GetxController {
+class MaintenanceEnginnerGeneralReOpenWorkOrderController
+    extends GetxController {
   final RxString selectedReason = ''.obs;
   final RxList<String> reasons = <String>[
     'Busy with Critical',

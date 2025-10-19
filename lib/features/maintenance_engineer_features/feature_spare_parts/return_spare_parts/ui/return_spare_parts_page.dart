@@ -2,7 +2,8 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_pa
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ReturnSparePartsPage extends GetView<ReturnSparePartsController> {
+class ReturnSparePartsPage
+    extends GetView<MaintenanceEnginnerReturnSparePartsController> {
   const ReturnSparePartsPage({super.key});
 
   @override
@@ -110,7 +111,8 @@ class _TabButton extends StatelessWidget {
 }
 
 /// ---------------- Returns Tab ----------------
-class _ReturnsTab extends GetView<ReturnSparePartsController> {
+class _ReturnsTab
+    extends GetView<MaintenanceEnginnerReturnSparePartsController> {
   const _ReturnsTab({super.key});
 
   @override
@@ -446,7 +448,8 @@ class _QtyStepper extends StatelessWidget {
 }
 
 /// ---------------- Consumed Tab ----------------
-class _ConsumedTab extends GetView<ReturnSparePartsController> {
+class _ConsumedTab
+    extends GetView<MaintenanceEnginnerReturnSparePartsController> {
   const _ConsumedTab({super.key});
 
   @override

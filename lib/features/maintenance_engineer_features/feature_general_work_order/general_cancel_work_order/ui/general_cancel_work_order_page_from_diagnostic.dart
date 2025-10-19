@@ -3,9 +3,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_general_
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GeneralCancelWorkOrderPage
-    extends GetView<GeneralCancelWorkOrderController> {
-  const GeneralCancelWorkOrderPage({super.key});
+class MaintenanceEngineerGeneralCancelWorkOrderPage
+    extends GetView<MaintenanceEnginnerGeneralCancelWorkOrderController> {
+  const MaintenanceEngineerGeneralCancelWorkOrderPage({super.key});
 
   @override
   Widget build(BuildContext context) {

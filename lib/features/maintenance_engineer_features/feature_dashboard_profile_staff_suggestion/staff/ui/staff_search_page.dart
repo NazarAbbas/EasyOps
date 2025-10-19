@@ -3,7 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class StaffSearchPage extends GetView<StaffSearchController> {
+class StaffSearchPage
+    extends GetView<MaintenanceEnginnerStaffSearchController> {
   const StaffSearchPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -295,7 +296,7 @@ class StaffSearchPage extends GetView<StaffSearchController> {
 /// -----------------------------
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Get.put(StaffSearchController());
+  Get.put(MaintenanceEnginnerStaffSearchController());
   runApp(const _SearchDemoApp());
 }
 

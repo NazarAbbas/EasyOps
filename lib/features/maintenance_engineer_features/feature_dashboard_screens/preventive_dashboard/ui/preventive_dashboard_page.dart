@@ -7,16 +7,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PreventiveDashboardPage extends StatefulWidget {
-  const PreventiveDashboardPage({super.key});
+class MaintenanceEngineerPreventiveDashboardPage extends StatefulWidget {
+  const MaintenanceEngineerPreventiveDashboardPage({super.key});
 
   @override
-  State<PreventiveDashboardPage> createState() => _PreventiveDashboardPage();
+  State<MaintenanceEngineerPreventiveDashboardPage> createState() =>
+      _PreventiveDashboardPage();
 }
 
-class _PreventiveDashboardPage extends State<PreventiveDashboardPage> {
+class _PreventiveDashboardPage
+    extends State<MaintenanceEngineerPreventiveDashboardPage> {
   late final PageController _pageController;
-  final c = Get.find<PreventiveRootNavController>(); // don't put() here
+  final c = Get.find<
+      MaintenanceEnginnerPreventiveRootNavController>(); // don't put() here
 
   @override
   void initState() {
@@ -63,10 +66,14 @@ class _PreventiveDashboardPage extends State<PreventiveDashboardPage> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: const [
-          PreventiveWorkOrderListPage(key: PageStorageKey('tab-0-home')),
-          SparePartsTabsShell(key: PageStorageKey('tab-1-spareparts')),
-          AssetsManagementDashboardPage(key: PageStorageKey('tab-2-assets')),
-          PreventiveWorkOrderListPage(key: PageStorageKey('tab-3-workorders')),
+          MaintenanceEngineerPreventiveWorkOrderListPage(
+              key: PageStorageKey('tab-0-home')),
+          MaintenanceEngineerSparePartsTabsShell(
+              key: PageStorageKey('tab-1-spareparts')),
+          MaintenanceEngineerHomeDashboardPageAssetsManagementDashboardPage(
+              key: PageStorageKey('tab-2-assets')),
+          MaintenanceEngineerPreventiveWorkOrderListPage(
+              key: PageStorageKey('tab-3-workorders')),
         ],
       ),
       bottomNavigationBar: Obx(

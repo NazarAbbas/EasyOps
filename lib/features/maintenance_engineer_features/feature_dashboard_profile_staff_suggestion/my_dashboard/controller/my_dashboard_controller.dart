@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
-class MyDashboardController extends GetxController {
+class MaintenanceEnginnerMyDashboardController extends GetxController {
   // Month axis
   final months = const [
     'Jan',

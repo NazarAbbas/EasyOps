@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GeneralWorkOrderTimelinePage
-    extends GetView<GeneralWorkOrderTimelineController> {
+    extends GetView<MaintenanceEnginnerGeneralWorkOrderTimelineController> {
   const GeneralWorkOrderTimelinePage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -68,7 +68,7 @@ class GeneralWorkOrderTimelinePage
 /* ---------------- ISSUE HEADER ---------------- */
 
 class _IssueHeaderCard extends StatelessWidget {
-  final GeneralWorkOrderTimelineController controller;
+  final MaintenanceEnginnerGeneralWorkOrderTimelineController controller;
   const _IssueHeaderCard({required this.controller});
 
   @override
@@ -222,7 +222,7 @@ const double _lineLeft = _tilePadL + (_gutterW / 2) - (_lineW / 2);
 /* ---------------- TIMELINE LIST (continuous line) ---------------- */
 
 class _TimelineList extends StatelessWidget {
-  final GeneralWorkOrderTimelineController controller;
+  final MaintenanceEnginnerGeneralWorkOrderTimelineController controller;
   const _TimelineList({required this.controller});
 
   @override

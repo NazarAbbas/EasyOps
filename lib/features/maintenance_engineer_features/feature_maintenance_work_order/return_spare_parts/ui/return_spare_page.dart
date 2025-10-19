@@ -4,11 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ReturnSparesPage extends GetView<ReturnSparesController> {
-  const ReturnSparesPage({super.key});
+class MaintenanceEngineerReturnSparesPage
+    extends GetView<MaintenanceEnginnerReturnSparesController> {
+  const MaintenanceEngineerReturnSparesPage({super.key});
 
   @override
-  ReturnSparesController get controller => Get.put(ReturnSparesController());
+  MaintenanceEnginnerReturnSparesController get controller =>
+      Get.put(MaintenanceEnginnerReturnSparesController());
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +139,7 @@ class ReturnSparesPage extends GetView<ReturnSparesController> {
 
 /* ───────────────────────── Row Widget ───────────────────────── */
 
-class _SpareRow extends GetView<ReturnSparesController> {
+class _SpareRow extends GetView<MaintenanceEnginnerReturnSparesController> {
   final SpareItem item;
   const _SpareRow({required this.item});
 

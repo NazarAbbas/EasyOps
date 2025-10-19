@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/pm_checklist_controller.dart';
 
-class PMChecklistPage extends GetView<PMChecklistController> {
-  const PMChecklistPage({super.key});
+class MaintenanceEngineerPMChecklistPage
+    extends GetView<MaintenanceEnginnerPMChecklistController> {
+  const MaintenanceEngineerPMChecklistPage({super.key});
 
   @override
   Widget build(BuildContext context) {

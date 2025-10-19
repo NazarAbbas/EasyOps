@@ -10,8 +10,9 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
-class DiagnosticsPage extends GetView<DiagnosticsController> {
-  const DiagnosticsPage({super.key});
+class MaintenanceEngineerDiagnosticsPage
+    extends GetView<MaintenanceEnginnerDiagnosticsController> {
+  const MaintenanceEngineerDiagnosticsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +239,7 @@ class _WorkOrderContent extends StatelessWidget {
 /* ------------------------------ Media ------------------------------ */
 
 class _MediaSection extends StatelessWidget {
-  final DiagnosticsController controller;
+  final MaintenanceEnginnerDiagnosticsController controller;
   const _MediaSection({required this.controller});
 
   @override

@@ -3,7 +3,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
-class GeneralReturnSpareController extends GetxController {
+class MaintenanceEnginnerGeneralReturnSpareController extends GetxController {
   final isSaving = false.obs;
 
   /// Hardcoded catalog for demo; in real app, fetch this list.

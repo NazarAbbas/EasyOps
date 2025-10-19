@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 /* ======================= CONTROLLER ======================= */
 
-class TimelineController extends GetxController {
+class MaintenanceEnginnerTimelineController extends GetxController {
   // Header (mock/demo)
   final pageTitle = 'Work Order Details'.obs;
   final woId = 'BD-102'.obs;
@@ -74,5 +74,6 @@ class TimelineController extends GetxController {
 
   //void goBack() => Get.back();
 
-  void goBack(int i) => Get.find<WorkTabsController>().goTo(i);
+  void goBack(int i) =>
+      Get.find<MaintenanceEngineerWorkTabsController>().goTo(i);
 }

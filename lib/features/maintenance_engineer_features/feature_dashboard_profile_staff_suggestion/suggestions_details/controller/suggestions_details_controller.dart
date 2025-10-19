@@ -37,7 +37,7 @@ class SuggestionDetail {
 }
 
 /// ================== CONTROLLER ==================
-class SuggestionDetailController extends GetxController {
+class MaintenanceEnginnerSuggestionDetailController extends GetxController {
   // Normally you’d pass this via arguments or fetch from API
   final detail = SuggestionDetail(
     id: 'SG-112',

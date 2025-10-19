@@ -2,7 +2,8 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_preventi
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PreventiveWorkOrderListController extends GetxController {
+class MaintenanceEnginnerPreventiveWorkOrderListController
+    extends GetxController {
   // ---------------- UI state ----------------
   final loading = true.obs;
   final isRefreshing = false.obs;

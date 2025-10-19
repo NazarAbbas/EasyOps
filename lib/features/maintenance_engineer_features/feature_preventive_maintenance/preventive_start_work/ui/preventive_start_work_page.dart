@@ -14,8 +14,9 @@ class _C {
   static const danger = Color(0xFFED3B40);
 }
 
-class PreventiveStartWorkPage extends GetView<PreventiveStartWorkController> {
-  const PreventiveStartWorkPage({super.key});
+class MaintenanceEngineerPreventiveStartWorkPage
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
+  const MaintenanceEngineerPreventiveStartWorkPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -23,7 +24,8 @@ class PreventiveStartWorkPage extends GetView<PreventiveStartWorkController> {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
-    Get.put(PreventiveStartWorkController(), permanent: false);
+    Get.put(MaintenanceEnginnerPreventiveStartWorkController(),
+        permanent: false);
 
     final isTablet = _isTablet(context);
     final hPad = isTablet ? 20.0 : 14.0;
@@ -72,8 +74,9 @@ class PreventiveStartWorkPage extends GetView<PreventiveStartWorkController> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed:
-                      Get.find<PreventiveStartWorkController>().otherOptions,
+                  onPressed: Get.find<
+                          MaintenanceEnginnerPreventiveStartWorkController>()
+                      .otherOptions,
                   child: const Text(
                     'Other Options',
                     overflow: TextOverflow.ellipsis,
@@ -92,8 +95,9 @@ class PreventiveStartWorkPage extends GetView<PreventiveStartWorkController> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed:
-                      Get.find<PreventiveStartWorkController>().startWork,
+                  onPressed: Get.find<
+                          MaintenanceEnginnerPreventiveStartWorkController>()
+                      .startWork,
                   child: const Text(
                     'Start Work',
                     overflow: TextOverflow.ellipsis,
@@ -111,7 +115,8 @@ class PreventiveStartWorkPage extends GetView<PreventiveStartWorkController> {
 
 /* ───────────────────────── Header ───────────────────────── */
 
-class _MachineCard extends GetView<PreventiveStartWorkController> {
+class _MachineCard
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
   const _MachineCard();
 
   @override
@@ -224,7 +229,8 @@ class _Pill extends StatelessWidget {
 
 /* ───────────────────────── Metrics ───────────────────────── */
 
-class _MetricsGrid extends GetView<PreventiveStartWorkController> {
+class _MetricsGrid
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
   const _MetricsGrid();
 
   @override
@@ -296,7 +302,8 @@ class _MetricsGrid extends GetView<PreventiveStartWorkController> {
 
 /* ───────────────────── Preventive + Schedule ──────────────────── */
 
-class _PreventiveScheduleCard extends GetView<PreventiveStartWorkController> {
+class _PreventiveScheduleCard
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
   const _PreventiveScheduleCard();
 
   @override
@@ -400,7 +407,8 @@ class _PreventiveScheduleCard extends GetView<PreventiveStartWorkController> {
 
 /* ───────────────────── Schedule Accepted By ───────────────────── */
 
-class _ScheduleAcceptedCard extends GetView<PreventiveStartWorkController> {
+class _ScheduleAcceptedCard
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
   const _ScheduleAcceptedCard();
 
   @override
@@ -468,7 +476,8 @@ class _ScheduleAcceptedCard extends GetView<PreventiveStartWorkController> {
           const SizedBox(width: 8),
           InkWell(
             onTap: () =>
-                Get.find<PreventiveStartWorkController>().call(p.phone),
+                Get.find<MaintenanceEnginnerPreventiveStartWorkController>()
+                    .call(p.phone),
             borderRadius: BorderRadius.circular(10),
             child: Container(
               height: 36,
@@ -492,7 +501,8 @@ class _ScheduleAcceptedCard extends GetView<PreventiveStartWorkController> {
 
 /* ───────────────────── Resources Required ───────────────────── */
 
-class _ResourcesCard extends GetView<PreventiveStartWorkController> {
+class _ResourcesCard
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
   const _ResourcesCard();
 
   @override
@@ -593,7 +603,8 @@ class _ResourcesCard extends GetView<PreventiveStartWorkController> {
 
 /* ───────────────────── Pending Activity ───────────────────── */
 
-class _PendingActivityCard extends GetView<PreventiveStartWorkController> {
+class _PendingActivityCard
+    extends GetView<MaintenanceEnginnerPreventiveStartWorkController> {
   const _PendingActivityCard();
 
   @override
@@ -732,7 +743,8 @@ class _PendingActivityCard extends GetView<PreventiveStartWorkController> {
                     ),
                   ),
                   InkWell(
-                    onTap: () => Get.find<PreventiveStartWorkController>()
+                    onTap: () => Get.find<
+                            MaintenanceEnginnerPreventiveStartWorkController>()
                         .viewDetails(a),
                     child: const Text(
                       'View Details',
@@ -754,7 +766,8 @@ class _PendingActivityCard extends GetView<PreventiveStartWorkController> {
                 ),
               ),
               onPressed: () =>
-                  Get.find<PreventiveStartWorkController>().closeActivity(a),
+                  Get.find<MaintenanceEnginnerPreventiveStartWorkController>()
+                      .closeActivity(a),
               child: const Text('Close', overflow: TextOverflow.ellipsis),
             ),
           ],

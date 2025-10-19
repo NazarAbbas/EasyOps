@@ -16,8 +16,9 @@ class _C {
   static const danger = Color(0xFFED3B40);
 }
 
-class RequestSparesPage extends GetView<SparesRequestController> {
-  const RequestSparesPage({super.key});
+class MaintenanceEngineerRequestSparesPage
+    extends GetView<MaintenanceEnginnerSparesRequestController> {
+  const MaintenanceEngineerRequestSparesPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -182,7 +183,7 @@ class RequestSparesPage extends GetView<SparesRequestController> {
 
 /* ───────────────────────── Cart Summary (with edit/delete) ───────────────────────── */
 
-class _CartSummary extends GetView<SparesRequestController> {
+class _CartSummary extends GetView<MaintenanceEnginnerSparesRequestController> {
   const _CartSummary();
 
   @override
@@ -366,7 +367,7 @@ class _CartSummary extends GetView<SparesRequestController> {
 // LIVE-SYNC BOTTOM SHEET: plus/minus immediately updates cart
 void showEditCartLineSheet({
   required BuildContext context,
-  required SparesRequestController controller,
+  required MaintenanceEnginnerSparesRequestController controller,
   required dynamic line, // use your concrete type if available
 }) {
   final Color primary = Theme.of(context).appBarTheme.backgroundColor ??
@@ -625,7 +626,7 @@ class _ResultsHeader extends StatelessWidget {
   }
 }
 
-class _FilterCard extends GetView<SparesRequestController> {
+class _FilterCard extends GetView<MaintenanceEnginnerSparesRequestController> {
   const _FilterCard({required this.isTablet});
   final bool isTablet;
 
@@ -760,7 +761,7 @@ class _FilterCard extends GetView<SparesRequestController> {
 
 /* ───────── Result Item Row ───────── */
 
-class _ItemRow extends GetView<SparesRequestController> {
+class _ItemRow extends GetView<MaintenanceEnginnerSparesRequestController> {
   const _ItemRow({required this.item});
   final SpareItem item;
 
@@ -840,7 +841,7 @@ class _ItemRow extends GetView<SparesRequestController> {
   }
 }
 
-class _Stepper extends GetView<SparesRequestController> {
+class _Stepper extends GetView<MaintenanceEnginnerSparesRequestController> {
   const _Stepper({required this.item});
   final SpareItem item;
 

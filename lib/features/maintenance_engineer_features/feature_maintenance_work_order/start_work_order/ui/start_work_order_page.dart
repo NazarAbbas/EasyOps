@@ -14,8 +14,9 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class StartWorkOrderPage extends GetView<StartWorkOrderController> {
-  const StartWorkOrderPage({super.key});
+class MaintenanceEngineerStartWorkOrderPage
+    extends GetView<MaintenanceEnginnerStartWorkOrderController> {
+  const MaintenanceEngineerStartWorkOrderPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -116,7 +117,7 @@ class StartWorkOrderPage extends GetView<StartWorkOrderController> {
   Future<void> _showOtherOptionsMenu(
     BuildContext context,
     GlobalKey anchorKey,
-    StartWorkOrderController c,
+    MaintenanceEnginnerStartWorkOrderController c,
   ) async {
     final button = anchorKey.currentContext!.findRenderObject() as RenderBox;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -250,7 +251,7 @@ class _SummaryHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<StartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
     final blue = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
@@ -401,7 +402,7 @@ class _OperatorInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<StartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: Obx(
@@ -521,7 +522,7 @@ class _WorkOrderInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<StartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       child: Obx(
@@ -603,7 +604,7 @@ class _MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<StartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
 
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -655,7 +656,7 @@ class _SparesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<StartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Obx(() {
@@ -963,7 +964,8 @@ class _AudioBubbleState extends State<_AudioBubble> {
     _player = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
     // Register with controller so it can stop us on navigation
-    Get.find<StartWorkOrderController>().registerPlayer(_player);
+    Get.find<MaintenanceEnginnerStartWorkOrderController>()
+        .registerPlayer(_player);
 
     _player.onDurationChanged.listen((d) {
       if (mounted) setState(() => _duration = d);
@@ -1021,7 +1023,8 @@ class _AudioBubbleState extends State<_AudioBubble> {
     try {
       _player.stop();
     } catch (_) {}
-    Get.find<StartWorkOrderController>().unregisterPlayer(_player);
+    Get.find<MaintenanceEnginnerStartWorkOrderController>()
+        .unregisterPlayer(_player);
     _player.dispose();
     super.dispose();
   }

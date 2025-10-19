@@ -2,7 +2,8 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_pa
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ConsumedSparePartsPage extends GetView<ConsumedSparePartsController> {
+class ConsumedSparePartsPage
+    extends GetView<MaintenanceEnginnerConsumedSparePartsController> {
   const ConsumedSparePartsPage({super.key});
 
   @override
@@ -19,7 +20,8 @@ class ConsumedSparePartsPage extends GetView<ConsumedSparePartsController> {
 }
 
 /// ---------------- Consumed Tab ----------------
-class _ConsumedTab extends GetView<ConsumedSparePartsController> {
+class _ConsumedTab
+    extends GetView<MaintenanceEnginnerConsumedSparePartsController> {
   const _ConsumedTab({super.key});
 
   @override

@@ -7,8 +7,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SparePartsTabsShell extends GetView<SparePartsController> {
-  const SparePartsTabsShell({super.key});
+class MaintenanceEngineerSparePartsTabsShell
+    extends GetView<MaintenanceEnginnerSparePartsController> {
+  const MaintenanceEngineerSparePartsTabsShell({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -95,7 +96,7 @@ class SparePartsTabsShell extends GetView<SparePartsController> {
   }
 }
 
-class _HeaderTabs extends GetView<SparePartsController> {
+class _HeaderTabs extends GetView<MaintenanceEnginnerSparePartsController> {
   const _HeaderTabs();
 
   @override

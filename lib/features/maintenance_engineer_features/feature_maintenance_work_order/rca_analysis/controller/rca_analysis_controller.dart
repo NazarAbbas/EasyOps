@@ -15,7 +15,7 @@ class RcaResult {
   });
 }
 
-class RcaAnalysisController extends GetxController {
+class MaintenanceEnginnerRcaAnalysisController extends GetxController {
   // UI state
   final isSaving = false.obs;
   final fiveWhyOpen = true.obs;

@@ -4,8 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HomeDashboardPage extends GetView<HomeDashboardController> {
-  const HomeDashboardPage({super.key});
+class MaintenanceEngineerHomeDashboardPage
+    extends GetView<MaintenanceEnginnerHomeDashboardController> {
+  const MaintenanceEngineerHomeDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +311,7 @@ class _ProfileMenu extends StatelessWidget {
 }
 
 // ==================== SECTION + TILES ====================
-class _SectionCard extends GetView<HomeDashboardController> {
+class _SectionCard extends GetView<MaintenanceEnginnerHomeDashboardController> {
   final String? title;
   final SectionStats stats;
   final void Function(StatItem item) onTap;
@@ -502,7 +503,8 @@ class _StatTile extends StatelessWidget {
 }
 
 // ==================== DASHBOARD CHART CARD (NEW) ====================
-class _DashboardCard extends GetView<HomeDashboardController> {
+class _DashboardCard
+    extends GetView<MaintenanceEnginnerHomeDashboardController> {
   final String title;
   final Widget image; // pass any chart widget or image
 

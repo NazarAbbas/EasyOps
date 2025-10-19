@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/material.dart';
 
-class SpareCartController extends GetxController {
+class MaintenanceEnginnerSpareCartController extends GetxController {
   final RxList<CartLine> cart = <CartLine>[].obs;
   final RxSet<String> editingKeys = <String>{}.obs;
 
@@ -101,9 +101,11 @@ class SpareCartController extends GetxController {
     }
 
     // Ensure we reference the SAME StartWorkOrderController
-    final start = Get.isRegistered<StartWorkOrderController>()
-        ? Get.find<StartWorkOrderController>()
-        : Get.put(StartWorkOrderController(), permanent: true);
+    final start =
+        Get.isRegistered<MaintenanceEnginnerStartWorkOrderController>()
+            ? Get.find<MaintenanceEnginnerStartWorkOrderController>()
+            : Get.put(MaintenanceEnginnerStartWorkOrderController(),
+                permanent: true);
 
     // Merge cart into WO page
     start.addSparesFromCart(cart.toList());

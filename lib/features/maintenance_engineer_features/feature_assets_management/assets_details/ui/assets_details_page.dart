@@ -18,11 +18,13 @@ class _C {
 
 /* ───────────────────────── Page ───────────────────────── */
 
-class AssetsDetailPage extends GetView<AssetsDetailController> {
-  const AssetsDetailPage({super.key});
+class MaintenanceEngineerAssetsDetailPage
+    extends GetView<MaintenanceEngineerAssetsDetailController> {
+  const MaintenanceEngineerAssetsDetailPage({super.key});
 
   @override
-  AssetsDetailController get controller => Get.put(AssetsDetailController());
+  MaintenanceEngineerAssetsDetailController get controller =>
+      Get.put(MaintenanceEngineerAssetsDetailController());
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +163,8 @@ class _Pill extends StatelessWidget {
 
 /* ───────────────────────── Cards ───────────────────────── */
 
-class _CardDashboard extends GetView<AssetsDetailController> {
+class _CardDashboard
+    extends GetView<MaintenanceEngineerAssetsDetailController> {
   const _CardDashboard();
 
   @override
@@ -210,7 +213,8 @@ class _CardDashboard extends GetView<AssetsDetailController> {
       );
 }
 
-class _CardSpecification extends GetView<AssetsDetailController> {
+class _CardSpecification
+    extends GetView<MaintenanceEngineerAssetsDetailController> {
   const _CardSpecification();
 
   Color _pillColor(String p) {
@@ -298,7 +302,7 @@ class _CardSpecification extends GetView<AssetsDetailController> {
   }
 }
 
-class _CardContact extends GetView<AssetsDetailController> {
+class _CardContact extends GetView<MaintenanceEngineerAssetsDetailController> {
   const _CardContact();
 
   @override
@@ -413,7 +417,8 @@ class _CardContact extends GetView<AssetsDetailController> {
   }
 }
 
-class _CardPmSchedule extends GetView<AssetsDetailController> {
+class _CardPmSchedule
+    extends GetView<MaintenanceEngineerAssetsDetailController> {
   const _CardPmSchedule();
 
   @override
@@ -526,7 +531,7 @@ class _CardPmSchedule extends GetView<AssetsDetailController> {
   }
 }
 
-class _CardHistory extends GetView<AssetsDetailController> {
+class _CardHistory extends GetView<MaintenanceEngineerAssetsDetailController> {
   const _CardHistory();
 
   @override

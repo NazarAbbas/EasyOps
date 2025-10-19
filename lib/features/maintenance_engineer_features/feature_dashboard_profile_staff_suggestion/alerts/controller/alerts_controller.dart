@@ -12,7 +12,7 @@ class AlertItem {
   });
 }
 
-class AlertsController extends GetxController {
+class MaintenanceEnginnerAlertsController extends GetxController {
   /// All alerts (replace with API results)
   final alerts = <AlertItem>[
     // Today (New)

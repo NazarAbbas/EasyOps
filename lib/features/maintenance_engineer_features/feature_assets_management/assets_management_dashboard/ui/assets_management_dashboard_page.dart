@@ -39,9 +39,10 @@ bool matchesTab(AssetItem it, int tabIndex) {
 }
 
 /* ─── Page ─── */
-class AssetsManagementDashboardPage
-    extends GetView<AssetsManagementDashboardController> {
-  const AssetsManagementDashboardPage({super.key});
+class MaintenanceEngineerHomeDashboardPageAssetsManagementDashboardPage
+    extends GetView<MaintenanceEngeneerAssetsManagementDashboardController> {
+  const MaintenanceEngineerHomeDashboardPageAssetsManagementDashboardPage(
+      {super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -70,7 +71,8 @@ class AssetsManagementDashboardPage
 }
 
 /* ─── Header ─── */
-class _GradientHeader extends GetView<AssetsManagementDashboardController>
+class _GradientHeader
+    extends GetView<MaintenanceEngeneerAssetsManagementDashboardController>
     implements PreferredSizeWidget {
   const _GradientHeader({super.key});
 
@@ -143,7 +145,8 @@ class _GradientHeader extends GetView<AssetsManagementDashboardController>
 }
 
 /* ─── Tabs (scrollable, no overflow) ─── */
-class _TabsWithCounts extends GetView<AssetsManagementDashboardController> {
+class _TabsWithCounts
+    extends GetView<MaintenanceEngeneerAssetsManagementDashboardController> {
   const _TabsWithCounts({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -250,7 +253,8 @@ class _TabsWithCounts extends GetView<AssetsManagementDashboardController> {
 }
 
 /* ─── Groups list ─── */
-class _GroupsList extends GetView<AssetsManagementDashboardController> {
+class _GroupsList
+    extends GetView<MaintenanceEngeneerAssetsManagementDashboardController> {
   const _GroupsList({super.key});
 
   @override
@@ -660,7 +664,8 @@ class _Pill extends StatelessWidget {
   }
 }
 
-class _SearchField extends GetView<AssetsManagementDashboardController> {
+class _SearchField
+    extends GetView<MaintenanceEngeneerAssetsManagementDashboardController> {
   const _SearchField({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;

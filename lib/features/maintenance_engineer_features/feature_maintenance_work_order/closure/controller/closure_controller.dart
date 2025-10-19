@@ -12,7 +12,7 @@ class PendingActivityArgs {
   const PendingActivityArgs({required this.initial});
 }
 
-class ClosureController extends GetxController {
+class MaintenanceEnginnerClosureController extends GetxController {
   // UI state
   final isLoading = false.obs;
 

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 
 /// =================== CONTROLLER ===================
 
-class NewSuggestionController extends GetxController {
+class MaintenanceEnginnerNewSuggestionController extends GetxController {
   // Collapsible card
   final reporterExpanded = true.obs;
 

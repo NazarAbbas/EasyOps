@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-class PreventiveRootNavController extends GetxController {
+class MaintenanceEnginnerPreventiveRootNavController extends GetxController {
   final RxInt index = 0.obs;
 
   void setIndex(int i) => index.value = i;

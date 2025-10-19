@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GeneralPandingActivityPage
-    extends GetView<GeneralPendingActivityController> {
-  const GeneralPandingActivityPage({super.key});
+class MaintenanceEngineerGeneralPandingActivityPage
+    extends GetView<MaintenanceEnginnerGeneralPendingActivityController> {
+  const MaintenanceEngineerGeneralPandingActivityPage({super.key});
 
   final _formKey = const Key('add_edit_form');
 
@@ -186,7 +186,7 @@ class _ActivityCard extends StatelessWidget {
 
 class _FormCard extends StatelessWidget {
   const _FormCard({required this.controller, required this.formKey});
-  final GeneralPendingActivityController controller;
+  final MaintenanceEnginnerGeneralPendingActivityController controller;
   final Key formKey;
 
   InputDecoration _decor(String hint) => InputDecoration(
@@ -355,7 +355,8 @@ class _FormCard extends StatelessWidget {
   }
 }
 
-class _GoBackButton extends GetView<GeneralPendingActivityController> {
+class _GoBackButton
+    extends GetView<MaintenanceEnginnerGeneralPendingActivityController> {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(

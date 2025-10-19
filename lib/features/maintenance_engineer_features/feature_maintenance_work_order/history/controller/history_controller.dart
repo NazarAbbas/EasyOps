@@ -3,7 +3,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/history/models/history_items.dart';
 import 'package:get/get.dart';
 
-class HistoryController extends GetxController {
+class MaintenanceEnginnerHistoryController extends GetxController {
   final items = <HistoryItem>[].obs;
 
   @override
@@ -13,6 +13,7 @@ class HistoryController extends GetxController {
     super.onInit();
   }
 
-  void goBack(int i) => Get.find<WorkTabsController>().goTo(i);
+  void goBack(int i) =>
+      Get.find<MaintenanceEngineerWorkTabsController>().goTo(i);
   //void goBack() => Get.back();
 }

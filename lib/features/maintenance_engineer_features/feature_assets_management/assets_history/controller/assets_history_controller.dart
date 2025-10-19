@@ -40,7 +40,7 @@ class AssetHistoryItem {
   });
 }
 
-class AssetsHistoryController extends GetxController {
+class MaintenanceEnginnerAssetsHistoryController extends GetxController {
   // Header
   final Rx<AssetSummary> asset = Rx<AssetSummary>(
     const AssetSummary(

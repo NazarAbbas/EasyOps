@@ -7,17 +7,19 @@ import '../../../feature_assets_management/assets_management_dashboard/ui/assets
 import '../../../feature_maintenance_work_order/maintenance_wotk_order_management/ui/work_order_management_list_page.dart';
 import '../controller/landing_dashboard_nav_controller.dart';
 
-class LandingDashboardTabShell extends StatefulWidget {
-  const LandingDashboardTabShell({super.key});
+class MaintenanceEngineerLandingDashboardTabShell extends StatefulWidget {
+  const MaintenanceEngineerLandingDashboardTabShell({super.key});
 
   @override
-  State<LandingDashboardTabShell> createState() =>
-      _LandingDashboardTabShellState();
+  State<MaintenanceEngineerLandingDashboardTabShell> createState() =>
+      _MaintenanceEngineerLandingDashboardTabShellState();
 }
 
-class _LandingDashboardTabShellState extends State<LandingDashboardTabShell> {
+class _MaintenanceEngineerLandingDashboardTabShellState
+    extends State<MaintenanceEngineerLandingDashboardTabShell> {
   late final PageController _pageController;
-  final c = Get.find<LandingRootNavController>(); // don't put() here
+  final c = Get.find<
+      MaintenanceEnginnerLandingRootNavController>(); // don't put() here
 
   @override
   void initState() {
@@ -64,10 +66,14 @@ class _LandingDashboardTabShellState extends State<LandingDashboardTabShell> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: const [
-          HomeDashboardPage(key: PageStorageKey('tab-0-home')),
-          HomeDashboardPage(key: PageStorageKey('tab-1-inventory')),
-          AssetsManagementDashboardPage(key: PageStorageKey('tab-2-assets')),
-          WorkOrdersManagementListPage(key: PageStorageKey('tab-3-workorders')),
+          MaintenanceEngineerHomeDashboardPage(
+              key: PageStorageKey('tab-0-home')),
+          MaintenanceEngineerHomeDashboardPage(
+              key: PageStorageKey('tab-1-inventory')),
+          MaintenanceEngineerHomeDashboardPageAssetsManagementDashboardPage(
+              key: PageStorageKey('tab-2-assets')),
+          MaintenanceEngineerWorkOrdersManagementListPage(
+              key: PageStorageKey('tab-3-workorders')),
         ],
       ),
       bottomNavigationBar: Obx(

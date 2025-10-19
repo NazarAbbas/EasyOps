@@ -6,7 +6,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
 import 'package:get/get.dart';
 
-class StartWorkOrderController extends GetxController {
+class MaintenanceEnginnerStartWorkOrderController extends GetxController {
   // Demo hero values
   final subject = 'Hydraulic Leak in CNC-1'.obs;
   final priority = 'High'.obs;
@@ -76,7 +76,7 @@ class StartWorkOrderController extends GetxController {
   Future<void> needSpares() async {
     await stopAllAudio(); // ⬅️ stop audio before navigating
 
-    final cartCtrl = Get.find<SpareCartController>();
+    final cartCtrl = Get.find<MaintenanceEnginnerSpareCartController>();
     cartCtrl.cart
       ..clear()
       ..addAll(

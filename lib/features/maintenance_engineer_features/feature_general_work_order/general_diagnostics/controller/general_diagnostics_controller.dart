@@ -1,7 +1,7 @@
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:get/get.dart';
 
-class GeneralDiagnosticsController extends GetxController {
+class MaintenanceEnginnerGeneralDiagnosticsController extends GetxController {
   final isLoading = true.obs;
   final wo = Rxn<WorkOrder>();
 

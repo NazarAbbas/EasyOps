@@ -18,9 +18,9 @@ class _C {
 }
 
 /// ───────────────────────── UI Page ─────────────────────────
-class GeneralReOpenWorkOrderPage
-    extends GetView<GeneralReOpenWorkOrderController> {
-  const GeneralReOpenWorkOrderPage({super.key});
+class MaintenanceEngineerGeneralReOpenWorkOrderPage
+    extends GetView<MaintenanceEnginnerGeneralReOpenWorkOrderController> {
+  const MaintenanceEngineerGeneralReOpenWorkOrderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +80,7 @@ class GeneralReOpenWorkOrderPage
 /// ───────────────────────── Widgets ─────────────────────────
 class _WoInfoCard extends StatelessWidget {
   const _WoInfoCard({required this.controller});
-  final GeneralReOpenWorkOrderController controller;
+  final MaintenanceEnginnerGeneralReOpenWorkOrderController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +152,7 @@ class _WoInfoCard extends StatelessWidget {
 
 class _FormCard extends StatelessWidget {
   const _FormCard({required this.controller});
-  final GeneralReOpenWorkOrderController controller;
+  final MaintenanceEnginnerGeneralReOpenWorkOrderController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +213,7 @@ class _FormCard extends StatelessWidget {
 
 class _BottomBar extends StatelessWidget {
   const _BottomBar({required this.controller});
-  final GeneralReOpenWorkOrderController controller;
+  final MaintenanceEnginnerGeneralReOpenWorkOrderController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -422,7 +422,7 @@ class _CupertinoLikeDropdown<T> extends StatelessWidget {
 
 class _RemarksField extends StatelessWidget {
   const _RemarksField({required this.controller});
-  final GeneralReOpenWorkOrderController controller;
+  final MaintenanceEnginnerGeneralReOpenWorkOrderController controller;
 
   @override
   Widget build(BuildContext context) {

@@ -37,7 +37,7 @@ class Suggestion {
   });
 }
 
-class SuggestionsController extends GetxController {
+class MaintenanceEnginnerSuggestionsController extends GetxController {
   final items = <Suggestion>[
     Suggestion(
       id: 'SG-112',

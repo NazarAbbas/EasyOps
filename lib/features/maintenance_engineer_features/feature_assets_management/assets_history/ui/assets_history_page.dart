@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/assets_history_controller.dart';
 
-class AssetsHistoryPage extends GetView<AssetsHistoryController> {
-  const AssetsHistoryPage({super.key});
+class MaintenanceEngineerAssetsHistoryPage
+    extends GetView<MaintenanceEnginnerAssetsHistoryController> {
+  const MaintenanceEngineerAssetsHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -239,9 +240,8 @@ class _HistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const _muted = Color(0xFF7C8698);
     const _text = Color(0xFF2D2F39);
-    final _typeStr = item.type == HistoryType.breakdown
-        ? 'Breakdown'
-        : 'Preventive';
+    final _typeStr =
+        item.type == HistoryType.breakdown ? 'Breakdown' : 'Preventive';
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),

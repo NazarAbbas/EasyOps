@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class GeneralWorkOrderListPage extends GetView<GeneralWorkOrderListController> {
+class GeneralWorkOrderListPage
+    extends GetView<MaintenanceEnginnerGeneralWorkOrderListController> {
   const GeneralWorkOrderListPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -71,13 +72,14 @@ class GeneralWorkOrderListPage extends GetView<GeneralWorkOrderListController> {
 
 /* ───────────────────────── Header (drop-in) ───────────────────────── */
 
-class _GradientHeader extends GetView<GeneralWorkOrderListController>
+class _GradientHeader
+    extends GetView<MaintenanceEnginnerGeneralWorkOrderListController>
     implements PreferredSizeWidget {
   const _GradientHeader();
 
   @override
-  GeneralWorkOrderListController get controller =>
-      Get.find<GeneralWorkOrderListController>();
+  MaintenanceEnginnerGeneralWorkOrderListController get controller =>
+      Get.find<MaintenanceEnginnerGeneralWorkOrderListController>();
 
   @override
   Size get preferredSize => const Size.fromHeight(120);
@@ -199,7 +201,8 @@ class _GradientHeader extends GetView<GeneralWorkOrderListController>
 
 /* ───────────────────────── Calendar ───────────────────────── */
 
-class _CalendarCard extends GetView<GeneralWorkOrderListController> {
+class _CalendarCard
+    extends GetView<MaintenanceEnginnerGeneralWorkOrderListController> {
   const _CalendarCard();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -311,7 +314,8 @@ class _CalendarCard extends GetView<GeneralWorkOrderListController> {
 
 /* ───────────────────────── List items ───────────────────────── */
 
-class _WorkOrderCard extends GetView<GeneralWorkOrderListController> {
+class _WorkOrderCard
+    extends GetView<MaintenanceEnginnerGeneralWorkOrderListController> {
   final WorkOrder order;
   const _WorkOrderCard({required this.order});
 
@@ -472,12 +476,12 @@ class _WorkOrderCard extends GetView<GeneralWorkOrderListController> {
       );
 }
 
-class _Tabs extends GetView<GeneralWorkOrderListController> {
+class _Tabs extends GetView<MaintenanceEnginnerGeneralWorkOrderListController> {
   const _Tabs();
 
   @override
-  GeneralWorkOrderListController get controller =>
-      Get.find<GeneralWorkOrderListController>();
+  MaintenanceEnginnerGeneralWorkOrderListController get controller =>
+      Get.find<MaintenanceEnginnerGeneralWorkOrderListController>();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

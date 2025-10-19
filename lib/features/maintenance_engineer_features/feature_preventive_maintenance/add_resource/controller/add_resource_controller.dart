@@ -17,7 +17,7 @@ class AddedResource {
   });
 }
 
-class AddResourceController extends GetxController {
+class MaintenanceEnginnerAddResourceController extends GetxController {
   // Location shown in the added-row (to mimic your default row look)
   final location = 'CNC Vertical Assets Center where we make housing'.obs;
 

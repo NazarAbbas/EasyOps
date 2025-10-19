@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-class WorkOrderDetailsTabsController extends GetxController {
+class MaintenanceEnginnerWorkOrderDetailsTabsController extends GetxController {
   final tabs = const ['Work Order', 'History', 'Timeline'];
   final selectedTab = 0.obs; // 0 = WorkOrderInfoPage (default)
   void goTo(int i) => {selectedTab.value = i};

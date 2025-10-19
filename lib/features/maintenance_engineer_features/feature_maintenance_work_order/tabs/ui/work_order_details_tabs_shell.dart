@@ -8,14 +8,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class WorkOrderDetailsTabsShell extends StatelessWidget {
-  const WorkOrderDetailsTabsShell({super.key});
+class MaintenanceEngineerWorkOrderDetailsTabsShell extends StatelessWidget {
+  const MaintenanceEngineerWorkOrderDetailsTabsShell({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = Get.put(WorkTabsController());
+    final ctrl = Get.put(MaintenanceEngineerWorkTabsController());
     final isTablet = _isTablet(context);
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
@@ -74,9 +74,9 @@ class WorkOrderDetailsTabsShell extends StatelessWidget {
         () => IndexedStack(
           index: ctrl.selectedTab.value, // 0 shows WorkOrderInfoPage first
           children: [
-            const AcceptWorkOrderPage(),
-            const HistoryPage(),
-            const TimelinePage(),
+            const MaintenanceEngineerAcceptWorkOrderPage(),
+            const MaintenanceEngineerHistoryPage(),
+            const MaintenanceEngineerTimelinePage(),
           ],
         ),
       ),
@@ -84,7 +84,7 @@ class WorkOrderDetailsTabsShell extends StatelessWidget {
   }
 }
 
-class _HeaderTabs extends GetView<WorkTabsController> {
+class _HeaderTabs extends GetView<MaintenanceEngineerWorkTabsController> {
   const _HeaderTabs();
 
   @override

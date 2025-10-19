@@ -2,7 +2,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class WorkOrdersManagementController extends GetxController {
+class MaintenanceEnginnerWorkOrdersManagementController extends GetxController {
   // ---------------- UI state ----------------
   final loading = true.obs; // first-load spinner
   final isRefreshing = false.obs; // pull-to-refresh spinner (if you show one)

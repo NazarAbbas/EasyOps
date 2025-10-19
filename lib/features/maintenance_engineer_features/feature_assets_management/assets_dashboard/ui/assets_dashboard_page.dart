@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class AssetsDashboardPage extends GetView<AssetsDashboardController> {
-  const AssetsDashboardPage({super.key});
+class MaintenanceEngineerAssetsDashboardPage
+    extends GetView<MaintenanceEnginnerAssetsDashboardController> {
+  const MaintenanceEngineerAssetsDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {

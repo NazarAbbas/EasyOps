@@ -4,7 +4,8 @@ import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_management/assets_management_dashboard/models/area_group.dart';
 import 'package:get/get.dart';
 
-class AssetsManagementDashboardController extends GetxController {
+class MaintenanceEngeneerAssetsManagementDashboardController
+    extends GetxController {
   // Tabs / search
   final tabs = const ['All', 'Critical', 'Semi Critical', 'Non Critical'];
   final selectedTab = 0.obs;

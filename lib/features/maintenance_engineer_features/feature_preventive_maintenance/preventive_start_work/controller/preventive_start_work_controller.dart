@@ -3,7 +3,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_preventi
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PreventiveStartWorkController extends GetxController {
+class MaintenanceEnginnerPreventiveStartWorkController extends GetxController {
   // Header
   final machineName = 'CNC-1'.obs;
   final brand = 'Siemens'.obs;

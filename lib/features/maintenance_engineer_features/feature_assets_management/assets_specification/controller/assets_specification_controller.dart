@@ -41,7 +41,7 @@ class AssetSpec {
   });
 }
 
-class AssetSpecificationController extends GetxController {
+class MaintenanceEngineerAssetSpecificationController extends GetxController {
   final Rx<AssetSpec> asset = Rx<AssetSpec>(_sample());
 
   final RxList<DocItem> docs = <DocItem>[
@@ -77,8 +77,7 @@ class AssetSpecificationController extends GetxController {
   Future<void> downloadAndOpen(DocItem doc) async {
     if (progress[doc.id] != null &&
         progress[doc.id]! > 0 &&
-        progress[doc.id]! < 1)
-      return;
+        progress[doc.id]! < 1) return;
 
     try {
       final dio = Dio();
@@ -131,26 +130,26 @@ class AssetSpecificationController extends GetxController {
 
   // -------- Sample seed --------
   static AssetSpec _sample() => AssetSpec(
-    code: 'CNC-1',
-    make: 'Siemens',
-    description: 'CNC Vertical Assets Center where we make housing',
-    status: 'Working',
-    criticality: 'Critical',
-    technicalData: const {
-      'Size': '1234',
-      'Weight': '1234',
-      'Capacity': '1234',
-      'Height': '1234',
-      'Length': '1234',
-      'Width': '1234',
-      'Power': '1234',
-      'Electricity Consumption': '1234',
-    },
-    commercialData: const {
-      'Manufacturer': '1234',
-      'Make': '1234',
-      'Model': '1234',
-      'Acquisition': '1234',
-    },
-  );
+        code: 'CNC-1',
+        make: 'Siemens',
+        description: 'CNC Vertical Assets Center where we make housing',
+        status: 'Working',
+        criticality: 'Critical',
+        technicalData: const {
+          'Size': '1234',
+          'Weight': '1234',
+          'Capacity': '1234',
+          'Height': '1234',
+          'Length': '1234',
+          'Width': '1234',
+          'Power': '1234',
+          'Electricity Consumption': '1234',
+        },
+        commercialData: const {
+          'Manufacturer': '1234',
+          'Make': '1234',
+          'Model': '1234',
+          'Acquisition': '1234',
+        },
+      );
 }

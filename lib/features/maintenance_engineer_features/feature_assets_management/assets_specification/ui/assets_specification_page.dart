@@ -2,8 +2,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_m
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AssetsSpecificationPage extends GetView<AssetSpecificationController> {
-  const AssetsSpecificationPage({super.key});
+class MaintenanceEngineerAssetsSpecificationPage
+    extends GetView<MaintenanceEngineerAssetSpecificationController> {
+  const MaintenanceEngineerAssetsSpecificationPage({super.key});
 
   @override
   Widget build(BuildContext context) {

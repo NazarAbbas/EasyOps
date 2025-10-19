@@ -1,7 +1,8 @@
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:get/get.dart';
 
-class CancelWorkOrderControllerFromDiagnostics extends GetxController {
+class MaintenanceEnginnerCancelWorkOrderControllerFromDiagnostics
+    extends GetxController {
   // UI state
   final isLoading = false.obs;
   final reasons = const <String>[

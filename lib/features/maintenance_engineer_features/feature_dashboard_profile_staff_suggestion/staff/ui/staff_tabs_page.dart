@@ -8,14 +8,15 @@ import 'package:get/get.dart';
 
 import '../controller/staff_tabs_controller.dart';
 
-class StaffTabsPage extends GetView<StaffTabsController> {
-  const StaffTabsPage({super.key});
+class MaintenanceEngineerStaffTabsPage
+    extends GetView<MaintenanceEngineerStaffTabsController> {
+  const MaintenanceEngineerStaffTabsPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
-    Get.put(StaffTabsController(), permanent: true);
+    Get.put(MaintenanceEngineerStaffTabsController(), permanent: true);
     final isTab = _isTablet(context);
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
@@ -124,7 +125,7 @@ class _HeaderBar extends StatelessWidget implements PreferredSizeWidget {
 
 /* ---------------- Tabs (Current Shift / Search) ---------------- */
 
-class _HeaderTabs extends GetView<StaffTabsController> {
+class _HeaderTabs extends GetView<MaintenanceEngineerStaffTabsController> {
   const _HeaderTabs();
 
   @override

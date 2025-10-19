@@ -10,9 +10,9 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../models/preventive_maintenance_dashboard_model.dart';
 
-class PreventiveWorkOrderListPage
-    extends GetView<PreventiveWorkOrderListController> {
-  const PreventiveWorkOrderListPage({super.key});
+class MaintenanceEngineerPreventiveWorkOrderListPage
+    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController> {
+  const MaintenanceEngineerPreventiveWorkOrderListPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -128,13 +128,14 @@ class PreventiveWorkOrderListPage
 
 /* ───────────────────────── Header (drop-in) ───────────────────────── */
 
-class _GradientHeader extends GetView<PreventiveWorkOrderListController>
+class _GradientHeader
+    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController>
     implements PreferredSizeWidget {
   const _GradientHeader();
 
   @override
-  PreventiveWorkOrderListController get controller =>
-      Get.find<PreventiveWorkOrderListController>();
+  MaintenanceEnginnerPreventiveWorkOrderListController get controller =>
+      Get.find<MaintenanceEnginnerPreventiveWorkOrderListController>();
 
   @override
   Size get preferredSize => const Size.fromHeight(120);
@@ -277,7 +278,8 @@ class _GradientHeader extends GetView<PreventiveWorkOrderListController>
 
 /* ───────────────────────── Calendar ───────────────────────── */
 
-class _CalendarCard extends GetView<PreventiveWorkOrderListController> {
+class _CalendarCard
+    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController> {
   const _CalendarCard();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -531,12 +533,13 @@ class _CriticalPill extends StatelessWidget {
 
 /* ───────────────────────── Top Tabs ───────────────────────── */
 
-class _Tabs extends GetView<PreventiveWorkOrderListController> {
+class _Tabs
+    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController> {
   const _Tabs();
 
   @override
-  PreventiveWorkOrderListController get controller =>
-      Get.find<PreventiveWorkOrderListController>();
+  MaintenanceEnginnerPreventiveWorkOrderListController get controller =>
+      Get.find<MaintenanceEnginnerPreventiveWorkOrderListController>();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

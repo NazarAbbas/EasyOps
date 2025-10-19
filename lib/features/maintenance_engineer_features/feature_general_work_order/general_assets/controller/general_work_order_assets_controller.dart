@@ -171,5 +171,6 @@ class GeneralWorkOrderAssetsController extends GetxController {
     loading.value = false;
   }
 
-  void goBack(int i) => Get.find<GenreralOrderDetailsTabsController>().goTo(i);
+  void goBack(int i) =>
+      Get.find<MaintenanceEnginnerGenreralOrderDetailsTabsController>().goTo(i);
 }

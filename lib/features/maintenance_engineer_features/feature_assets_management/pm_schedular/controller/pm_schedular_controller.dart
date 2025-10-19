@@ -49,7 +49,7 @@ class PMHistoryItem {
   });
 }
 
-class PMScheduleController extends GetxController {
+class MaintenanceEnginnerPMScheduleController extends GetxController {
   // Header
   final Rx<AssetSummary> asset = Rx<AssetSummary>(
     const AssetSummary(

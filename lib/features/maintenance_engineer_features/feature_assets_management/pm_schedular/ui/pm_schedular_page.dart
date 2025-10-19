@@ -2,8 +2,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_m
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PMSchedulePage extends GetView<PMScheduleController> {
-  const PMSchedulePage({super.key});
+class MaintenanceEngineerPMSchedulePage
+    extends GetView<MaintenanceEnginnerPMScheduleController> {
+  const MaintenanceEngineerPMSchedulePage({super.key});
 
   @override
   Widget build(BuildContext context) {

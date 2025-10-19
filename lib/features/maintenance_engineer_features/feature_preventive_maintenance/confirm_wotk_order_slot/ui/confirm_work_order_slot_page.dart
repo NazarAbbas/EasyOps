@@ -26,8 +26,9 @@ class _TabsController extends GetxController {
   void set(int i) => index.value = i;
 }
 
-class ConfirmSlotPage extends GetView<PreventiveWorkOrderController> {
-  const ConfirmSlotPage({super.key});
+class MaintenanceEngineerConfirmSlotPage
+    extends GetView<MaintenanceEnginnerPreventiveWorkOrderController> {
+  const MaintenanceEngineerConfirmSlotPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -454,7 +455,8 @@ class _PreventiveCard extends StatelessWidget {
   }
 }
 
-class _SlotDropdown extends GetView<PreventiveWorkOrderController> {
+class _SlotDropdown
+    extends GetView<MaintenanceEnginnerPreventiveWorkOrderController> {
   const _SlotDropdown({super.key});
 
   @override

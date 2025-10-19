@@ -13,9 +13,9 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class GeneralStartWorkOrderPage
-    extends GetView<GeneralStartWorkOrderController> {
-  const GeneralStartWorkOrderPage({super.key});
+class MaintenanceEngineerGeneralStartWorkOrderPage
+    extends GetView<MaintenanceEnginnerGeneralStartWorkOrderController> {
+  const MaintenanceEngineerGeneralStartWorkOrderPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -238,7 +238,7 @@ class _SummaryHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<GeneralStartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>();
     final blue = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
@@ -389,7 +389,7 @@ class _OperatorInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<GeneralStartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>();
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: Obx(
@@ -509,7 +509,7 @@ class _WorkOrderInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<GeneralStartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>();
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       child: Obx(
@@ -591,7 +591,7 @@ class _MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<GeneralStartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>();
 
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -643,7 +643,7 @@ class _SparesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<GeneralStartWorkOrderController>();
+    final c = Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>();
     return _Card(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Obx(() {
@@ -951,7 +951,8 @@ class _AudioBubbleState extends State<_AudioBubble> {
     _player = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
     // Register with controller so it can stop us on navigation
-    Get.find<GeneralStartWorkOrderController>().registerPlayer(_player);
+    Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>()
+        .registerPlayer(_player);
 
     _player.onDurationChanged.listen((d) {
       if (mounted) setState(() => _duration = d);
@@ -1009,7 +1010,8 @@ class _AudioBubbleState extends State<_AudioBubble> {
     try {
       _player.stop();
     } catch (_) {}
-    Get.find<GeneralStartWorkOrderController>().unregisterPlayer(_player);
+    Get.find<MaintenanceEnginnerGeneralStartWorkOrderController>()
+        .unregisterPlayer(_player);
     _player.dispose();
     super.dispose();
   }

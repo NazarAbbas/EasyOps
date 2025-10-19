@@ -45,7 +45,7 @@ class ConsumedTicket {
   int get totalQty => lines.fold(0, (p, e) => p + e.qty);
 }
 
-class ConsumedSparePartsController extends GetxController {
+class MaintenanceEnginnerConsumedSparePartsController extends GetxController {
   /// 0 = Returns, 1 = Consumed
   final tabIndex = 1.obs; // start on Consumed for this flow
 

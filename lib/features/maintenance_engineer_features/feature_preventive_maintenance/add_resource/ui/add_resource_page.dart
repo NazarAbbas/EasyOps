@@ -12,8 +12,9 @@ class _C {
   static const border = Color(0xFFE9EEF5);
 }
 
-class AddResourcePage extends GetView<AddResourceController> {
-  const AddResourcePage({super.key});
+class MaintenanceEngineerAddResourcePage
+    extends GetView<MaintenanceEnginnerAddResourceController> {
+  const MaintenanceEngineerAddResourcePage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -21,7 +22,7 @@ class AddResourcePage extends GetView<AddResourceController> {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
-    Get.put(AddResourceController(), permanent: false);
+    Get.put(MaintenanceEnginnerAddResourceController(), permanent: false);
 
     final isTablet = _isTablet(context);
     final hPad = isTablet ? 20.0 : 14.0;
@@ -108,7 +109,7 @@ class AddResourcePage extends GetView<AddResourceController> {
 
 /* ─────────────────────── Added list on top ─────────────────────── */
 
-class _AddedList extends GetView<AddResourceController> {
+class _AddedList extends GetView<MaintenanceEnginnerAddResourceController> {
   const _AddedList();
 
   @override
@@ -147,7 +148,7 @@ class _AddedList extends GetView<AddResourceController> {
 
 /// Row that mirrors the "default" style:
 ///   "type | code" + location + assignee + date
-class _AddedRowTile extends GetView<AddResourceController> {
+class _AddedRowTile extends GetView<MaintenanceEnginnerAddResourceController> {
   final int index;
   const _AddedRowTile({required this.index});
 
@@ -221,7 +222,7 @@ class _AddedRowTile extends GetView<AddResourceController> {
 
 /* ───────────────────────── Form card ───────────────────────── */
 
-class _FormCard extends GetView<AddResourceController> {
+class _FormCard extends GetView<MaintenanceEnginnerAddResourceController> {
   const _FormCard();
 
   @override

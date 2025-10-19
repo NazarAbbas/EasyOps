@@ -13,15 +13,16 @@ class _C {
   static const danger = Color(0xFFED3B40);
 }
 
-class PurposedNewSlotPage extends GetView<PurposedNewSlotController> {
-  const PurposedNewSlotPage({super.key});
+class MaintenanceEngineerPurposedNewSlotPage
+    extends GetView<MaintenanceEnginnerPurposedNewSlotController> {
+  const MaintenanceEngineerPurposedNewSlotPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
   @override
   Widget build(BuildContext context) {
     // Prefer binding/route injection in production; kept here for drop-in use.
-    Get.put(PurposedNewSlotController(), permanent: false);
+    Get.put(MaintenanceEnginnerPurposedNewSlotController(), permanent: false);
 
     final isTablet = _isTablet(context);
     final hPad = isTablet ? 20.0 : 14.0;
@@ -147,7 +148,8 @@ class PurposedNewSlotPage extends GetView<PurposedNewSlotController> {
 
 /* ───────────────────────── Widgets ───────────────────────── */
 
-class _MachineCard extends GetView<PurposedNewSlotController> {
+class _MachineCard
+    extends GetView<MaintenanceEnginnerPurposedNewSlotController> {
   const _MachineCard();
 
   @override
@@ -263,7 +265,8 @@ class _Pill extends StatelessWidget {
 
 /* ------- Responsive metrics (grid prevents overflow) ------- */
 
-class _MetricsGrid extends GetView<PurposedNewSlotController> {
+class _MetricsGrid
+    extends GetView<MaintenanceEnginnerPurposedNewSlotController> {
   const _MetricsGrid();
 
   @override
@@ -335,7 +338,8 @@ class _MetricsGrid extends GetView<PurposedNewSlotController> {
 
 /* ----------------------------------------------------------- */
 
-class _PreventiveCard extends GetView<PurposedNewSlotController> {
+class _PreventiveCard
+    extends GetView<MaintenanceEnginnerPurposedNewSlotController> {
   const _PreventiveCard();
 
   @override
@@ -401,7 +405,8 @@ class _PreventiveCard extends GetView<PurposedNewSlotController> {
   }
 }
 
-class _ReasonCard extends GetView<PurposedNewSlotController> {
+class _ReasonCard
+    extends GetView<MaintenanceEnginnerPurposedNewSlotController> {
   const _ReasonCard();
 
   @override
@@ -453,7 +458,8 @@ class _ReasonCard extends GetView<PurposedNewSlotController> {
   }
 }
 
-class _OptionCard extends GetView<PurposedNewSlotController> {
+class _OptionCard
+    extends GetView<MaintenanceEnginnerPurposedNewSlotController> {
   final int optionIndex; // 1 or 2
   const _OptionCard({required this.optionIndex});
 

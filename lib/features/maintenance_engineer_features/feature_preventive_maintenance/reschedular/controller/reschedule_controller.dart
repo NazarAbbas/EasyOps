@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RescheduleController extends GetxController {
+class MaintenanceEnginnerRescheduleController extends GetxController {
   // Header (mock/demo data — wire to your API if needed)
   final machineName = 'CNC-1'.obs;
   final brand = 'Siemens'.obs;

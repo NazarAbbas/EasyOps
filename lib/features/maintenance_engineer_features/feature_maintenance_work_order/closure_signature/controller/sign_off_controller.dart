@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 /// ===== Typed payload returned to the previous screen (e.g., Closure page)
 class SignatureResult {
   final Uint8List?
-  bytes; // PNG bytes of the signature (nullable until user signs)
+      bytes; // PNG bytes of the signature (nullable until user signs)
   final String name; // resolved from employee directory
   final String designation; // resolved from employee directory
   final String empCode; // what the user entered / selected
@@ -21,12 +21,12 @@ class SignatureResult {
   });
 
   factory SignatureResult.empty() => SignatureResult(
-    bytes: null,
-    name: '',
-    designation: '',
-    empCode: '',
-    time: DateTime.now(),
-  );
+        bytes: null,
+        name: '',
+        designation: '',
+        empCode: '',
+        time: DateTime.now(),
+      );
 
   SignatureResult copyWith({
     Uint8List? bytes,
@@ -62,7 +62,7 @@ class Employee {
   });
 }
 
-class SignOffController extends GetxController {
+class MaintenanceEnginnerSignOffController extends GetxController {
   // UI state
   final isSaving = false.obs;
   final hasSignature = false.obs;
