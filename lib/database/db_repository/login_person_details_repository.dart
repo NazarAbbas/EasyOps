@@ -1,5 +1,6 @@
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/dao/login_person_details_dao.dart';
+import 'package:easy_ops/database/entity/login_person_details_entity.dart';
 import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/mappers/login_person_details_mapper.dart';
@@ -17,6 +18,8 @@ class LoginPersonDetailsRepository {
         model.attendance.map((a) => a.toEntity()).toList();
 
     final assetsEntities = model.assets.map((c) => c.toEntity()).toList();
+    final holdaysEntities =
+        model.organizationHolidays.map((c) => c.toEntity()).toList();
 
     // Floor doesn't support direct manual transaction() calls.
     // Instead, we ensure ordering manually or use @transaction in a DAO.
@@ -36,6 +39,16 @@ class LoginPersonDetailsRepository {
       await _db.loginPersonAssetDao.deleteAssetForPerson(model.id);
       await _db.loginPersonAssetDao.upsertAssets(assetsEntities);
     }
+
+    if (assetsEntities.isNotEmpty) {
+      await _db.loginPersonAssetDao.deleteAssetForPerson(model.id);
+      await _db.loginPersonAssetDao.upsertAssets(assetsEntities);
+    }
+
+    if (holdaysEntities.isNotEmpty) {
+      await _db.loginPersonHolidaysDao.deleteAllHolidays();
+      await _db.loginPersonHolidaysDao.upsertPersonHolidays(holdaysEntities);
+    }
   }
 
   /// Fetch a single person by ID (with related contacts & attendance)
@@ -47,10 +60,13 @@ class LoginPersonDetailsRepository {
     final attendance =
         await _db.loginPersonAttendanceDao.getAttendanceForPerson(id);
     final assets = await _db.loginPersonAssetDao.getAssetForPerson(id);
+    final organizationHolidays =
+        await _db.loginPersonHolidaysDao.getAllHolidays();
 
     return LoginPersonDetails(
       id: personRow.id,
       name: personRow.name,
+      userPhone: personRow.userPhone,
       dob: personRow.dob != null ? DateTime.parse(personRow.dob!) : null,
       bloodGroup: personRow.bloodGroup,
       designation: personRow.designation,
@@ -78,6 +94,7 @@ class LoginPersonDetailsRepository {
                 updatedAt: DateTime.parse(e.updatedAt),
                 personId: e.personId,
                 personName: e.personName,
+                name: e.name,
               ))
           .toList(),
       assets: assets
@@ -108,6 +125,16 @@ class LoginPersonDetailsRepository {
                 shiftId: e.shiftId,
                 shiftName: e.shiftName,
               ))
+          .toList(),
+      // Map DB holidays -> domain model holidays
+      organizationHolidays: organizationHolidays
+          .map(
+            (h) => OrganizationHoliday(
+              holidayDate:
+                  h.holidayDate, // already DateTime? thanks to converter
+              holidayName: h.holidayName,
+            ),
+          )
           .toList(),
     );
   }

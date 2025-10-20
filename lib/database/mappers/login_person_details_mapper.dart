@@ -25,6 +25,7 @@ extension LoginPersonDetailsMapper on LoginPersonDetails {
     return LoginPersonDetailsEntity(
       id: id, // assumed non-null
       name: name, // keep as-is (per your requirement)
+      userPhone: userPhone ?? '',
       dob: _formatDate(dob) ?? '',
       bloodGroup: bloodGroup ?? '',
       designation: designation ?? '',
@@ -57,6 +58,7 @@ extension ContactMapper on LoginPersonContact {
       updatedAt: updatedAt?.toIso8601String() ?? '',
       personId: personId ?? '',
       personName: personName ?? '',
+      name: name ?? '',
     );
   }
 }
@@ -92,3 +94,36 @@ extension AssetEntityMapper on LoginPersonAsset {
         assetSerialNumber: assetSerialNumber,
       );
 }
+
+extension OrganizationHolidayToEntityX on OrganizationHoliday {
+  LoginPersonHolidayEntity toEntity() {
+    return LoginPersonHolidayEntity(
+      id: _holidayIdFromDate(holidayDate),
+      holidayDate: holidayDate == null
+          ? null
+          : DateTime(holidayDate!.year, holidayDate!.month, holidayDate!.day),
+      holidayName: holidayName,
+    );
+  }
+}
+
+extension LoginPersonHolidayEntityToApiX on LoginPersonHolidayEntity {
+  OrganizationHoliday toApiModel() {
+    return OrganizationHoliday(
+      holidayDate: holidayDate == null
+          ? null
+          : DateTime(holidayDate!.year, holidayDate!.month, holidayDate!.day),
+      holidayName: holidayName,
+    );
+  }
+}
+
+/// --- Date helpers (yyyy-MM-dd) ---
+String? _dateOnly(DateTime? d) => d == null
+    ? null
+    : '${d.year.toString().padLeft(4, '0')}-'
+        '${d.month.toString().padLeft(2, '0')}-'
+        '${d.day.toString().padLeft(2, '0')}';
+
+/// Create a stable primary key from the date (and optional org/person scopes if you add later)
+String _holidayIdFromDate(DateTime? d) => _dateOnly(d) ?? 'HOL-UNKNOWN';

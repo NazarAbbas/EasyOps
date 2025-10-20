@@ -55,3 +55,24 @@ abstract class LoginPersonAssetDao {
   @Query('DELETE FROM login_person_assets WHERE personId = :personId')
   Future<void> deleteAssetForPerson(String personId);
 }
+
+@dao
+abstract class LoginPersonHolidaysDao {
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> upsertPersonHolidays(List<LoginPersonHolidayEntity> entities);
+
+  @Query('SELECT * FROM login_person_holidays ORDER BY holidayDate ASC')
+  Future<List<LoginPersonHolidayEntity>> getAllHolidays();
+
+  @Query(
+      'SELECT * FROM login_person_holidays WHERE holidayDate = :date LIMIT 1')
+  Future<LoginPersonHolidayEntity?> findByExactDate(DateTime date);
+
+  @Query(
+      'SELECT * FROM login_person_holidays WHERE holidayDate >= :from AND holidayDate <= :to ORDER BY holidayDate ASC')
+  Future<List<LoginPersonHolidayEntity>> findBetween(
+      DateTime from, DateTime to);
+
+  @Query('DELETE FROM login_person_holidays')
+  Future<void> deleteAllHolidays();
+}

@@ -5,6 +5,7 @@ class LoginPersonDetailsEntity {
   @primaryKey
   final String id;
   final String name;
+  final String userPhone;
   final String? dob;
   final String? bloodGroup;
   final String? designation;
@@ -25,6 +26,7 @@ class LoginPersonDetailsEntity {
   LoginPersonDetailsEntity({
     required this.id,
     required this.name,
+    required this.userPhone,
     this.dob,
     this.bloodGroup,
     this.designation,
@@ -66,6 +68,7 @@ class LoginPersonContactEntity {
   final String updatedAt;
   final String personId;
   final String personName;
+  final String name;
 
   LoginPersonContactEntity({
     required this.id,
@@ -77,6 +80,7 @@ class LoginPersonContactEntity {
     required this.updatedAt,
     required this.personId,
     required this.personName,
+    required this.name,
   });
 }
 
@@ -158,5 +162,19 @@ class LoginPersonAssetEntity {
     this.assetId,
     this.assetName,
     this.assetSerialNumber,
+  });
+}
+
+@Entity(tableName: 'login_person_holidays')
+class LoginPersonHolidayEntity {
+  @primaryKey
+  final String id;
+  final DateTime? holidayDate;
+  final String? holidayName;
+
+  const LoginPersonHolidayEntity({
+    required this.id,
+    this.holidayDate,
+    this.holidayName,
   });
 }

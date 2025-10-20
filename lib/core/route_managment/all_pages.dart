@@ -401,6 +401,14 @@ class AllPages {
         binding: ScreenBindings(),
         transition: Transition.zoom,
       ),
+
+      GetPage(
+        name: Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+        page: () => MaintenanceEngineerWorkOrderDetailsTabsShell(),
+        binding: ScreenBindings(),
+        transition: Transition.rightToLeft,
+      ),
+
       // GetPage(
       //   name: Routes.maintenanceEngeneerprofileScreen,
       //   page: () => MaintenanceEngineerProfilePage(),

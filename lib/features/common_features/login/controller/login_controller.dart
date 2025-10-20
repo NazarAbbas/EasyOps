@@ -71,8 +71,8 @@ class LoginPageController extends GetxController {
       debugPrint('Login HTTP code: ${result.httpCode}');
 
       if (result.isSuccess && result.data != null) {
-        // const userRole = 'maintenance_engineer';
-        const userRole = 'production_manager';
+        const userRole = 'maintenance_engineer';
+        // const userRole = 'production_manager';
 
         final loginPersonDetails =
             await repositoryImpl.loginPersonDetails(result.data!.userName);

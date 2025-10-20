@@ -493,7 +493,11 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onHighlightChanged: (v) => setState(() => _pressed = v),
-          onTap: () {
+          onTap: () async {
+            final userRole =
+                await SharePreferences.get<String>(SharePreferences.userRole)
+                    as String;
+
             final s = (order.status).toUpperCase();
             //if (s == 'RESOLVED') {
             if (s == 'OPEN') {
@@ -505,13 +509,23 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                 },
               );
             } else if (s == 'OPEN') {
-              Get.toNamed(
-                Routes.workOrderTabShellScreen,
-                arguments: {
-                  Constant.workOrderInfo: order,
-                  Constant.workOrderStatus: WorkOrderStatus.open,
-                },
-              );
+              if (userRole == SharePreferences.engineerRole) {
+                Get.toNamed(
+                  Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.open,
+                  },
+                );
+              } else {
+                Get.toNamed(
+                  Routes.workOrderTabShellScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.open,
+                  },
+                );
+              }
             } else {
               Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
             }

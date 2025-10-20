@@ -13,6 +13,7 @@ class LoginPersonDetails {
 
   final String? userId;
   final String? userEmail;
+  final String? userPhone;
 
   final String? organizationId;
   final String? organizationName;
@@ -29,10 +30,12 @@ class LoginPersonDetails {
   final List<LoginPersonContact> contacts;
   final List<LoginPersonAsset> assets;
   final List<LoginPersonAttendance> attendance;
+  final List<OrganizationHoliday> organizationHolidays;
 
   LoginPersonDetails({
     required this.id,
     required this.name,
+    required this.userPhone,
     required this.recordStatus,
     this.dob,
     this.bloodGroup,
@@ -52,12 +55,14 @@ class LoginPersonDetails {
     this.contacts = const [],
     this.assets = const [],
     this.attendance = const [],
+    this.organizationHolidays = const [],
   });
 
   factory LoginPersonDetails.fromJson(Map<String, dynamic> json) {
     return LoginPersonDetails(
       id: json['id'] as String,
       name: json['name'] as String,
+      userPhone: json['userPhone'] as String,
       recordStatus: (json['recordStatus'] as num).toInt(),
       dob: _parseDate(json['dob']),
       bloodGroup: json['bloodGroup'] as String?,
@@ -83,12 +88,18 @@ class LoginPersonDetails {
       attendance: _readList<Map<String, dynamic>>(json['attendance'])
           .map(LoginPersonAttendance.fromJson)
           .toList(),
+      organizationHolidays: (_asList(json['organizationHolidays']))
+              ?.map((e) => OrganizationHoliday.fromJson(_asMap(e)))
+              .whereType<OrganizationHoliday>()
+              .toList() ??
+          const [],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'userPhone': userPhone,
         'dob': _formatDate(dob),
         'bloodGroup': bloodGroup,
         'designation': designation,
@@ -108,11 +119,15 @@ class LoginPersonDetails {
         'contacts': contacts.map((e) => e.toJson()).toList(),
         'assets': assets.map((e) => e.toJson()).toList(),
         'attendance': attendance.map((e) => e.toJson()).toList(),
+        'organizationHolidays':
+            organizationHolidays.map((e) => e.toJson()).toList(),
       };
 
   LoginPersonDetails copyWith({
     String? id,
+    String? userPhone,
     String? name,
+    String? us,
     DateTime? dob,
     String? bloodGroup,
     String? designation,
@@ -132,9 +147,11 @@ class LoginPersonDetails {
     List<LoginPersonContact>? contacts,
     List<LoginPersonAsset>? assets,
     List<LoginPersonAttendance>? attendance,
+    List<OrganizationHoliday>? organizationHolidays,
   }) {
     return LoginPersonDetails(
       id: id ?? this.id,
+      userPhone: userPhone ?? this.userPhone,
       name: name ?? this.name,
       dob: dob ?? this.dob,
       bloodGroup: bloodGroup ?? this.bloodGroup,
@@ -155,8 +172,45 @@ class LoginPersonDetails {
       contacts: contacts ?? this.contacts,
       assets: assets ?? this.assets,
       attendance: attendance ?? this.attendance,
+      organizationHolidays: organizationHolidays ?? this.organizationHolidays,
     );
   }
+}
+
+Map<String, dynamic> _asMap(dynamic v) =>
+    (v is Map) ? v.cast<String, dynamic>() : <String, dynamic>{};
+
+DateTime? _parseDateTime(dynamic v) {
+  final s = _asString(v);
+  if (s == null || s.trim().isEmpty) return null;
+  try {
+    return DateTime.parse(s);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Parse "yyyy-MM-dd" into DateTime (local date at midnight).
+DateTime? _parseDateOnly(dynamic v) {
+  final s = _asString(v);
+  if (s == null || s.trim().isEmpty) return null;
+  try {
+    // Ensure only the date portion is considered
+    final parts = s.split('T').first;
+    final date = DateTime.parse(parts);
+    return DateTime(date.year, date.month, date.day);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Format date-only fields as "yyyy-MM-dd"
+String? _formatDateOnly(DateTime? d) {
+  if (d == null) return null;
+  final y = d.year.toString().padLeft(4, '0');
+  final m = d.month.toString().padLeft(2, '0');
+  final day = d.day.toString().padLeft(2, '0');
+  return '$y-$m-$day';
 }
 
 /// Person type enum, safely parsed
@@ -207,18 +261,19 @@ class LoginPersonContact {
   final DateTime? updatedAt;
   final String? personId;
   final String? personName;
+  final String? name;
 
-  LoginPersonContact({
-    required this.id,
-    required this.recordStatus,
-    this.label,
-    this.relationship,
-    this.phone,
-    this.email,
-    this.updatedAt,
-    this.personId,
-    this.personName,
-  });
+  LoginPersonContact(
+      {required this.id,
+      required this.recordStatus,
+      this.label,
+      this.relationship,
+      this.phone,
+      this.email,
+      this.updatedAt,
+      this.personId,
+      this.personName,
+      this.name});
 
   factory LoginPersonContact.fromJson(Map<String, dynamic> json) {
     return LoginPersonContact(
@@ -231,6 +286,7 @@ class LoginPersonContact {
       updatedAt: _parseDateTime(json['updatedAt']),
       personId: json['personId'] as String?,
       personName: json['personName'] as String?,
+      name: json['name'] as String?,
     );
   }
 
@@ -244,6 +300,7 @@ class LoginPersonContact {
         'updatedAt': updatedAt?.toIso8601String(),
         'personId': personId,
         'personName': personName,
+        'name': name,
       };
 }
 
@@ -293,6 +350,8 @@ class LoginPersonAsset {
         'assetSerialNumber': assetSerialNumber,
       };
 }
+
+List<dynamic>? _asList(dynamic v) => v is List ? v : null;
 
 /// Attendance record linked to Person
 class LoginPersonAttendance {
@@ -359,6 +418,36 @@ class LoginPersonAttendance {
       };
 }
 
+class OrganizationHoliday {
+  final DateTime? holidayDate; // date-only
+  final String? holidayName;
+
+  const OrganizationHoliday({
+    this.holidayDate,
+    this.holidayName,
+  });
+
+  factory OrganizationHoliday.fromJson(Map<String, dynamic> json) =>
+      OrganizationHoliday(
+        holidayDate: _parseDateOnly(json['holidayDate']),
+        holidayName: _asString(json['holidayName']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'holidayDate': _formatDateOnly(holidayDate),
+        'holidayName': holidayName,
+      };
+
+  OrganizationHoliday copyWith({
+    DateTime? holidayDate,
+    String? holidayName,
+  }) =>
+      OrganizationHoliday(
+        holidayDate: holidayDate ?? this.holidayDate,
+        holidayName: holidayName ?? this.holidayName,
+      );
+}
+
 /* ===================== helpers ===================== */
 
 T _as<T>(dynamic v) => v as T;
@@ -374,14 +463,14 @@ List<T> _readList<T>(dynamic value) {
   return const [];
 }
 
-DateTime? _parseDateTime(dynamic v) {
-  if (v == null) return null;
-  try {
-    return DateTime.parse(v.toString());
-  } catch (_) {
-    return null;
-  }
-}
+// DateTime? _parseDateTime(dynamic v) {
+//   if (v == null) return null;
+//   try {
+//     return DateTime.parse(v.toString());
+//   } catch (_) {
+//     return null;
+//   }
+// }
 
 /// Accepts "YYYY-MM-DD" and returns a DateTime at midnight UTC.
 /// If you need local, adjust accordingly.
@@ -402,3 +491,5 @@ String? _formatDate(DateTime? d) {
   final dd = d.day.toString().padLeft(2, '0');
   return '${d.year}-$mm-$dd';
 }
+
+String? _asString(dynamic v) => v is String ? v : null;

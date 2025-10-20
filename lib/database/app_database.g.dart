@@ -90,6 +90,8 @@ class _$AppDatabase extends AppDatabase {
 
   OperatorsDetailsDao? _operatorsDetailsDaoInstance;
 
+  LoginPersonHolidaysDao? _loginPersonHolidaysDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -120,15 +122,17 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_attendance` (`id` TEXT NOT NULL, `attDate` TEXT NOT NULL, `checkIn` TEXT, `checkOut` TEXT, `remarks` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, `shiftId` TEXT, `shiftName` TEXT, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `login_person_contact` (`id` TEXT NOT NULL, `label` TEXT NOT NULL, `relationship` TEXT, `phone` TEXT, `email` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `login_person_contact` (`id` TEXT NOT NULL, `label` TEXT NOT NULL, `relationship` TEXT, `phone` TEXT, `email` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, `name` TEXT NOT NULL, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_assets` (`id` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT, `personId` TEXT, `personName` TEXT, `assetId` TEXT, `assetName` TEXT, `assetSerialNumber` TEXT, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `operators_details_entity` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` INTEGER, `updatedAt` INTEGER, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `userId` TEXT, `organizationId` TEXT, `parentStaffId` TEXT, `managerId` TEXT, `shiftId` TEXT, `departmentId` TEXT, `userEmail` TEXT, `organizationName` TEXT, `parentStaffName` TEXT, `managerName` TEXT, `shiftName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `login_person_holidays` (`id` TEXT NOT NULL, `holidayDate` INTEGER, `holidayName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
         await database.execute(
@@ -222,6 +226,12 @@ class _$AppDatabase extends AppDatabase {
     return _operatorsDetailsDaoInstance ??=
         _$OperatorsDetailsDao(database, changeListener);
   }
+
+  @override
+  LoginPersonHolidaysDao get loginPersonHolidaysDao {
+    return _loginPersonHolidaysDaoInstance ??=
+        _$LoginPersonHolidaysDao(database, changeListener);
+  }
 }
 
 class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
@@ -235,6 +245,7 @@ class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
             (LoginPersonDetailsEntity item) => <String, Object?>{
                   'id': item.id,
                   'name': item.name,
+                  'userPhone': item.userPhone,
                   'dob': item.dob,
                   'bloodGroup': item.bloodGroup,
                   'designation': item.designation,
@@ -269,6 +280,7 @@ class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
         mapper: (Map<String, Object?> row) => LoginPersonDetailsEntity(
             id: row['id'] as String,
             name: row['name'] as String,
+            userPhone: row['userPhone'] as String,
             dob: row['dob'] as String?,
             bloodGroup: row['bloodGroup'] as String?,
             designation: row['designation'] as String?,
@@ -294,6 +306,7 @@ class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
         mapper: (Map<String, Object?> row) => LoginPersonDetailsEntity(
             id: row['id'] as String,
             name: row['name'] as String,
+            userPhone: row['userPhone'] as String,
             dob: row['dob'] as String?,
             bloodGroup: row['bloodGroup'] as String?,
             designation: row['designation'] as String?,
@@ -341,7 +354,8 @@ class _$LoginPersonContactDao extends LoginPersonContactDao {
                   'recordStatus': item.recordStatus,
                   'updatedAt': item.updatedAt,
                   'personId': item.personId,
-                  'personName': item.personName
+                  'personName': item.personName,
+                  'name': item.name
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -367,7 +381,8 @@ class _$LoginPersonContactDao extends LoginPersonContactDao {
             recordStatus: row['recordStatus'] as int,
             updatedAt: row['updatedAt'] as String,
             personId: row['personId'] as String,
-            personName: row['personName'] as String),
+            personName: row['personName'] as String,
+            name: row['name'] as String),
         arguments: [personId]);
   }
 
@@ -884,6 +899,80 @@ class _$OperatorsDetailsDao extends OperatorsDetailsDao {
   Future<void> upsertAll(List<OperatorsDetailsEntity> items) async {
     await _operatorsDetailsEntityInsertionAdapter.insertList(
         items, OnConflictStrategy.replace);
+  }
+}
+
+class _$LoginPersonHolidaysDao extends LoginPersonHolidaysDao {
+  _$LoginPersonHolidaysDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _loginPersonHolidayEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'login_person_holidays',
+            (LoginPersonHolidayEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'holidayDate':
+                      _epochDateTimeConverter.encode(item.holidayDate),
+                  'holidayName': item.holidayName
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<LoginPersonHolidayEntity>
+      _loginPersonHolidayEntityInsertionAdapter;
+
+  @override
+  Future<List<LoginPersonHolidayEntity>> getAllHolidays() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM login_person_holidays ORDER BY holidayDate ASC',
+        mapper: (Map<String, Object?> row) => LoginPersonHolidayEntity(
+            id: row['id'] as String,
+            holidayDate:
+                _epochDateTimeConverter.decode(row['holidayDate'] as int?),
+            holidayName: row['holidayName'] as String?));
+  }
+
+  @override
+  Future<LoginPersonHolidayEntity?> findByExactDate(DateTime date) async {
+    return _queryAdapter.query(
+        'SELECT * FROM login_person_holidays WHERE holidayDate = ?1 LIMIT 1',
+        mapper: (Map<String, Object?> row) => LoginPersonHolidayEntity(
+            id: row['id'] as String,
+            holidayDate:
+                _epochDateTimeConverter.decode(row['holidayDate'] as int?),
+            holidayName: row['holidayName'] as String?),
+        arguments: [_dateTimeIsoConverter.encode(date)]);
+  }
+
+  @override
+  Future<List<LoginPersonHolidayEntity>> findBetween(
+    DateTime from,
+    DateTime to,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM login_person_holidays WHERE holidayDate >= ?1 AND holidayDate <= ?2 ORDER BY holidayDate ASC',
+        mapper: (Map<String, Object?> row) => LoginPersonHolidayEntity(id: row['id'] as String, holidayDate: _epochDateTimeConverter.decode(row['holidayDate'] as int?), holidayName: row['holidayName'] as String?),
+        arguments: [
+          _dateTimeIsoConverter.encode(from),
+          _dateTimeIsoConverter.encode(to)
+        ]);
+  }
+
+  @override
+  Future<void> deleteAllHolidays() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM login_person_holidays');
+  }
+
+  @override
+  Future<void> upsertPersonHolidays(
+      List<LoginPersonHolidayEntity> entities) async {
+    await _loginPersonHolidayEntityInsertionAdapter.insertList(
+        entities, OnConflictStrategy.replace);
   }
 }
 
