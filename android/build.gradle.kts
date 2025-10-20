@@ -19,3 +19,17 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+// Force androidx.core to a version compatible with AGP 8.7.x
+subprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "androidx.core" &&
+                (requested.name == "core" || requested.name == "core-ktx")) {
+                useVersion("1.13.1")
+                because("androidx.core 1.17.0 requires AGP 8.9.1+, but this project uses AGP 8.7.3")
+            }
+        }
+    }
+}
+
