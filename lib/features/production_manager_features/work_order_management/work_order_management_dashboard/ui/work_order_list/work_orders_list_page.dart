@@ -352,8 +352,7 @@ class _CalendarCard extends GetView<WorkOrdersController> {
           selectedDayPredicate: (d) =>
               isSameDay(d, controller.selectedDay.value),
           onDaySelected: (sel, foc) {
-            controller.selectedDay.value = sel;
-            controller.focusedDay.value = foc;
+            controller.setSelectedCalendarDay(sel);
             Get.back();
           },
           onPageChanged: (foc) => controller.focusedDay.value = foc,

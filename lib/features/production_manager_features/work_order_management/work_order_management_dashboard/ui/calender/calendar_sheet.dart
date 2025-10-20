@@ -98,8 +98,8 @@ class CalendarSheet extends GetView<WorkOrdersController> {
                   isSameDay(day, controller.selectedDay.value),
               eventLoader: controller.eventsFor,
               onDaySelected: (sel, foc) {
-                controller.selectedDay.value = sel;
-                controller.focusedDay.value = foc;
+                controller.setSelectedCalendarDay(sel); // activates date filter and recomputes
+                debugPrint('onDaySelected → sel=$sel, foc=$foc');
                 // Close after pick (optional):
                 Get.back();
               },

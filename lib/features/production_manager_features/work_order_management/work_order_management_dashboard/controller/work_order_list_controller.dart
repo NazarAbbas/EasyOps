@@ -18,6 +18,26 @@ class WorkOrdersController extends GetxController {
   final selectedDay = DateTime.now().obs;
   final focusedDay = DateTime.now().obs;
 
+  // whether the calendar date filter is active
+  final dateFilterEnabled = false.obs;
+
+  // Activate date filter from calendar
+  void setSelectedCalendarDay(DateTime d) {
+    selectedDay.value = d;
+    focusedDay.value = d;
+    dateFilterEnabled.value = true;
+    _recomputeVisible();
+  }
+  // Optional: clear date filter (use Today/Open/Escalated/Critical logic only)
+  void clearDateFilter() {
+    dateFilterEnabled.value = false;
+    _recomputeVisible();
+  }
+
+  DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);
+  DateTime _nextDayLocal(DateTime d) => _startOfDayLocal(d).add(const Duration(days: 1));
+
+
   // Tabs / search
   final tabs = const ['Today', 'Open', 'Escalated', 'Critical'];
   final selectedTab = 0.obs;
@@ -94,6 +114,15 @@ class WorkOrdersController extends GetxController {
   void _recomputeVisible() {
     List<WorkOrder> src = orders;
 
+    // 0) Calendar date window by createdAt -> applied if user picked a day
+    DateTime? start;
+    DateTime? end;
+    if (dateFilterEnabled.value) {
+      final d = selectedDay.value;
+      start = _startOfDayLocal(d);
+      end = _nextDayLocal(d);
+    }
+
     // 1) Filter by tab
     switch (selectedTab.value) {
       case 0: // Today
@@ -117,7 +146,15 @@ class WorkOrdersController extends GetxController {
         break;
     }
 
-    // 2) Filter by search query (title)
+// 2) Apply date window if we have one (either calendar-picked or Today)
+    if (start != null && end != null) {
+      src = src.where((w) {
+        final t = w.createdAt.toLocal();
+        return !t.isBefore(start!) && t.isBefore(end!);
+      }).toList();
+    }
+
+    // 3) Filter by search query (title)
     final q = query.value.trim().toLowerCase();
     if (q.isNotEmpty) {
       src = src.where((w) => w.title.toLowerCase().contains(q)).toList();
