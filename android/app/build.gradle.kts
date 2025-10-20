@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.easyops.userapp"
-        minSdk = 23 // or: flutter.minSdkVersion
+        minSdk = flutter.minSdkVersion // or: flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

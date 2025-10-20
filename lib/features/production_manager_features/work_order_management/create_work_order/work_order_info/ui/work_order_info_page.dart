@@ -370,6 +370,18 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
 
                       const SizedBox(height: 20),
 
+                      // Title (new)
+                      _Label(
+                        'Title',
+                        TextField(
+                          controller: controller.titleCtrl,
+                          textInputAction: TextInputAction.next,
+                          maxLength: 80,
+                          decoration: _D.field(hint: 'Add a short title'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
                       // Problem Description
                       _Label(
                         'Problem Description',

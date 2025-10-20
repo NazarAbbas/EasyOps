@@ -40,6 +40,7 @@ class WorkOrderDetailsController extends GetxController {
   final descriptionText = ''.obs;
   final priority = ''.obs; // raw priority text (API → PriorityX.fromApi)
   final issueType = ''.obs; // display name for title fallback
+  final problemTitle = ''.obs; // display name for title fallback
   final problemDescription = ''.obs;
 
   // When/Where
@@ -119,6 +120,7 @@ class WorkOrderDetailsController extends GetxController {
     issueType.value = _bag.get<String>(WOKeys.issueType, '');
     priority.value = _bag.get<String>(WOKeys.typeText, '');
     descriptionText.value = _bag.get<String>(WOKeys.descriptionText, '');
+    problemTitle.value = _bag.get<String>(WOKeys.title, '');
     problemDescription.value = _bag.get<String>(WOKeys.problemDescription, '');
 
     // Media: images (dedupe + validate) and voice note (single)
@@ -200,6 +202,7 @@ class WorkOrderDetailsController extends GetxController {
       issueType.value = _bag.get<String>(WOKeys.issueType, '');
       priority.value = _bag.get<String>(WOKeys.typeText, '');
       descriptionText.value = _bag.get<String>(WOKeys.descriptionText, '');
+      problemTitle.value = _bag.get<String>(WOKeys.title, '');
       problemDescription.value =
           _bag.get<String>(WOKeys.problemDescription, '');
 
@@ -253,7 +256,9 @@ class WorkOrderDetailsController extends GetxController {
       final typeEnum = WorkType.breakdownManagement;
       final priorityEnum = PriorityX.fromApi(priority.value);
       final statusEnum = WorkStatus.open;
-
+      final title=problemTitle.value.isNotEmpty
+          ? problemTitle.value
+          : "";
       final descText = problemDescription.value.isNotEmpty
           ? problemDescription.value
           : descriptionText.value;

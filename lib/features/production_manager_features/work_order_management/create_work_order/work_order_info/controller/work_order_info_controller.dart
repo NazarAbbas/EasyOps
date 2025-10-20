@@ -44,6 +44,7 @@ class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   final assetsCtrl = TextEditingController();
   final problemCtrl = TextEditingController();
+  final titleCtrl = TextEditingController();
 
   // Derived from selected asset
   final typeText = '—'.obs; // asset.criticality
@@ -102,6 +103,7 @@ class WorkorderInfoController extends GetxController {
       ..removeListener(_assetListener)
       ..dispose();
     problemCtrl.dispose();
+    titleCtrl.dispose();
     super.onClose();
   }
 
@@ -252,6 +254,10 @@ class WorkorderInfoController extends GetxController {
       WOKeys.problemDescription,
       problemCtrl.text,
     );
+    titleCtrl.text = _bag.get<String>(
+      WOKeys.title,
+      titleCtrl.text,
+    );
 
     typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
     descriptionText.value = _bag.get<String>(
@@ -307,6 +313,7 @@ class WorkorderInfoController extends GetxController {
       WOKeys.impact: impactLabel, // label
       WOKeys.assetsNumber: assetsCtrl.text.trim(),
       WOKeys.problemDescription: problemCtrl.text.trim(),
+      WOKeys.title: titleCtrl.text.trim(),
       WOKeys.typeText: typeText.value,
       WOKeys.descriptionText: descriptionText.value,
       WOKeys.photos: photos.toList(),
@@ -384,6 +391,7 @@ class WorkorderInfoController extends GetxController {
 
     if (assetsCtrl.text.trim().isEmpty) missing.add('Assets Number');
     if (problemCtrl.text.trim().isEmpty) missing.add('Problem Description');
+    if (titleCtrl.text.trim().isEmpty) missing.add('Title');
 
     if (photos.isEmpty) missing.add('At least one Photo');
     if (voiceNotePath.value.isEmpty) missing.add('Voice Note');

@@ -87,18 +87,40 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Text(
-                                  controller.problemDescription.value.isEmpty
-                                      ? '—'
-                                      : controller.problemDescription.value,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: _C.text,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15.5,
-                                    height: 1.25,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Title
+                                    if (controller.problemTitle.value.isNotEmpty) ...[
+                                      Text(
+                                        controller.problemTitle.value,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: _C.text,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15.5,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                    ],
+
+                                    // Problem Description
+                                    Text(
+                                      controller.problemDescription.value.isEmpty
+                                          ? '—'
+                                          : controller.problemDescription.value,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: _C.text,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15.5,
+                                        height: 1.25,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -214,6 +236,14 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                             ),
                           ),
                           const SizedBox(height: 6),
+                          Text(
+                            controller.problemTitle.value.isEmpty
+                                ? '—'
+                                : controller.problemTitle.value,
+                            style:
+                            const TextStyle(color: _C.text, height: 1.35),
+                          ),
+                          const SizedBox(height: 12),
                           Text(
                             controller.problemDescription.value.isEmpty
                                 ? '—'

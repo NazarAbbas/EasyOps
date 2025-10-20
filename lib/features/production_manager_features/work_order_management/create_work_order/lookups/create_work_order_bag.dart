@@ -86,6 +86,7 @@ abstract class WOKeys {
   static const impact = 'impact';
   static const assetsNumber = 'assetsNumber';
   static const problemDescription = 'problemDescription';
+  static const title = 'title';
   static const typeText = 'typeText';
   static const descriptionText = 'descriptionText';
 
