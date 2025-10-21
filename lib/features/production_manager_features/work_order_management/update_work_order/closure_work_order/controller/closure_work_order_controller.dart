@@ -18,25 +18,16 @@ class ClosureWorkOrderController extends GetxController {
   final CloseRepositoryImpl closeRepositoryImpl = CloseRepositoryImpl();
   final LookupRepository lookupRepository = Get.find<LookupRepository>();
 
-  final RxList<LookupValues> cancelOrderReason = <LookupValues>[].obs;
-  final Rxn<LookupValues> selectedCancelOrderReason = Rxn<LookupValues>();
+  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+  final selectedReasonValue = 'Select Reason'.obs;
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   WorkOrder? workOrderInfo;
 
   final pageTitle = 'Closure'.obs;
-
-  final issueTitle = ''.obs;
-  final priority = ''.obs;
-  final statusText = ''.obs;
-  final duration = ''.obs;
-
-  final workOrderId = 'BD-102'.obs;
-  final time = ''.obs;
-  final category = ''.obs;
   final noteCtrl = TextEditingController();
-
   late final SignatureController signatureCtrl;
   final hasSignature = false.obs;
   final savedSignaturePath = ''.obs;
@@ -53,46 +44,12 @@ class ClosureWorkOrderController extends GetxController {
 
   final isSubmitting = false.obs;
 
-  String _formatDate(DateTime dt) {
-    final hh = dt.hour.toString().padLeft(2, '0');
-    final mm = dt.minute.toString().padLeft(2, '0');
-
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    final day = dt.day.toString().padLeft(2, '0');
-    final month = months[dt.month - 1];
-
-    return '$hh:$mm | $day $month';
-  }
-
   @override
   void onInit() async {
     super.onInit();
 
     final workTabsController = Get.find<UpdateWorkTabsController>();
     workOrderInfo = workTabsController.workOrder;
-
-    if (workOrderInfo != null) {
-      issueTitle.value = workOrderInfo!.title;
-      category.value = workOrderInfo!.departmentName;
-      time.value = _formatDate(workOrderInfo!.createdAt);
-      priority.value = workOrderInfo!.priority;
-      duration.value = workOrderInfo!.estimatedTimeToFix;
-      statusText.value = workOrderInfo!.status;
-    }
-
     signatureCtrl = SignatureController(
       penColor: const Color(0xFF111827),
       penStrokeWidth: 3,
@@ -116,8 +73,8 @@ class ClosureWorkOrderController extends GetxController {
       clientId: '',
     );
 
-    cancelOrderReason.assignAll([placeholder, ...list]);
-    selectedCancelOrderReason.value = placeholder;
+    reason.assignAll([placeholder, ...list]);
+    selectedReason.value = placeholder;
   }
 
   void clearSignature() {
@@ -132,7 +89,7 @@ class ClosureWorkOrderController extends GetxController {
   }
 
   Future<void> closeWorkOrder() async {
-    if (_isPlaceholder(selectedCancelOrderReason.value)) {
+    if (_isPlaceholder(selectedReason.value)) {
       _snack('Reason required',
           'Please select a reason to close this work order.', SnackType.error);
       return;
@@ -175,7 +132,7 @@ class ClosureWorkOrderController extends GetxController {
           : null;
 
       // Build JSON request (include files only when valid)
-      final sel = selectedCancelOrderReason.value!;
+      final sel = selectedReason.value!;
       final req = CloseWorkOrderRequest(
         status: 'Close',
         remark: noteCtrl.text.trim(),

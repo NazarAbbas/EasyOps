@@ -498,37 +498,68 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                 await SharePreferences.get<String>(SharePreferences.userRole)
                     as String;
 
-            final s = (order.status).toUpperCase();
-            //if (s == 'RESOLVED') {
-            if (s == 'OPEN') {
-              Get.toNamed(
-                Routes.updateWorkOrderTabScreen,
-                arguments: {
-                  Constant.workOrderInfo: order,
-                  Constant.workOrderStatus: WorkOrderStatus.resolved,
-                },
-              );
-            } else if (s == 'OPEN') {
-              if (userRole == SharePreferences.engineerRole) {
-                Get.toNamed(
-                  Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
-                  arguments: {
-                    Constant.workOrderInfo: order,
-                    Constant.workOrderStatus: WorkOrderStatus.open,
-                  },
-                );
-              } else {
-                Get.toNamed(
-                  Routes.workOrderTabShellScreen,
-                  arguments: {
-                    Constant.workOrderInfo: order,
-                    Constant.workOrderStatus: WorkOrderStatus.open,
-                  },
-                );
-              }
-            } else {
-              Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
-            }
+            // Get.toNamed(
+            //   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+
+            // Get.toNamed(
+            //   Routes.workOrderTabShellScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+
+            // Get.toNamed(
+            //   Routes.updateWorkOrderTabScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.resolved,
+            //   },
+            // );
+            Get.toNamed(
+              Routes.workOrderTabShellScreen,
+              arguments: {
+                Constant.workOrderInfo: order,
+                Constant.workOrderStatus: WorkOrderStatus.open,
+              },
+            );
+
+            // final s = (order.status).toUpperCase();
+            // if (s == 'RESOLVED') {
+            //   //if (s == 'OPEN') {
+            //   Get.toNamed(
+            //     Routes.updateWorkOrderTabScreen,
+            //     arguments: {
+            //       Constant.workOrderInfo: order,
+            //       Constant.workOrderStatus: WorkOrderStatus.resolved,
+            //     },
+            //   );
+            // } else if (s == 'OPEN') {
+            //   if (userRole == SharePreferences.engineerRole) {
+            //     Get.toNamed(
+            //       Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+            //       arguments: {
+            //         Constant.workOrderInfo: order,
+            //         Constant.workOrderStatus: WorkOrderStatus.open,
+            //       },
+            //     );
+            //   } else {
+            //     Get.toNamed(
+            //       Routes.workOrderTabShellScreen,
+            //       arguments: {
+            //         Constant.workOrderInfo: order,
+            //         Constant.workOrderStatus: WorkOrderStatus.open,
+            //       },
+            //     );
+            //   }
+            // } else {
+            //   Get.toNamed(Routes.workOrderDetailScreen, arguments: order);
+            // }
           },
           child: Stack(
             children: [
@@ -546,8 +577,8 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          _priorityCfg(order.priority).color.withOpacity(0.95),
-                          _priorityCfg(order.priority).color.withOpacity(0.95),
+                          _priorityCfg(order.priority).color,
+                          _priorityCfg(order.priority).color,
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -1064,13 +1095,29 @@ Color _statusTextColor(String? s) {
 ({String label, Color color}) _priorityCfg(String p) {
   switch (p.trim().toUpperCase()) {
     case 'HIGH':
-      return (label: 'HIGH', color: AppColors.red);
+      // light red
+      return (
+        label: 'HIGH',
+        color: const Color.fromARGB(255, 243, 59, 74)
+      ); // rose-100
     case 'MEDIUM':
-      return (label: 'MED', color: const Color(0xFFFFA000));
+      // light amber
+      return (
+        label: 'MED',
+        color: const Color.fromARGB(255, 211, 173, 22)
+      ); // amber-100
     case 'LOW':
-      return (label: 'LOW', color: const Color(0xFF2F6BFF));
+      // light green (replaces blue)
+      return (
+        label: 'LOW',
+        color: const Color.fromARGB(255, 9, 168, 62)
+      ); // emerald-100
     default:
-      return (label: p.toUpperCase(), color: const Color(0xFF64748B));
+      // light slate/neutral
+      return (
+        label: p.toUpperCase(),
+        color: const Color(0xFFE2E8F0)
+      ); // slate-200
   }
 }
 

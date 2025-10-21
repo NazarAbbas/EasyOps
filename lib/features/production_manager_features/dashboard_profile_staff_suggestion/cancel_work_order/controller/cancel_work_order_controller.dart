@@ -40,8 +40,10 @@ class CancelWorkOrderController extends GetxController {
   final CancelRepositoryImpl cancelRepositoryImpl = CancelRepositoryImpl();
 
   // Reasons (typed) + selected reason
-  final RxList<LookupValues> cancelOrderReason = <LookupValues>[].obs;
-  final Rxn<LookupValues> selectedCancelOrderReason = Rxn<LookupValues>();
+  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+
+  final selectedReasonValue = 'Select Reason'.obs;
 
   final remarksCtrl = TextEditingController();
   final isSubmitting = false.obs;
@@ -109,8 +111,8 @@ class CancelWorkOrderController extends GetxController {
       clientId: '',
     );
 
-    cancelOrderReason.assignAll([placeholder, ...list]);
-    selectedCancelOrderReason.value = placeholder;
+    reason.assignAll([placeholder, ...list]);
+    selectedReason.value = placeholder;
   }
 
   // @override
@@ -129,7 +131,7 @@ class CancelWorkOrderController extends GetxController {
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   Future<void> cancelWorkOrder() async {
-    if (_isPlaceholder(selectedCancelOrderReason.value)) {
+    if (_isPlaceholder(selectedReason.value)) {
       Get.snackbar(
         'Reason required',
         'Please select a reason to cancel this work order.',
@@ -158,7 +160,7 @@ class CancelWorkOrderController extends GetxController {
       isSubmitting.value = true;
 
       // Build request (map the reason as needed: id/code/displayName)
-      final sel = selectedCancelOrderReason.value!;
+      final sel = selectedReason.value!;
       final req = CancelWorkOrderRequest(
         status: 'Cancel',
         remark: remarksCtrl.text.trim(),
@@ -205,7 +207,7 @@ class CancelWorkOrderController extends GetxController {
         margin: const EdgeInsets.all(12),
       );
     } finally {
-      isSubmitting.value = false;
+      //isSubmitting.value = false;
     }
   }
 }

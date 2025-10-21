@@ -17,10 +17,6 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   final operatorInfo = ''.obs;
   final operatorPhoneNumber = ''.obs;
 
-  // Banner
-  //final successTitle = 'Work Order Created\nSuccessfully'.obs;
-  //final successSub = 'Work Order ID - BD265'.obs;
-
   // Reporter
   final reportedBy = ''.obs;
 

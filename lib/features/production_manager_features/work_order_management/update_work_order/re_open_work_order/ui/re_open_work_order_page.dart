@@ -1,5 +1,8 @@
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/controller/re_open_work_order_controller.dart';
 import 'package:easy_ops/core/utils/loading_overlay.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,9 +10,11 @@ import 'package:get/get.dart';
 class ReopenWorkOrderPage extends GetView<ReopenWorkOrderController> {
   const ReopenWorkOrderPage({super.key});
 
+  /// Use the instance provided by your Bindings (recommended),
+  /// rather than creating a new one each build.
   @override
   ReopenWorkOrderController get controller =>
-      Get.put(ReopenWorkOrderController());
+      Get.find<ReopenWorkOrderController>();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -39,7 +44,7 @@ class ReopenWorkOrderPage extends GetView<ReopenWorkOrderController> {
           ),
           padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 12),
           child: Obx(() {
-            final busy = controller.isUploading.value;
+            final busy = controller.isSubmitting.value;
             return Row(
               children: [
                 Expanded(
@@ -77,7 +82,6 @@ class ReopenWorkOrderPage extends GetView<ReopenWorkOrderController> {
                     onPressed: busy
                         ? null
                         : () async {
-                            //if (!controller.validate()) return;
                             await Get.showOverlay(
                               opacity: 0.35,
                               loadingWidget: const LoadingOverlay(
@@ -99,18 +103,23 @@ class ReopenWorkOrderPage extends GetView<ReopenWorkOrderController> {
       ),
       body: Obx(() {
         final kb = MediaQuery.of(context).viewInsets.bottom;
-        final busy = controller.isUploading.value;
+        final busy = controller.isSubmitting.value;
         return Stack(
           children: [
             SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24 + kb),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: const [
-                  _IssueHeaderCard(),
-                  SizedBox(height: 12),
-                  _FormCard(),
-                  SizedBox(height: 90),
+                children: [
+                  WorkOrderTile(
+                    workOrderInfo: controller.workOrderInfo!,
+                    onTap: () => print('Open work order'),
+                  ),
+
+                  //  _IssueHeaderCard(),
+                  const SizedBox(height: 12),
+                  const _FormCard(),
+                  const SizedBox(height: 90),
                 ],
               ),
             ),
@@ -167,120 +176,6 @@ class _HeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/* ===================== Summary Card ===================== */
-
-class _IssueHeaderCard extends GetView<ReopenWorkOrderController> {
-  const _IssueHeaderCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(
-      () => _Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              controller.issueTitle.value,
-              style: const TextStyle(
-                color: _C.text,
-                fontWeight: FontWeight.w800,
-                fontSize: 16.5,
-                height: 1.25,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _MetaChip(
-                  icon: CupertinoIcons.number,
-                  text: controller.workOrderId.value,
-                ),
-                const SizedBox(width: 8),
-                _MetaChip(
-                  icon: CupertinoIcons.time,
-                  text: controller.time.value,
-                ),
-                const Spacer(),
-                _Pill(
-                  text: controller.priority.value,
-                  color: const Color(0xFFEF4444),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  controller.category.value,
-                  style: const TextStyle(
-                    color: _C.muted,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Text(
-                      controller.statusText.value,
-                      style: const TextStyle(
-                        color: _C.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(CupertinoIcons.timer, size: 14, color: _C.muted),
-                    const SizedBox(width: 4),
-                    Text(
-                      controller.duration.value,
-                      style: const TextStyle(
-                        color: _C.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _MetaChip({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F4FB),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE7ECF6)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: _C.muted),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _C.text,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /* ===================== Form Card ===================== */
 
 class _FormCard extends GetView<ReopenWorkOrderController> {
@@ -302,9 +197,20 @@ class _FormCard extends GetView<ReopenWorkOrderController> {
           const _KVLabel('Reason'),
           const SizedBox(height: 6),
           _TapField(
-            textObs: controller.selectedReason,
+            textObs: controller.selectedReasonValue,
             placeholder: 'Select',
-            onTap: () => _openReasonSheet(context),
+            onTap: () async {
+              final v = await LookupPicker.show(
+                context: context,
+                lookupType: LookupType.resolution.name,
+                selected: controller.selectedReason.value,
+              );
+              if (v != null) {
+                controller.selectedReason.value = v; // keep selected model
+                controller.selectedReasonValue.value =
+                    v.displayName; // <-- update the text
+              }
+            },
           ),
           const SizedBox(height: 14),
 
@@ -322,147 +228,165 @@ class _FormCard extends GetView<ReopenWorkOrderController> {
     );
   }
 
+  // Future<void> _openReasonSheet(BuildContext context) async {
+  //   if (controller.isSubmitting.value) return;
+
+  //   final chosen = await ReasonPicker.show(
+  //     context: context,
+  //     items: controller.reason.toList(), // List<LookupValues>
+  //     selected: controller.selectedCancelOrderReason.value, // LookupValues?
+  //     title: 'Select Reason',
+  //   );
+
+  //   if (chosen != null) {
+  //     controller.selectedCancelOrderReason.value = chosen; // ⬅️ key unchanged
+  //   }
+  // }
+
   /// Bottom sheet that shows reasons from controller.cancelOrderReason
-  /// Bottom sheet that shows reasons from controller.cancelOrderReason
-  Future<void> _openReasonSheet(BuildContext context) async {
-    final kb = MediaQuery.of(context).viewInsets.bottom;
+  // Future<void> _openReasonSheet(BuildContext context) async {
+  //   final kb = MediaQuery.of(context).viewInsets.bottom;
 
-    // Build a static snapshot for the sheet (no Obx needed here)
-    final options = controller.cancelOrderReason
-        .where((lv) => !(lv.id.isEmpty && lv.displayName == 'Select reason'))
-        .toList();
+  //   // Build a static snapshot for the sheet (no Obx needed here)
+  //   final options = controller.cancelOrderReason
+  //       .where((lv) => !(lv.id.isEmpty && lv.displayName == 'Select reason'))
+  //       .toList();
 
-    // Current selection snapshot (for one-time highlight)
-    final currentSel = controller.selectedCancelOrderReason.value;
+  //   // Current selection snapshot (for one-time highlight)
+  //   final currentSel = controller.selectedCancelOrderReason.value;
 
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(bottom: kb),
-          child: FractionallySizedBox(
-            heightFactor: 0.85,
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8EDF6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Select Reason',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: _C.text,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Divider(height: 1, color: _C.line),
+  //   await showModalBottomSheet<void>(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.white,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+  //     ),
+  //     builder: (_) => SafeArea(
+  //       child: Padding(
+  //         padding: EdgeInsets.only(bottom: kb),
+  //         child: FractionallySizedBox(
+  //           heightFactor: 0.85,
+  //           child: Column(
+  //             children: [
+  //               const SizedBox(height: 10),
+  //               Container(
+  //                 width: 44,
+  //                 height: 5,
+  //                 decoration: BoxDecoration(
+  //                   color: const Color(0xFFE8EDF6),
+  //                   borderRadius: BorderRadius.circular(8),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 12),
+  //               const Padding(
+  //                 padding: EdgeInsets.symmetric(horizontal: 16),
+  //                 child: Align(
+  //                   alignment: Alignment.centerLeft,
+  //                   child: Text(
+  //                     'Select Reason',
+  //                     style: TextStyle(
+  //                       fontWeight: FontWeight.w800,
+  //                       color: _C.text,
+  //                       fontSize: 16,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 8),
+  //               const Divider(height: 1, color: _C.line),
 
-                // Plain ListView (no Obx!)
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: options.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, color: Color(0xFFF2F5FA)),
-                    itemBuilder: (_, i) {
-                      final lv = options[i];
-                      final display =
-                          lv.displayName.isEmpty ? '(Unnamed)' : lv.displayName;
-                      final isSel = currentSel?.id == lv.id;
+  //               // Plain ListView (no Obx!)
+  //               Expanded(
+  //                 child: ListView.separated(
+  //                   padding: const EdgeInsets.symmetric(vertical: 8),
+  //                   itemCount: options.length,
+  //                   separatorBuilder: (_, __) =>
+  //                       const Divider(height: 1, color: Color(0xFFF2F5FA)),
+  //                   itemBuilder: (_, i) {
+  //                     final lv = options[i];
+  //                     final display =
+  //                         lv.displayName.isEmpty ? '(Unnamed)' : lv.displayName;
+  //                     final isSel = currentSel?.id == lv.id;
 
-                      return ListTile(
-                        dense: true,
-                        leading: CircleAvatar(
-                          radius: 14,
-                          backgroundColor: const Color(0xFFF2F5FF),
-                          child: Text(
-                            display[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: _C.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          display,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: _C.text,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        subtitle: (lv.code.isNotEmpty)
-                            ? Text(lv.code,
-                                style: const TextStyle(
-                                    color: _C.muted, fontSize: 12))
-                            : null,
-                        trailing: isSel
-                            ? const Icon(Icons.check_circle, color: _C.primary)
-                            : const SizedBox(width: 24),
-                        onTap: () {
-                          // Update reactive values, then close.
-                          controller.selectedCancelOrderReason.value = lv;
-                          controller.selectedReason.value =
-                              display; // field text
-                          Get.back();
-                        },
-                      );
-                    },
-                  ),
-                ),
+  //                     return ListTile(
+  //                       dense: true,
+  //                       leading: CircleAvatar(
+  //                         radius: 14,
+  //                         backgroundColor: const Color(0xFFF2F5FF),
+  //                         child: Text(
+  //                           display[0].toUpperCase(),
+  //                           style: const TextStyle(
+  //                             color: _C.primary,
+  //                             fontWeight: FontWeight.w800,
+  //                             fontSize: 12,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       title: Text(
+  //                         display,
+  //                         overflow: TextOverflow.ellipsis,
+  //                         style: const TextStyle(
+  //                           color: _C.text,
+  //                           fontWeight: FontWeight.w700,
+  //                         ),
+  //                       ),
+  //                       subtitle: (lv.code.isNotEmpty)
+  //                           ? Text(
+  //                               lv.code,
+  //                               style: const TextStyle(
+  //                                 color: _C.muted,
+  //                                 fontSize: 12,
+  //                               ),
+  //                             )
+  //                           : null,
+  //                       trailing: isSel
+  //                           ? const Icon(Icons.check_circle, color: _C.primary)
+  //                           : const SizedBox(width: 24),
+  //                       onTap: () {
+  //                         // Update reactive values, then close.
+  //                         controller.selectedCancelOrderReason.value = lv;
+  //                         controller.selectedReason.value =
+  //                             display; // field text
+  //                         Get.back();
+  //                       },
+  //                     );
+  //                   },
+  //                 ),
+  //               ),
 
-                const Divider(height: 1, color: _C.line),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: _C.primary,
-                            side: const BorderSide(color: _C.primary),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: Get.back,
-                          child: const Text(
-                            'Close',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  //               const Divider(height: 1, color: _C.line),
+  //               Padding(
+  //                 padding:
+  //                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  //                 child: Row(
+  //                   children: [
+  //                     Expanded(
+  //                       child: OutlinedButton(
+  //                         style: OutlinedButton.styleFrom(
+  //                           foregroundColor: _C.primary,
+  //                           side: const BorderSide(color: _C.primary),
+  //                           shape: RoundedRectangleBorder(
+  //                             borderRadius: BorderRadius.circular(12),
+  //                           ),
+  //                         ),
+  //                         onPressed: Get.back,
+  //                         child: const Text(
+  //                           'Close',
+  //                           style: TextStyle(fontWeight: FontWeight.w700),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
 
 /* ===================== Small Pieces ===================== */
@@ -501,7 +425,11 @@ class _SectionHeader extends StatelessWidget {
         ),
         if (trailing != null)
           Flexible(
-              child: Align(alignment: Alignment.centerRight, child: trailing!)),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: trailing!,
+            ),
+          ),
       ],
     );
   }

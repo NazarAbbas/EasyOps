@@ -1,5 +1,8 @@
 import 'package:easy_ops/core/utils/loading_overlay.dart' show LoadingOverlay;
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/controller/reassign_work_order_controller.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/services.dart';
@@ -28,7 +31,6 @@ class MaintenanceEngineerReassignWorkOrderPage
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
     return Obx(() {
-      // Stack allows us to show a full-screen progress overlay when submitting
       return Stack(
         children: [
           Scaffold(
@@ -55,11 +57,16 @@ class MaintenanceEngineerReassignWorkOrderPage
               ),
             ),
             body: AbsorbPointer(
-              absorbing: c.isSubmitting.value, // disable inputs while loading
+              absorbing: c.isSubmitting.value,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
                 children: [
-                  _WoInfoCard(controller: c),
+                  // _WoInfoCard(controller: c),
+                  WorkOrderTile(
+                    workOrderInfo: controller.workOrderInfo!,
+                    onTap: () => print('Open work order'),
+                  ),
+
                   const SizedBox(height: 16),
                   _FormCard(controller: c),
                 ],
@@ -67,8 +74,6 @@ class MaintenanceEngineerReassignWorkOrderPage
             ),
             bottomNavigationBar: _BottomBar(controller: c),
           ),
-
-          // ── Fullscreen progress overlay
           if (c.isSubmitting.value)
             const LoadingOverlay(message: 'Reassigning…'),
         ],
@@ -77,82 +82,12 @@ class MaintenanceEngineerReassignWorkOrderPage
   }
 }
 
-/// ───────────────────────── Widgets ─────────────────────────
-class _WoInfoCard extends StatelessWidget {
-  const _WoInfoCard({required this.controller});
-  final MaintenanceEnginnerReassignWorkOrderController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      decoration: _cardDecoration,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title + Priority
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  controller.woTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: _C.text,
-                    height: 1.25,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const _PriorityChip(text: 'High'),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Right aligned status
-          const Align(
-            alignment: Alignment.centerRight,
-            child: _StatusPill(text: 'In Progress'),
-          ),
-          const SizedBox(height: 10),
-
-          // Meta line 1
-          Row(
-            children: const [
-              _MutedText('BD-102'),
-              _Dot(),
-              _MutedText('18:08'),
-              _Dot(),
-              _MutedText('09 Aug'),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Meta line 2
-          Row(
-            children: const [
-              Icon(Icons.apartment_rounded, size: 18, color: _C.muted),
-              SizedBox(width: 6),
-              _MutedText('Mechanical'),
-              Spacer(),
-              Icon(Icons.watch_later_outlined, size: 18, color: _C.muted),
-              SizedBox(width: 6),
-              _MutedText('1h 20m'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _FormCard extends StatelessWidget {
   const _FormCard({required this.controller});
   final MaintenanceEnginnerReassignWorkOrderController controller;
+
+  bool _isPlaceholder(LookupValues? v) =>
+      v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   @override
   Widget build(BuildContext context) {
@@ -180,17 +115,29 @@ class _FormCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           label('Reason'),
+          // ⬇️ Keep the same keys/fields; show a tap field that opens a bottom sheet.
           Obx(
-            () => _CupertinoLikeDropdown<String>(
-              value: controller.selectedReason.value,
-              items: controller.reasons.toList(),
-              onChanged: (v) {
-                if (controller.isSubmitting.value)
-                  return; // disable while submitting
-                HapticFeedback.selectionClick();
-                controller.selectedReason.value = v ?? controller.reasons.first;
-              },
-            ),
+            () {
+              final sel = controller.selectedReason.value;
+              final text =
+                  _isPlaceholder(sel) ? 'Select reason' : sel!.displayName;
+              return _TapField(
+                text: text,
+                onTap: () async {
+                  final v = await LookupPicker.show(
+                    context: context,
+                    lookupType: LookupType.resolution.name,
+                    selected: controller.selectedReason.value,
+                  );
+                  if (v != null) {
+                    controller.selectedReason.value = v;
+                    controller.selectedReasonValue.value =
+                        v.displayName; // <-- update the text
+                  }
+                },
+                enabled: !controller.isSubmitting.value,
+              );
+            },
           ),
           const SizedBox(height: 16),
           label('Remarks', optional: true),
@@ -209,11 +156,68 @@ class _FormCard extends StatelessWidget {
       ),
     );
   }
+
+  // Future<void> _openReasonSheet(BuildContext context) async {
+  //   if (controller.isSubmitting.value) return;
+
+  //   final chosen = await ReasonPicker.show(
+  //     context: context,
+  //     items: controller.reason.toList(), // List<LookupValues>
+  //     selected: controller.selectedReason.value, // LookupValues?
+  //     title: 'Select Reason',
+  //   );
+
+  //   if (chosen != null) {
+  //     controller.selectedReason.value = chosen; // ⬅️ key unchanged
+  //   }
+  // }
+}
+
+class _RemarksField extends StatelessWidget {
+  const _RemarksField({required this.controller});
+  final MaintenanceEnginnerReassignWorkOrderController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => TextField(
+        controller: controller.remarksCtrl,
+        minLines: 4,
+        maxLines: 6,
+        maxLength: 300,
+        textInputAction: TextInputAction.newline,
+        onChanged: (v) => controller.remarks.value = v,
+        enabled: !controller.isSubmitting.value,
+        decoration: InputDecoration(
+          hintText: 'Type remarks…',
+          counterText: '',
+          filled: true,
+          fillColor: const Color(0xFFF6F7FB),
+          contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: _C.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: _C.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFBFD0FF)),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _BottomBar extends StatelessWidget {
   const _BottomBar({required this.controller});
   final MaintenanceEnginnerReassignWorkOrderController controller;
+
+  bool _isPlaceholder(LookupValues? v) =>
+      v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   @override
   Widget build(BuildContext context) {
@@ -258,8 +262,9 @@ class _BottomBar extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Obx(() {
-                final canSubmit = controller.selectedReason.value.isNotEmpty &&
-                    !controller.isSubmitting.value;
+                final sel = controller.selectedReason.value; // ⬅️ unchanged key
+                final canSubmit =
+                    !_isPlaceholder(sel) && !controller.isSubmitting.value;
                 return FilledButton(
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
@@ -272,7 +277,7 @@ class _BottomBar extends StatelessWidget {
                   onPressed: canSubmit
                       ? () async {
                           HapticFeedback.mediumImpact();
-                          await controller.onReassign(); // fake API
+                          await controller.onReassign();
                         }
                       : null,
                   child: controller.isSubmitting.value
@@ -301,146 +306,38 @@ class _BottomBar extends StatelessWidget {
 }
 
 /// ───────────────────────── Mini Widgets ─────────────────────────
-class _PriorityChip extends StatelessWidget {
-  const _PriorityChip({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: _C.dangerBg,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: _C.dangerText,
-          fontSize: 12.5,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: _C.pillBlue,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: _C.primary,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _MutedText extends StatelessWidget {
-  const _MutedText(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(color: _C.muted, fontSize: 13.2));
-  }
-}
-
-class _Dot extends StatelessWidget {
-  const _Dot();
-  @override
-  Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 6),
-        child: Text('•', style: TextStyle(color: Color(0xFFB0B7C3))),
-      );
-}
-
-final _cardDecoration = BoxDecoration(
-  color: _C.surface,
-  borderRadius: BorderRadius.circular(16),
-  border: Border.all(color: _C.border),
-  boxShadow: const [
-    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4)),
-  ],
-);
-
-class _CupertinoLikeDropdown<T> extends StatelessWidget {
-  const _CupertinoLikeDropdown({
-    required this.value,
-    required this.items,
-    required this.onChanged,
+class _TapField extends StatelessWidget {
+  const _TapField({
+    required this.text,
+    required this.onTap,
+    this.enabled = true,
   });
 
-  final T value;
-  final List<T> items;
-  final ValueChanged<T?> onChanged;
+  final String text;
+  final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F7FB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _C.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isExpanded: true,
-          borderRadius: BorderRadius.circular(12),
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
-          items: items
-              .map(
-                (e) => DropdownMenuItem<T>(
-                  value: e,
-                  child: Text(
-                    e.toString(),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14.5, color: _C.text),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-}
-
-class _RemarksField extends StatelessWidget {
-  const _RemarksField({required this.controller});
-  final MaintenanceEnginnerReassignWorkOrderController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(
-      () => TextField(
-        controller: controller.remarksCtrl,
-        minLines: 4,
-        maxLines: 6,
-        maxLength: 300,
-        textInputAction: TextInputAction.newline,
-        onChanged: (v) => controller.remarks.value = v,
-        enabled: !controller.isSubmitting.value,
+    final isPlaceholder = text.trim().isEmpty || text == 'Select reason';
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: enabled ? onTap : null,
+      child: InputDecorator(
         decoration: InputDecoration(
-          hintText: 'Type remarks…',
-          counterText: '',
+          isDense: true,
           filled: true,
           fillColor: const Color(0xFFF6F7FB),
-          contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
+          suffixIcon: const Padding(
+            padding: EdgeInsets.only(right: 6),
+            child: Icon(Icons.keyboard_arrow_down_rounded, color: _C.muted),
+          ),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 32, minHeight: 32),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: _C.border),
@@ -454,7 +351,23 @@ class _RemarksField extends StatelessWidget {
             borderSide: const BorderSide(color: Color(0xFFBFD0FF)),
           ),
         ),
+        child: Text(
+          isPlaceholder ? 'Select reason' : text,
+          style: TextStyle(
+            color: isPlaceholder ? _C.muted : _C.text,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
 }
+
+final _cardDecoration = BoxDecoration(
+  color: _C.surface,
+  borderRadius: BorderRadius.circular(16),
+  border: Border.all(color: _C.border),
+  boxShadow: const [
+    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4)),
+  ],
+);

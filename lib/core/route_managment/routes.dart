@@ -113,7 +113,7 @@ class Routes {
       '/MAINTENANCE_ENGINEER_START_WORK_SUBMIT_SCREEN';
   static String maintenanceEngeneerholdWorkOrderScreen =
       '/MAINTENANCE_ENGINEER_HOLD_WORK_ORDER_SCREEN';
-  static String maintenanceEngeneermaintenanceEngeneercancelWorkOrderScreen =
+  static String maintenanceEngeneercancelWorkOrderScreen =
       '/MAINTENANCE_ENGINEER_CANCEL_WORK_ORDER_SCREEN';
   static String maintenanceEngeneerdiagnosticsScreen =
       '/MAINTENANCE_ENGINEER_DIAGNOSTICS_SCREEN';

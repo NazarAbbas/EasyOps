@@ -43,6 +43,12 @@ class MaintenanceEnginnerCancelWorkOrderControllerFromDiagnostics
     }
   }
 
+  @override
+  void onInit() {
+    // TODO: implement onInit
+    super.onInit();
+  }
+
   void discard() {
     Get.back(result: false);
   }
