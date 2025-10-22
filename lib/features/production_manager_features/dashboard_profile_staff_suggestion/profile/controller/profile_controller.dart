@@ -1,6 +1,7 @@
 import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/profile/domain/profile_repository_impl.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,8 +56,9 @@ class UserProfile {
 }
 
 class ProfileController extends GetxController {
-  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
-  final ProfileRepositoryImpl profileRepositoryImpl = ProfileRepositoryImpl();
+  // final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
+  final NetworkRepositoryImpl profileRepositoryImpl = NetworkRepositoryImpl();
+  final repository = Get.find<DBRepository>();
 
   final emergencyExpanded = false.obs;
   final holidayExpanded = false.obs;
@@ -118,8 +120,7 @@ class ProfileController extends GetxController {
         return;
       }
 
-      final details =
-          await loginPersonDetailsRepository.getPersonById(loginPersonId);
+      final details = await repository.getPersonById(loginPersonId);
       if (details == null) {
         Get.snackbar('Profile', 'Could not load user details.');
         return;
@@ -142,7 +143,7 @@ class ProfileController extends GetxController {
         email: email,
         department: details.departmentName ?? '—',
         supervisorName: details.managerName ?? '-',
-        supervisorPhone: '+91 9876543210',
+        supervisorPhone: details.managerContact ?? 'Not Available',
         location: details.organizationName ?? '—',
         emergencyName: primaryContact?.name ?? '—',
         emergencyPhone: primaryContact?.phone ?? '—',

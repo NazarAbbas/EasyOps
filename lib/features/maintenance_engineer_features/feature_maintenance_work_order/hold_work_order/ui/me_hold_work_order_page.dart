@@ -1,5 +1,9 @@
 import 'package:easy_ops/core/utils/loading_overlay.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/hold_work_order/controller/hold_work_order_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/hold_work_order/controller/me_hold_work_order_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -16,11 +20,12 @@ class _C {
   static const pillBlue = Color(0xFFEFF4FF);
   static const dangerText = Color(0xFFED3B40);
   static const dangerBg = Color(0xFFFFE7E7);
+  static const line = Color(0xFFE6EBF3);
 }
 
 /// ───────────────────────── Page ─────────────────────────
 class MaintenanceEngineerHoldWorkOrderPage
-    extends GetView<MaintenanceEnginnerHoldWorkOrderController> {
+    extends GetView<MEHoldWorkOrderController> {
   const MaintenanceEngineerHoldWorkOrderPage({super.key});
 
   @override
@@ -59,7 +64,11 @@ class MaintenanceEngineerHoldWorkOrderPage
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
                 children: [
-                  _WoInfoCard(c),
+                  // _WoInfoCard(c),
+                  WorkOrderTile(
+                    workOrderInfo: controller.workOrderInfo!,
+                    onTap: () => print('Open work order'),
+                  ),
                   const SizedBox(height: 12),
                   _HoldContextCard(c),
                   const SizedBox(height: 12),
@@ -78,72 +87,10 @@ class MaintenanceEngineerHoldWorkOrderPage
 }
 
 /// ───────────────────────── Widgets ─────────────────────────
-class _WoInfoCard extends StatelessWidget {
-  const _WoInfoCard(this.c);
-  final MaintenanceEnginnerHoldWorkOrderController c;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: _cardDecoration,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  c.woTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: _C.text,
-                    height: 1.25,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const _PriorityChip(text: 'High'),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Align(
-            alignment: Alignment.centerRight,
-            child: _StatusPill(text: 'In Progress'),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: const [
-              _MutedText('BD-102'),
-              _Dot(),
-              _MutedText('18:08'),
-              _Dot(),
-              _MutedText('09 Aug'),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              Icon(Icons.apartment_rounded, size: 18, color: _C.muted),
-              SizedBox(width: 6),
-              _MutedText('Mechanical'),
-              Spacer(),
-              Icon(Icons.watch_later_outlined, size: 18, color: _C.muted),
-              SizedBox(width: 6),
-              _MutedText('1h 20m'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _HoldContextCard extends StatelessWidget {
   const _HoldContextCard(this.c);
-  final MaintenanceEnginnerHoldWorkOrderController c;
+  final MEHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +149,7 @@ class _HoldContextCard extends StatelessWidget {
 
 class _FormCard extends StatelessWidget {
   const _FormCard(this.c);
-  final MaintenanceEnginnerHoldWorkOrderController c;
+  final MEHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {
@@ -253,17 +200,33 @@ class _FormCard extends StatelessWidget {
 
           // Hold Reason Type (dropdown)
           label('Hold Reason Type'),
-          Obx(
-            () => _CupertinoLikeDropdown<String>(
-              value: c.selectedReasonType.value,
-              items: c.reasonTypes.toList(),
-              onChanged: (v) {
-                if (c.isSubmitting.value) return;
-                HapticFeedback.selectionClick();
-                c.selectedReasonType.value = v ?? c.reasonTypes.first;
-              },
-            ),
+          _TapField(
+            textObs: c.selectedReasonValue,
+            placeholder: 'Select',
+            onTap: () async {
+              final v = await LookupPicker.show(
+                context: context,
+                lookupType: LookupType.resolution.name,
+                selected: c.selectedReason.value,
+              );
+              if (v != null) {
+                c.selectedReason.value = v; // keep selected model
+                c.selectedReasonValue.value =
+                    v.displayName; // <-- update the text
+              }
+            },
           ),
+          // Obx(
+          //   () => _CupertinoLikeDropdown<String>(
+          //     value: c.selectedReasonType.value,
+          //     items: c.reasonTypes.toList(),
+          //     onChanged: (v) {
+          //       if (c.isSubmitting.value) return;
+          //       HapticFeedback.selectionClick();
+          //       c.selectedReasonType.value = v ?? c.reasonTypes.first;
+          //     },
+          //   ),
+          // ),
           const SizedBox(height: 14),
 
           // Remarks
@@ -288,9 +251,73 @@ class _FormCard extends StatelessWidget {
   }
 }
 
+class _TapField extends StatelessWidget {
+  final RxString textObs;
+  final String placeholder;
+  final VoidCallback onTap;
+  const _TapField({
+    required this.textObs,
+    required this.placeholder,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final isEmpty = textObs.value.isEmpty || textObs.value == 'Select Reason';
+      return InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: InputDecorator(
+          decoration: _D.field(
+            suffix: const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Icon(CupertinoIcons.chevron_down, color: _C.muted),
+            ),
+          ),
+          child: Text(
+            isEmpty ? placeholder : textObs.value,
+            style: TextStyle(
+              color: isEmpty ? _C.muted : _C.text,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _D {
+  static InputDecoration field({String? hint, Widget? prefix, Widget? suffix}) {
+    return const InputDecoration(
+      isDense: true,
+      hintText: null,
+      hintStyle: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      prefixIcon: null,
+      suffixIcon: null,
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.line),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.line),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.primary),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ).copyWith(hintText: hint, prefixIcon: prefix, suffixIcon: suffix);
+  }
+}
+
 class _BottomBar extends StatelessWidget {
   const _BottomBar(this.c);
-  final MaintenanceEnginnerHoldWorkOrderController c;
+  final MEHoldWorkOrderController c;
 
   @override
   Widget build(BuildContext context) {
@@ -330,31 +357,32 @@ class _BottomBar extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Obx(() {
-                final canSubmit = c.canSubmit && !c.isSubmitting.value;
+                final submitting = c.isSubmitting.value;
+
                 return FilledButton(
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
-                    backgroundColor:
-                        canSubmit ? primary : primary.withOpacity(0.5),
+                    backgroundColor: submitting
+                        ? primary.withOpacity(0.5) // dim while submitting
+                        : primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: canSubmit
-                      ? () async {
+                  onPressed: submitting
+                      ? null
+                      : () async {
                           HapticFeedback.mediumImpact();
                           await c.onHold();
-                        }
-                      : null,
-                  child: c.isSubmitting.value
+                        },
+                  child: submitting
                       ? const SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.4,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Text(
@@ -390,65 +418,6 @@ InputDecoration _inputDecoration({required String hint}) => InputDecoration(
         borderSide: const BorderSide(color: Color(0xFFBFD0FF)),
       ),
     );
-
-class _PriorityChip extends StatelessWidget {
-  const _PriorityChip({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: _C.dangerBg,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: _C.dangerText,
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: _C.pillBlue,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: _C.primary,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
-}
-
-class _MutedText extends StatelessWidget {
-  const _MutedText(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) =>
-      Text(text, style: const TextStyle(color: _C.muted, fontSize: 13.2));
-}
-
-class _Dot extends StatelessWidget {
-  const _Dot();
-  @override
-  Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 6),
-        child: Text('•', style: TextStyle(color: Color(0xFFB0B7C3))),
-      );
-}
 
 final _cardDecoration = BoxDecoration(
   color: _C.surface,

@@ -1,5 +1,5 @@
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -10,17 +10,20 @@ import 'package:get/get.dart';
 
 /// ───────────────────────── Controller ─────────────────────────
 class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
-  final CancelRepositoryImpl repositoryImpl = CancelRepositoryImpl();
-  final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
+
+  //final LookupRepository lookupRepository = Get.find<LookupRepository>();
+
+  //final repository = Get.find<Repository>();
 
   final RxList<LookupValues> reason = <LookupValues>[].obs;
   final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+  final selectedReasonValue = 'Select Reason'.obs;
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   final TextEditingController remarksCtrl = TextEditingController();
   final RxString remarks = ''.obs;
-  final selectedReasonValue = 'Select Reason'.obs;
 
   // submitting state
   final RxBool isSubmitting = false.obs;

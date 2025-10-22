@@ -23,6 +23,7 @@ class LoginPersonDetails {
 
   final String? managerId; // can be null
   final String? managerName; // can be null
+  final String? managerContact;
 
   final String? shiftId;
   final String? shiftName;
@@ -50,6 +51,7 @@ class LoginPersonDetails {
     this.departmentName,
     this.managerId,
     this.managerName,
+    this.managerContact,
     this.shiftId,
     this.shiftName,
     this.contacts = const [],
@@ -77,6 +79,7 @@ class LoginPersonDetails {
       departmentName: json['departmentName'] as String?,
       managerId: json['managerId'] as String?,
       managerName: json['managerName'] as String?,
+      managerContact: json['managerContact'] ?? '',
       shiftId: json['shiftId'] as String?,
       shiftName: json['shiftName'] as String?,
       contacts: _readList<Map<String, dynamic>>(json['contacts'])
@@ -114,6 +117,7 @@ class LoginPersonDetails {
         'departmentName': departmentName,
         'managerId': managerId,
         'managerName': managerName,
+        'managerContact': managerContact,
         'shiftId': shiftId,
         'shiftName': shiftName,
         'contacts': contacts.map((e) => e.toJson()).toList(),
@@ -142,6 +146,7 @@ class LoginPersonDetails {
     String? departmentName,
     String? managerId,
     String? managerName,
+    String? managerContact,
     String? shiftId,
     String? shiftName,
     List<LoginPersonContact>? contacts,
@@ -167,6 +172,7 @@ class LoginPersonDetails {
       departmentName: departmentName ?? this.departmentName,
       managerId: managerId ?? this.managerId,
       managerName: managerName ?? this.managerName,
+      managerContact: managerContact ?? this.managerContact,
       shiftId: shiftId ?? this.shiftId,
       shiftName: shiftName ?? this.shiftName,
       contacts: contacts ?? this.contacts,

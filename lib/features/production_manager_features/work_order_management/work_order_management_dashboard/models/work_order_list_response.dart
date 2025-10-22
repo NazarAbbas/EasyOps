@@ -57,6 +57,7 @@ class WorkOrder {
 
   final String departmentId;
   final String departmentName;
+  final String? criticality;
 
   final String? impactId;
   final String? impactName;
@@ -100,6 +101,7 @@ class WorkOrder {
     required this.plantName,
     required this.departmentId,
     required this.departmentName,
+    required this.criticality,
     required this.impactId,
     required this.impactName,
     required this.priority,
@@ -133,6 +135,7 @@ class WorkOrder {
     return WorkOrder(
       id: _string(json['id'])!, // non-nullable: throw if truly missing
       issueNo: _string(json['issueNo'])!, // no
+      criticality: _string(json['criticality']) ?? '', // no
       type: _string(json['type'])!,
       plantId: _string(json['plantId']), // could be null
       plantName: _string(json['plantName']),
@@ -182,6 +185,7 @@ class WorkOrder {
         'issueTypeName': issueTypeName,
         'departmentId': departmentId,
         'departmentName': departmentName,
+        'criticality': criticality,
         'impactId': impactId,
         'impactName': impactName,
         'priority': priority,

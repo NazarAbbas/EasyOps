@@ -1,5 +1,7 @@
+import 'package:easy_ops/core/network/network_repository/network_repository.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_repository_impl.dart'
     show CancelRepositoryImpl;
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
@@ -35,9 +37,9 @@ class CancelWorkOrderController extends GetxController {
   final workOrderId = 'BD-102'.obs;
   final time = ''.obs;
   final category = ''.obs;
-
-  final LookupRepository lookupRepository = Get.find<LookupRepository>();
-  final CancelRepositoryImpl cancelRepositoryImpl = CancelRepositoryImpl();
+  final repository = Get.find<DBRepository>();
+  // final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
   // Reasons (typed) + selected reason
   final RxList<LookupValues> reason = <LookupValues>[].obs;
@@ -95,7 +97,7 @@ class CancelWorkOrderController extends GetxController {
     duration.value = workOrderInfo!.estimatedTimeToFix;
     statusText.value = workOrderInfo!.status;
 
-    final list = await lookupRepository.getLookupByType(LookupType.resolution);
+    final list = await repository.getLookupByType(LookupType.resolution);
 
     // Placeholder + server list
     final placeholder = LookupValues(
@@ -167,7 +169,7 @@ class CancelWorkOrderController extends GetxController {
         comment: sel.displayName, // or sel.id / sel.code per API contract
       );
 
-      final result = await cancelRepositoryImpl.cancelOrder(
+      final result = await repositoryImpl.cancelOrder(
         cancelWorkOrderId: woId,
         cancelWorkOrderRequest: req,
       );

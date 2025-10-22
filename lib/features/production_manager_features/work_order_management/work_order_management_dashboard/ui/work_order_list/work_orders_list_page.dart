@@ -498,13 +498,13 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                 await SharePreferences.get<String>(SharePreferences.userRole)
                     as String;
 
-            // Get.toNamed(
-            //   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
-            //   arguments: {
-            //     Constant.workOrderInfo: order,
-            //     Constant.workOrderStatus: WorkOrderStatus.open,
-            //   },
-            // );
+            Get.toNamed(
+              Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+              arguments: {
+                Constant.workOrderInfo: order,
+                Constant.workOrderStatus: WorkOrderStatus.open,
+              },
+            );
 
             // Get.toNamed(
             //   Routes.workOrderTabShellScreen,
@@ -521,13 +521,13 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             //     Constant.workOrderStatus: WorkOrderStatus.resolved,
             //   },
             // );
-            Get.toNamed(
-              Routes.workOrderTabShellScreen,
-              arguments: {
-                Constant.workOrderInfo: order,
-                Constant.workOrderStatus: WorkOrderStatus.open,
-              },
-            );
+            // Get.toNamed(
+            //   Routes.workOrderTabShellScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
 
             // final s = (order.status).toUpperCase();
             // if (s == 'RESOLVED') {
@@ -680,7 +680,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      order.departmentName,
+                                      order.type,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: textPrimary,
@@ -695,12 +695,14 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                               // Asset
                               Row(
                                 children: [
-                                  const Icon(
-                                    CupertinoIcons
-                                        .exclamationmark_triangle_fill,
-                                    size: 14,
-                                    color: Color(0xFFE25555),
-                                  ),
+                                  if ((order.criticality ?? '').toLowerCase() ==
+                                      'high')
+                                    const Icon(
+                                      CupertinoIcons
+                                          .exclamationmark_triangle_fill,
+                                      size: 14,
+                                      color: Color(0xFFE25555),
+                                    ),
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(

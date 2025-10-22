@@ -1,8 +1,7 @@
 // reopen_work_order_controller.dart
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/domain/reopen_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
@@ -12,7 +11,7 @@ import 'package:get/get.dart';
 enum SnackType { success, error, warning, info }
 
 class ReopenWorkOrderController extends GetxController {
-  final ReopenRepositoryImpl reopenRepositoryImpl = ReopenRepositoryImpl();
+  final NetworkRepositoryImpl reopenRepositoryImpl = NetworkRepositoryImpl();
   //final LookupRepository lookupRepository = Get.find<LookupRepository>();
 
   final RxList<LookupValues> reason = <LookupValues>[].obs;

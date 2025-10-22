@@ -1,14 +1,34 @@
-import 'package:easy_ops/database/app_database.dart';
-import 'package:easy_ops/database/dao/login_person_details_dao.dart';
-import 'package:easy_ops/database/entity/login_person_details_entity.dart';
-import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
+// lib/database/db_repository/asset_repository.dart
+import 'package:easy_ops/database/mappers/mappers.dart';
 import 'package:get/get.dart';
-import 'package:easy_ops/database/mappers/login_person_details_mapper.dart';
+import 'package:easy_ops/database/app_database.dart';
+import 'package:easy_ops/database/entity/assets_entity.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
+import 'package:easy_ops/database/entity/lookup_entity.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/database/entity/operators_details_entity.dart';
+import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+// lib/database/db_repository/shift_repository.dart
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
+import 'package:easy_ops/database/entity/shift_entity.dart';
 
-import '../dao/login_person_details_dao.dart';
+class DBRepository {
+  final AppDatabase db = Get.find<AppDatabase>();
 
-class LoginPersonDetailsRepository {
-  final AppDatabase _db = Get.find<AppDatabase>();
+  //Assets Repository
+  Future<List<AssetItem>> getAllAssets() async {
+    final List<AssetEntity> rows = await db.assetDao.getAllAssets();
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<void> upsertAssetData(AssetsData apiPage) async {
+    final entities = apiPage.content.map((e) => e.toEntity()).toList();
+    if (entities.isNotEmpty) {
+      await db.assetDao.upsertAll(entities);
+    }
+  }
+  // End Assets Repository
 
   /// Save or update person details + related contacts + attendance in local DB
   Future<void> upsertLoginPersonDetails(LoginPersonDetails model) async {
@@ -23,45 +43,45 @@ class LoginPersonDetailsRepository {
 
     // Floor doesn't support direct manual transaction() calls.
     // Instead, we ensure ordering manually or use @transaction in a DAO.
-    await _db.loginPersonDao.upsertPerson(personEntity);
+    await db.loginPersonDao.upsertPerson(personEntity);
 
     if (contactEntities.isNotEmpty) {
-      await _db.loginPersonContactDao.deleteContactsForPerson(model.id);
-      await _db.loginPersonContactDao.upsertContacts(contactEntities);
+      await db.loginPersonContactDao.deleteContactsForPerson(model.id);
+      await db.loginPersonContactDao.upsertContacts(contactEntities);
     }
 
     if (attendanceEntities.isNotEmpty) {
-      await _db.loginPersonAttendanceDao.deleteAttendanceForPerson(model.id);
-      await _db.loginPersonAttendanceDao.upsertAttendance(attendanceEntities);
+      await db.loginPersonAttendanceDao.deleteAttendanceForPerson(model.id);
+      await db.loginPersonAttendanceDao.upsertAttendance(attendanceEntities);
     }
 
     if (assetsEntities.isNotEmpty) {
-      await _db.loginPersonAssetDao.deleteAssetForPerson(model.id);
-      await _db.loginPersonAssetDao.upsertAssets(assetsEntities);
+      await db.loginPersonAssetDao.deleteAssetForPerson(model.id);
+      await db.loginPersonAssetDao.upsertAssets(assetsEntities);
     }
 
     if (assetsEntities.isNotEmpty) {
-      await _db.loginPersonAssetDao.deleteAssetForPerson(model.id);
-      await _db.loginPersonAssetDao.upsertAssets(assetsEntities);
+      await db.loginPersonAssetDao.deleteAssetForPerson(model.id);
+      await db.loginPersonAssetDao.upsertAssets(assetsEntities);
     }
 
     if (holdaysEntities.isNotEmpty) {
-      await _db.loginPersonHolidaysDao.deleteAllHolidays();
-      await _db.loginPersonHolidaysDao.upsertPersonHolidays(holdaysEntities);
+      await db.loginPersonHolidaysDao.deleteAllHolidays();
+      await db.loginPersonHolidaysDao.upsertPersonHolidays(holdaysEntities);
     }
   }
 
   /// Fetch a single person by ID (with related contacts & attendance)
   Future<LoginPersonDetails?> getPersonById(String id) async {
-    final personRow = await _db.loginPersonDao.findById(id);
+    final personRow = await db.loginPersonDao.findById(id);
     if (personRow == null) return null;
 
-    final contacts = await _db.loginPersonContactDao.getContactsForPerson(id);
+    final contacts = await db.loginPersonContactDao.getContactsForPerson(id);
     final attendance =
-        await _db.loginPersonAttendanceDao.getAttendanceForPerson(id);
-    final assets = await _db.loginPersonAssetDao.getAssetForPerson(id);
+        await db.loginPersonAttendanceDao.getAttendanceForPerson(id);
+    final assets = await db.loginPersonAssetDao.getAssetForPerson(id);
     final organizationHolidays =
-        await _db.loginPersonHolidaysDao.getAllHolidays();
+        await db.loginPersonHolidaysDao.getAllHolidays();
 
     return LoginPersonDetails(
       id: personRow.id,
@@ -148,21 +168,45 @@ class LoginPersonDetailsRepository {
     }
   }
 
-  /// Optional: Fetch all persons stored in DB
-  // Future<List<LoginPersonDetails>> getAllPersons() async {
-  //   final personRows = await _db.loginPersonDao.getAllPersons();
-  //   final List<LoginPersonDetails> result = [];
-  //   for (final p in personRows) {
-  //     final person = await getPersonById(p.id);
-  //     if (person != null) result.add(person);
-  //   }
-  //   return result;
-  // }
+  Future<List<LookupValues>> getLookupByType(LookupType type) async {
+    final List<LookupEntity> rows = await db.lookupDao.getActiveByType(type);
+    return rows.map((e) => e.toDomain()).toList();
+  }
 
-  /// Optional: Clear all person-related tables
-  // Future<void> clearAll() async {
-  //   await _db.loginPersonContactDao.clearAllContacts();
-  //   await _db.loginPersonAttendanceDao.clearAllAttendance();
-  //   await _db.loginPersonDetailsDao.clearAllPersons();
-  // }
+  Future<void> upsertLookupData(LookupData apiPage) async {
+    final dao = db.lookupDao;
+    final entities = apiPage.content.map((e) => e.toEntity()).toList();
+    if (entities.isNotEmpty) {
+      await dao.upsertAll(entities);
+    }
+  }
+
+  /// Get all persons (domain models) sorted by name
+  Future<List<OperatosDetails>> getAllOperator() async {
+    final List<OperatorsDetailsEntity> rows =
+        await db.operatorsDetailsDao.findAll();
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  /// Upsert all rows from the API page response.
+  /// Keep it side-effect free (no pruning) just like your LookupRepository.
+  Future<void> upsertOperators(OperatorsDetailsResponse apiPage) async {
+    final dao = db.operatorsDetailsDao;
+    final entities = apiPage.content.map((e) => e.toEntity()).toList();
+    if (entities.isNotEmpty) {
+      await dao.upsertAll(entities);
+    }
+  }
+
+  Future<void> upsertAllShift(ShiftData apiPage) async {
+    final entities = apiPage.content.map((e) => e.toEntity()).toList();
+    if (entities.isNotEmpty) {
+      await db.shiftDao.upsertAllShift(entities);
+    }
+  }
+
+  Future<List<Shift>> getAllShift() async {
+    final List<ShiftEntity> rows = await db.shiftDao.getAllShift();
+    return rows.map((e) => e.toDomain()).toList();
+  }
 }

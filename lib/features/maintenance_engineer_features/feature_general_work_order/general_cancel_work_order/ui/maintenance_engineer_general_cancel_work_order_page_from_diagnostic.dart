@@ -1,6 +1,8 @@
 import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_cancel_work_order/controller/general_cancel_work_order_controller_from_diagnostics.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -58,7 +60,12 @@ class MaintenanceEngineerGeneralCancelWorkOrderPage
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
                 children: [
-                  _WoInfoCard(controller: c),
+                  // _WoInfoCard(controller: c),
+                  WorkOrderTile(
+                    workOrderInfo: controller.workOrderInfo!,
+                    onTap: () => print('Open work order'),
+                  ),
+
                   const SizedBox(height: 16),
                   _FormCard(controller: c),
                 ],
@@ -75,102 +82,6 @@ class MaintenanceEngineerGeneralCancelWorkOrderPage
 }
 
 /// ───────────────────────── Widgets ─────────────────────────
-class _WoInfoCard extends StatelessWidget {
-  const _WoInfoCard({required this.controller});
-  final MaintenanceEnginnerGeneralCancelWorkOrderController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      // date formatted like "HH:mm | dd Mon" — split if present
-      final parts = controller.date.value.split(' | ');
-      final time = parts.length > 1 ? parts[0] : '—';
-      final date = parts.length > 1 ? parts[1] : controller.date.value;
-
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        decoration: _cardDecoration,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title + Priority
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    controller.woTitle.value,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: _C.text,
-                      height: 1.25,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _PriorityChip(
-                  text: controller.priority.value.isEmpty
-                      ? '—'
-                      : controller.priority.value,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Right aligned status
-            Align(
-              alignment: Alignment.centerRight,
-              child: _StatusPill(
-                text: controller.status.value.isEmpty
-                    ? '—'
-                    : controller.status.value,
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Meta line 1
-            Row(
-              children: [
-                _MutedText(
-                  controller.issueNo.value.isEmpty
-                      ? '—'
-                      : controller.issueNo.value,
-                ),
-                const _Dot(),
-                _MutedText(time),
-                const _Dot(),
-                _MutedText(date),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Meta line 2 (show each part only if non-empty)
-            Row(
-              children: [
-                if (controller.department.value.isNotEmpty) ...[
-                  const Icon(Icons.apartment_rounded,
-                      size: 18, color: _C.muted),
-                  const SizedBox(width: 6),
-                  _MutedText(controller.department.value),
-                ],
-                const Spacer(),
-                if (controller.estimateTimeToFix.value.isNotEmpty) ...[
-                  const Icon(Icons.watch_later_outlined,
-                      size: 18, color: _C.muted),
-                  const SizedBox(width: 6),
-                  _MutedText(controller.estimateTimeToFix.value),
-                ],
-              ],
-            ),
-          ],
-        ),
-      );
-    });
-  }
-}
 
 class _FormCard extends StatelessWidget {
   const _FormCard({required this.controller});
@@ -212,7 +123,18 @@ class _FormCard extends StatelessWidget {
                 _isPlaceholder(sel) ? 'Select reason' : sel!.displayName;
             return _TapField(
               text: text,
-              onTap: () => _openReasonSheet(context),
+              onTap: () async {
+                final v = await LookupPicker.show(
+                  context: context,
+                  lookupType: LookupType.resolution.name,
+                  selected: controller.selectedReason.value,
+                );
+                if (v != null) {
+                  controller.selectedReason.value = v;
+                  // controller.selectedReasonValue.value =
+                  //     v.displayName; // <-- update the text
+                }
+              },
               enabled: !controller.isSubmitting.value,
             );
           }),
@@ -459,7 +381,7 @@ class _BottomBar extends StatelessWidget {
                   onPressed: canSubmit
                       ? () async {
                           HapticFeedback.mediumImpact();
-                          await controller.onReassign();
+                          await controller.onCancel();
                         }
                       : null,
                   child: controller.isSubmitting.value
@@ -543,72 +465,6 @@ class _TapField extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PriorityChip extends StatelessWidget {
-  const _PriorityChip({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    final isCritical =
-        text.toLowerCase() == 'high' || text.toLowerCase() == 'critical';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isCritical ? _C.dangerBg : _C.pillBlue,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text.isEmpty ? '—' : text,
-        style: TextStyle(
-          color: isCritical ? _C.dangerText : _C.primary,
-          fontSize: 12.5,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: _C.pillBlue,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text(
-        text.isEmpty ? '—' : text,
-        style: const TextStyle(
-          color: _C.primary,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _MutedText extends StatelessWidget {
-  const _MutedText(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(color: _C.muted, fontSize: 13.2));
-  }
-}
-
-class _Dot extends StatelessWidget {
-  const _Dot();
-  @override
-  Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 6),
-        child: Text('•', style: TextStyle(color: Color(0xFFB0B7C3))),
-      );
 }
 
 final _cardDecoration = BoxDecoration(

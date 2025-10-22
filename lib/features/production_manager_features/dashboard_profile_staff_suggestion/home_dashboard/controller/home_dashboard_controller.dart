@@ -1,6 +1,6 @@
 // ==================== CONTROLLER (update) ====================
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/profile/domain/profile_repository_impl.dart';
 import 'package:get/get.dart';
 
 enum StatTone { neutral, critical, warning, success, info }
@@ -26,7 +26,7 @@ class SectionStats {
 }
 
 class HomeDashboardController extends GetxController {
-  ProfileRepositoryImpl profileRepositoryImpl = ProfileRepositoryImpl();
+  NetworkRepositoryImpl profileRepositoryImpl = NetworkRepositoryImpl();
 
   // Work Orders (top row)
   final summary = SectionStats(

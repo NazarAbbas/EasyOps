@@ -7,6 +7,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/work_order_info/controller/work_order_info_controller.dart'
     hide AssetItem;
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,7 +21,7 @@ import 'package:audioplayers/audioplayers.dart';
 class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
   WorkOrderInfoPage({super.key});
   @override
-  WorkorderInfoController get controller => Get.put(WorkorderInfoController());
+  //WorkorderInfoController get controller => Get.put(WorkorderInfoController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -258,31 +259,83 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       _Row2(
                         left: _Label(
                           'Issue Type',
-                          Obx(() {
-                            final label = _labelFor(
-                              controller.issueTypeOptions,
-                              controller.selectedIssueTypeId.value,
-                              'Select Issue Type',
-                            );
-                            return _TapFieldSimple(
-                              text: label,
-                              placeholder: 'Select',
-                              onTap: () => _openIssueTypeSheet(context),
-                            );
-                          }),
+                          Obx(
+                            () {
+                              final options = controller.issueTypeOptions
+                                  .where((e) => e.id.trim().isNotEmpty)
+                                  .toList();
+
+                              // what the tile shows
+                              final label =
+                                  controller.issueType.value.trim().isEmpty
+                                      ? 'Select Issue Type'
+                                      : controller.issueType.value;
+
+                              // exact instance from the SAME list
+                              final String selId =
+                                  controller.selectedIssueTypeId.value.trim();
+                              final LookupValues? currentSel =
+                                  options.firstWhereOrNull(
+                                      (e) => e.id.trim() == selId);
+
+                              return _TapFieldSimple(
+                                text: label,
+                                placeholder: 'Select',
+                                onTap: () async {
+                                  final picked = await LookupPicker.show(
+                                    context: context,
+                                    lookupType: LookupType.issuetype.name,
+                                    selected:
+                                        currentSel, // 👈 pre-select works (same instance)
+                                  );
+                                  if (picked != null) {
+                                    controller.selectedIssueTypeId.value =
+                                        picked.id; // source of truth
+                                    controller.issueType.value =
+                                        picked.displayName; // mirror text
+                                  }
+                                },
+                              );
+                            },
+                          ),
                         ),
                         right: _Label(
                           'Impact',
                           Obx(() {
-                            final label = _labelFor(
-                              controller.impactOptions,
-                              controller.selectedImpactId.value,
-                              'Select Impact Type',
-                            );
+                            final options = controller.impactOptions
+                                .where((e) => e.id.trim().isNotEmpty)
+                                .toList();
+
+                            // what the tile shows (if you keep a mirror Rx), else compute via id->label
+                            final String impactText =
+                                controller.impact.value.trim();
+                            final label = impactText.isEmpty
+                                ? 'Select Impact Type'
+                                : impactText;
+
+                            // exact instance from the SAME list
+                            final String selId =
+                                controller.selectedImpactId.value.trim();
+                            final LookupValues? currentSel = options
+                                .firstWhereOrNull((e) => e.id.trim() == selId);
+
                             return _TapFieldSimple(
                               text: label,
                               placeholder: 'Select',
-                              onTap: () => _openImpactSheet(context),
+                              onTap: () async {
+                                final picked = await LookupPicker.show(
+                                  context: context,
+                                  lookupType: LookupType.impact.name,
+                                  selected:
+                                      currentSel, // 👈 pre-select works (same instance)
+                                );
+                                if (picked != null) {
+                                  controller.selectedImpactId.value =
+                                      picked.id; // source of truth
+                                  controller.impact.value =
+                                      picked.displayName; // mirror text
+                                }
+                              },
                             );
                           }),
                         ),
@@ -629,6 +682,15 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
         },
       ),
     );
+  }
+}
+
+extension _SafeFirstWhere<E> on Iterable<E> {
+  E? firstWhereOrNull(bool Function(E) test) {
+    for (final e in this) {
+      if (test(e)) return e;
+    }
+    return null;
   }
 }
 

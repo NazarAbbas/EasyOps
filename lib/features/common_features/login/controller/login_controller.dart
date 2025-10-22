@@ -1,13 +1,9 @@
 import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/theme_controller.dart';
 import 'package:easy_ops/core/utils/share_preference.dart';
-import 'package:easy_ops/database/db_repository/assets_repository.dart';
-import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
-import 'package:easy_ops/database/db_repository/operators_details_repository.dart';
-import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
-import 'package:easy_ops/features/common_features/login/domain/login_repository_impl.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/core/utils/app_snackbar.dart';
 import 'package:easy_ops/features/common_features/login/validator/validator.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +11,8 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPageController extends GetxController {
-  final LoginRepositoryImpl repositoryImpl = LoginRepositoryImpl();
-  final lookupRepository = Get.find<LookupRepository>();
-  final assetRepository = Get.find<AssetRepository>();
-  final shiftRepository = Get.find<ShiftRepository>();
-  final operatorDetailsRepository = Get.find<OperatorDetailsRepository>();
-  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
-  // Inputs
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
+  final repository = Get.find<DBRepository>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -78,12 +69,11 @@ class LoginPageController extends GetxController {
             await repositoryImpl.loginPersonDetails(result.data!.userName);
 
         final operatorsDetails = await repositoryImpl.operatorsDetails();
-        await operatorDetailsRepository.upsertOperators(operatorsDetails.data!);
+        await repository.upsertOperators(operatorsDetails.data!);
 
         // final details = await operatorDetailsRepository.getAllOperator();
 
-        await loginPersonDetailsRepository
-            .upsertLoginPersonDetails(loginPersonDetails.data!);
+        await repository.upsertLoginPersonDetails(loginPersonDetails.data!);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
             Constant.loginPersonId, loginPersonDetails.data!.id);
@@ -97,9 +87,9 @@ class LoginPageController extends GetxController {
         if (dropDownData.data != null &&
             shiftData.data != null &&
             assetsData.data != null) {
-          await lookupRepository.upsertLookupData(dropDownData.data!);
-          await assetRepository.upsertAssetData(assetsData.data!);
-          await shiftRepository.upsertAllShift(shiftData.data!);
+          await repository.upsertLookupData(dropDownData.data!);
+          await repository.upsertAssetData(assetsData.data!);
+          await repository.upsertAllShift(shiftData.data!);
 
           final themeCtrl = Get.put(ThemeController(), permanent: true);
           themeCtrl.setThemeByRole(userRole);

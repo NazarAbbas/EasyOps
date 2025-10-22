@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/domain/close_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
@@ -15,8 +15,10 @@ import 'package:signature/signature.dart';
 enum SnackType { success, error, warning, info }
 
 class ClosureWorkOrderController extends GetxController {
-  final CloseRepositoryImpl closeRepositoryImpl = CloseRepositoryImpl();
-  final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  final NetworkRepositoryImpl closeRepositoryImpl = NetworkRepositoryImpl();
+
+  ///final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  final repository = Get.find<DBRepository>();
 
   final RxList<LookupValues> reason = <LookupValues>[].obs;
   final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
@@ -57,7 +59,7 @@ class ClosureWorkOrderController extends GetxController {
       onDrawEnd: () => hasSignature.value = true,
     );
 
-    final list = await lookupRepository.getLookupByType(LookupType.resolution);
+    final list = await repository.getLookupByType(LookupType.resolution);
 
     // Placeholder + server list
     final placeholder = LookupValues(
