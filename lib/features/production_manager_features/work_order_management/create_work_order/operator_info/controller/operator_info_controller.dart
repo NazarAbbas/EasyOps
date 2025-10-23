@@ -1,10 +1,4 @@
-// lib/features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart
-// Full controller: binds operatorCtrl / reporterCtrl to operators list
-// with a searchable Get.bottomSheet picker and WorkOrderBag sync.
-
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
-import 'package:easy_ops/database/db_repository/operators_details_repository.dart';
-import 'package:easy_ops/database/db_repository/shift_repositoty.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -17,10 +11,12 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // DI
   // ─────────────────────────────────────────────────────────────────────────
-  final OperatorDetailsRepository operatorDetailsRepository =
-      Get.find<OperatorDetailsRepository>();
-  final LookupRepository lookupRepository = Get.find<LookupRepository>();
-  final ShiftRepository shiftRepository = Get.find<ShiftRepository>();
+  // final OperatorDetailsRepository operatorDetailsRepository =
+  //     Get.find<OperatorDetailsRepository>();
+  // final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  // final ShiftRepository shiftRepository = Get.find<ShiftRepository>();
+
+  final repository = Get.find<DBRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -77,6 +73,14 @@ class OperatorInfoController extends GetxController {
       plantOptions.where((e) => e != _placeholder).toList();
   List<String> get shiftsForPicker =>
       shiftOptions.where((e) => e != _placeholder).toList();
+
+  final selectedLocationType = ''.obs;
+  final selectedImpactId = ''.obs;
+  final assetsId = ''.obs;
+
+  // legacy labels (kept for compatibility with existing bag keys & UI mirrors)
+  final locationype = ''.obs;
+  final impact = ''.obs;
 
   // ─────────────────────────────────────────────────────────────────────────
   // Name → ID maps
@@ -171,12 +175,12 @@ class OperatorInfoController extends GetxController {
   Future<void> _initAsync() async {
     // Fetch lists
     final List<OperatosDetails> operatorsList =
-        await operatorDetailsRepository.getAllOperator();
-    final List<Shift> shiftList = await shiftRepository.getAllShift();
+        await repository.getAllOperator();
+    final List<Shift> shiftList = await repository.getAllShift();
     final List<LookupValues> deptList =
-        await lookupRepository.getLookupByType(LookupType.department);
+        await repository.getLookupByType(LookupType.department);
     final List<LookupValues> plantsList =
-        await lookupRepository.getLookupByType(LookupType.plant);
+        await repository.getLookupByType(LookupType.plant);
 
     // Keep operators for picker
     _operators.assignAll(operatorsList);

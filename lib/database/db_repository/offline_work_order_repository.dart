@@ -1,15 +1,15 @@
 // lib/features/work_order_management/create_work_order/repository/offline_work_order_repository.dart
 
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/mappers/offline_workorder_mappers.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/domain/create_work_order_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/offline_work_order.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class OfflineWorkOrderRepository {
   final AppDatabase db = Get.find<AppDatabase>();
-  final CreateWorkOrderRepositoryImpl apiRepo = CreateWorkOrderRepositoryImpl();
+  final NetworkRepositoryImpl apiRepo = NetworkRepositoryImpl();
 
   /// Insert locally when offline
   Future<void> insertOfflineOrder(OfflineWorkOrder model) async {

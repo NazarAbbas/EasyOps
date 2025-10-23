@@ -32,7 +32,8 @@ part 'app_database.g.dart';
   LoginPersonAttendanceEntity,
   LoginPersonContactEntity,
   LoginPersonAssetEntity,
-  OperatorsDetailsEntity
+  OperatorsDetailsEntity,
+  LoginPersonHolidayEntity
 ])
 abstract class AppDatabase extends FloorDatabase {
   LoginPersonDetailsDao get loginPersonDao;
@@ -44,4 +45,5 @@ abstract class AppDatabase extends FloorDatabase {
   ShiftDao get shiftDao;
   OfflineWorkOrderDao get offlineWorkOrderDao;
   OperatorsDetailsDao get operatorsDetailsDao;
+  LoginPersonHolidaysDao get loginPersonHolidaysDao;
 }

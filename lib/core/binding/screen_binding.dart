@@ -40,7 +40,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure_signature/controller/sign_off_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/diagnostics/controller/diagnostics_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/history/controller/history_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/hold_work_order/controller/hold_work_order_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/hold_work_order/controller/me_hold_work_order_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/maintenance_wotk_order_management/controller/work_order_management_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/controller/pending_activity_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/controller/rca_analysis_controller.dart';
@@ -183,7 +183,7 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => MaintenanceEnginnerWorkOrdersManagementController());
     Get.lazyPut(() => MaintenanceEnginnerReassignWorkOrderController());
     Get.lazyPut(() => MaintenanceEnginnerStartWorkSubmitController());
-    Get.lazyPut(() => MaintenanceEnginnerHoldWorkOrderController());
+    Get.lazyPut(() => MEHoldWorkOrderController());
     Get.lazyPut(() => MaintenanceEnginnerDiagnosticsController());
     Get.lazyPut(
         () => MaintenanceEnginnerCancelWorkOrderControllerFromDiagnostics());

@@ -172,8 +172,7 @@ class MaintenanceEngineerStartWorkOrderPage
       Get.toNamed(Routes.maintenanceEngeneerholdWorkOrderScreen);
     } else if (selected == 'cancel') {
       await c.stopAllAudio();
-      Get.toNamed(
-          Routes.maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen);
+      Get.toNamed(Routes.maintenanceEngeneergeneralCancelWorkOrderScreen);
     }
   }
 }

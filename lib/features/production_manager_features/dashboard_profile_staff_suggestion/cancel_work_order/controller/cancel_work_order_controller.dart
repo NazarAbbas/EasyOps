@@ -1,5 +1,7 @@
+import 'package:easy_ops/core/network/network_repository/network_repository.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_repository_impl.dart'
     show CancelRepositoryImpl;
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
@@ -35,13 +37,15 @@ class CancelWorkOrderController extends GetxController {
   final workOrderId = 'BD-102'.obs;
   final time = ''.obs;
   final category = ''.obs;
-
-  final LookupRepository lookupRepository = Get.find<LookupRepository>();
-  final CancelRepositoryImpl cancelRepositoryImpl = CancelRepositoryImpl();
+  final repository = Get.find<DBRepository>();
+  // final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
   // Reasons (typed) + selected reason
-  final RxList<LookupValues> cancelOrderReason = <LookupValues>[].obs;
-  final Rxn<LookupValues> selectedCancelOrderReason = Rxn<LookupValues>();
+  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+
+  final selectedReasonValue = 'Select Reason'.obs;
 
   final remarksCtrl = TextEditingController();
   final isSubmitting = false.obs;
@@ -93,7 +97,7 @@ class CancelWorkOrderController extends GetxController {
     duration.value = workOrderInfo!.estimatedTimeToFix;
     statusText.value = workOrderInfo!.status;
 
-    final list = await lookupRepository.getLookupByType(LookupType.resolution);
+    final list = await repository.getLookupByType(LookupType.resolution);
 
     // Placeholder + server list
     final placeholder = LookupValues(
@@ -109,8 +113,8 @@ class CancelWorkOrderController extends GetxController {
       clientId: '',
     );
 
-    cancelOrderReason.assignAll([placeholder, ...list]);
-    selectedCancelOrderReason.value = placeholder;
+    reason.assignAll([placeholder, ...list]);
+    selectedReason.value = placeholder;
   }
 
   // @override
@@ -129,7 +133,7 @@ class CancelWorkOrderController extends GetxController {
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   Future<void> cancelWorkOrder() async {
-    if (_isPlaceholder(selectedCancelOrderReason.value)) {
+    if (_isPlaceholder(selectedReason.value)) {
       Get.snackbar(
         'Reason required',
         'Please select a reason to cancel this work order.',
@@ -158,14 +162,14 @@ class CancelWorkOrderController extends GetxController {
       isSubmitting.value = true;
 
       // Build request (map the reason as needed: id/code/displayName)
-      final sel = selectedCancelOrderReason.value!;
+      final sel = selectedReason.value!;
       final req = CancelWorkOrderRequest(
         status: 'Cancel',
         remark: remarksCtrl.text.trim(),
         comment: sel.displayName, // or sel.id / sel.code per API contract
       );
 
-      final result = await cancelRepositoryImpl.cancelOrder(
+      final result = await repositoryImpl.cancelOrder(
         cancelWorkOrderId: woId,
         cancelWorkOrderRequest: req,
       );
@@ -205,7 +209,7 @@ class CancelWorkOrderController extends GetxController {
         margin: const EdgeInsets.all(12),
       );
     } finally {
-      isSubmitting.value = false;
+      //isSubmitting.value = false;
     }
   }
 }

@@ -1,12 +1,13 @@
-// accept_work_order_page.dart
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/accept_work_order/controller/accept_work_order_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
-import 'package:flutter/services.dart'; // for rootBundle (asset existence)
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
+// ⬇️ Use the controller you provided (adjust the import path if needed)
 
 /* ───────────────────────── Page ───────────────────────── */
 
@@ -83,7 +84,7 @@ class MaintenanceEngineerAcceptWorkOrderPage
         padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
         child: Column(
           children: [
-            // Main details card (your original content minus media row)
+            // Main details card
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -127,15 +128,15 @@ class MaintenanceEngineerAcceptWorkOrderPage
 
                       const _DividerPad(),
 
-                      // Issue summary + priority pill
+                      // Work order title + priority pill
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
-                              controller.problemDescription.value.isEmpty
+                              controller.workOrderTitle.value.isEmpty
                                   ? '—'
-                                  : controller.problemDescription.value,
+                                  : controller.workOrderTitle.value,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -158,27 +159,29 @@ class MaintenanceEngineerAcceptWorkOrderPage
 
                       const SizedBox(height: 8),
 
-                      // Time | Date | Status
+                      // Date (already formatted hh:mm | dd Mon)
                       Row(
                         children: [
                           Text(
-                            [
-                              controller.orderId.value.isEmpty
-                                  ? '—'
-                                  : controller.orderId.value,
-                              controller.time.value.isEmpty
-                                  ? '—'
-                                  : controller.time.value,
-                              controller.date.value.isEmpty
-                                  ? '—'
-                                  : controller.date.value,
-                            ].join(' | '),
+                            controller.issueNo.value.isEmpty
+                                ? '—'
+                                : controller.issueNo.value,
                             style: const TextStyle(
                               color: _C.muted,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const Spacer(),
+                          SizedBox(width: 8),
+                          Text(
+                            controller.date.value.isEmpty
+                                ? '—'
+                                : controller.date.value,
+                            style: const TextStyle(
+                              color: _C.muted,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Spacer(),
                           Text(
                             controller.status.value.isEmpty
                                 ? '—'
@@ -188,13 +191,16 @@ class MaintenanceEngineerAcceptWorkOrderPage
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                          // (No status/orderId in controller you shared)
                         ],
                       ),
                       const SizedBox(height: 6),
 
-                      // Issue type + line
+                      // Issue type + machine/line
                       Text(
-                        controller.issueType.value,
+                        controller.issueType.value.isEmpty
+                            ? '—'
+                            : controller.issueType.value,
                         style: const TextStyle(
                           color: _C.muted,
                           fontWeight: FontWeight.w700,
@@ -210,7 +216,9 @@ class MaintenanceEngineerAcceptWorkOrderPage
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
-                              controller.cnc_1.value,
+                              controller.cnc_1.value.isEmpty
+                                  ? '—'
+                                  : controller.cnc_1.value,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: Colors.black,
@@ -221,26 +229,27 @@ class MaintenanceEngineerAcceptWorkOrderPage
                           ),
                         ],
                       ),
+
                       const _DividerPad(),
 
-                      // Headline & Description
+                      // Description
                       Text(
-                        controller.descriptionText.value.isEmpty
+                        controller.description.value.isEmpty
                             ? '—'
-                            : controller.descriptionText.value,
+                            : controller.description.value,
                         style: const TextStyle(
                           color: _C.text,
                           fontWeight: FontWeight.w800,
                           fontSize: 15.5,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        controller.problemDescription.value.isEmpty
-                            ? '—'
-                            : controller.problemDescription.value,
-                        style: const TextStyle(color: _C.text, height: 1.35),
-                      ),
+                      if (controller.remark.value.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          controller.remark.value,
+                          style: const TextStyle(color: _C.text, height: 1.35),
+                        ),
+                      ],
                     ],
                   );
                 }),
@@ -526,8 +535,10 @@ class _Thumb extends StatelessWidget {
       return FutureBuilder<bool>(
         future: _assetExists(path),
         builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done || snap.data != true)
+          if (snap.connectionState != ConnectionState.done ||
+              snap.data != true) {
             return base;
+          }
           return ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Image.asset(path, width: 88, height: 64, fit: BoxFit.cover),
@@ -579,7 +590,6 @@ class _AudioBubbleState extends State<_AudioBubble> {
   bool _isLoading = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
-  Source? _currentSource;
 
   Source? _buildSource(String p) {
     if (p.isEmpty) return null;
@@ -593,10 +603,6 @@ class _AudioBubbleState extends State<_AudioBubble> {
   void initState() {
     super.initState();
     _player = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
-
-    // register with controller so it can stop us on navigation
-    Get.find<MaintenanceEnginnerAcceptWorkOrderController>()
-        .registerPlayer(_player);
 
     _player.onDurationChanged.listen((d) {
       if (!mounted) return;
@@ -620,11 +626,7 @@ class _AudioBubbleState extends State<_AudioBubble> {
 
   @override
   void dispose() {
-    // best-effort stop; don't await in dispose
     _player.stop();
-    // unregister from controller
-    Get.find<MaintenanceEnginnerAcceptWorkOrderController>()
-        .unregisterPlayer(_player);
     _player.dispose();
     super.dispose();
   }
@@ -636,17 +638,10 @@ class _AudioBubbleState extends State<_AudioBubble> {
       await _player.setSource(src);
       final d = await _player.getDuration();
       if (mounted && d != null) setState(() => _duration = d);
-      _currentSource = src;
     } catch (_) {
-      // silently ignore; user can still try play (we retry there)
+      // ignore; user can try play (we retry on toggle)
     }
   }
-
-  // @override
-  // void dispose() {
-  //   _player.dispose();
-  //   super.dispose();
-  // }
 
   String _fmt(Duration d) {
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -662,7 +657,7 @@ class _AudioBubbleState extends State<_AudioBubble> {
         await _player.pause();
         setState(() => _isPlaying = false);
       } else {
-        final src = _currentSource ?? _buildSource(widget.path);
+        final src = _buildSource(widget.path);
         if (src == null) return;
         if (_position == Duration.zero) {
           await _player.stop();

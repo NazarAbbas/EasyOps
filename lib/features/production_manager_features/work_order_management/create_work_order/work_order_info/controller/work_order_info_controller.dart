@@ -2,9 +2,7 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/database/db_repository/assets_repository.dart';
-import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -17,14 +15,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 class WorkorderInfoController extends GetxController {
+  // Optional "Reason" selector kept from your snippet (unused here)
+  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+  final selectedReasonValue = 'Select Reason'.obs;
+
   // ─────────────────────────────────────────────────────────────────────────
   // Dependencies & config
   // ─────────────────────────────────────────────────────────────────────────
-  final lookupRepository = Get.find<LookupRepository>();
-  final assetRepository = Get.find<AssetRepository>();
+  // final lookupRepository = Get.find<LookupRepository>();
+  // final assetRepository = Get.find<AssetRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
-  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
-
+//  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
+  final repository = Get.find<DBRepository>();
   // ─────────────────────────────────────────────────────────────────────────
   // UI state: operator footer (editable)
   // ─────────────────────────────────────────────────────────────────────────
@@ -60,7 +63,7 @@ class WorkorderInfoController extends GetxController {
   final selectedImpactId = ''.obs;
   final assetsId = ''.obs;
 
-  // legacy labels (kept for compatibility with existing bag keys)
+  // legacy labels (kept for compatibility with existing bag keys & UI mirrors)
   final issueType = ''.obs;
   final impact = ''.obs;
 
@@ -89,7 +92,7 @@ class WorkorderInfoController extends GetxController {
     _initDefaults();
     await _initAsync(); // ensure lookups/assets are available before reactions
 
-    // Keep label Rx in sync with selected IDs
+    // Keep label Rx in sync with selected IDs (without blanking)
     _setupReactions();
 
     // Asset text field listener → auto-apply meta when serial matches
@@ -111,11 +114,13 @@ class WorkorderInfoController extends GetxController {
   // Init helpers
   // ─────────────────────────────────────────────────────────────────────────
   void _setupReactions() {
-    ever<String>(selectedIssueTypeId, (_) {
-      issueType.value = _labelFor(issueTypeOptions, selectedIssueTypeId.value);
+    ever<String>(selectedIssueTypeId, (id) {
+      final next = _labelFor(issueTypeOptions, id);
+      if (next.isNotEmpty) issueType.value = next; // don't overwrite with ''
     });
-    ever<String>(selectedImpactId, (_) {
-      impact.value = _labelFor(impactOptions, selectedImpactId.value);
+    ever<String>(selectedImpactId, (id) {
+      final next = _labelFor(impactOptions, id);
+      if (next.isNotEmpty) impact.value = next; // don't overwrite with ''
     });
   }
 
@@ -124,9 +129,7 @@ class WorkorderInfoController extends GetxController {
     final loginPerson = prefs.getString(Constant.loginPersonId);
 
     if (loginPerson != null) {
-      final details = await loginPersonDetailsRepository.getPersonById(
-        loginPerson,
-      );
+      final details = await repository.getPersonById(loginPerson);
       if (details != null) {
         operatorName.value = '${details.name}(${details.id})';
         if (details.contacts.isNotEmpty &&
@@ -162,9 +165,12 @@ class WorkorderInfoController extends GetxController {
   }
 
   Future<void> _initAsync() async {
+    // Load lookups first so label derivation never blanks out
     await _loadLookups();
     await _loadAssets();
     _rebuildAssetSerialIndex();
+
+    // Hydrate from bag (ids first; labels will sync safely)
     _hydrateFromBag();
 
     // optional: prefill from currently selected work order
@@ -178,13 +184,16 @@ class WorkorderInfoController extends GetxController {
       if ((workOrderInfo!.asset.id ?? '').isNotEmpty) {
         assetsId.value = workOrderInfo!.asset.id!;
       }
-      _syncLabelsFromSelection(); // ensure labels mirror ids
     }
+
+    _syncLabelsFromSelection(); // ensure labels mirror ids (non-blank)
   }
 
   Future<void> _loadLookups() async {
-    final impact = await lookupRepository.getLookupByType(LookupType.impact);
-    final issue = await lookupRepository.getLookupByType(LookupType.issuetype);
+    final impact =
+        await repository.getLookupByType(LookupType.impact) ?? <LookupValues>[];
+    final issue = await repository.getLookupByType(LookupType.issuetype) ??
+        <LookupValues>[];
 
     issueTypeOptions.assignAll([
       _placeholderOption('Select Issue Type', LookupType.issuetype),
@@ -199,7 +208,7 @@ class WorkorderInfoController extends GetxController {
 
   Future<void> _loadAssets() async {
     // pulls once; if you want reactive, expose a stream in repository
-    final list = await assetRepository.getAllAssets();
+    final list = await repository.getAllAssets();
     _storeAssets
       ..clear()
       ..addAll(list);
@@ -242,9 +251,13 @@ class WorkorderInfoController extends GetxController {
       issueTypeOptions,
       issueTypeLabel,
     );
-    _maybeFixSelectedIdFromLabel(selectedImpactId, impactOptions, impactLabel);
+    _maybeFixSelectedIdFromLabel(
+      selectedImpactId,
+      impactOptions,
+      impactLabel,
+    );
 
-    // keep legacy mirrors
+    // keep legacy mirrors (will be refined by _syncLabelsFromSelection later)
     issueType.value = issueTypeLabel;
     impact.value = impactLabel;
 
@@ -281,7 +294,7 @@ class WorkorderInfoController extends GetxController {
     // bind asset-derived fields if serial present
     _applyMetaIfSerialMatch(assetsCtrl.text);
 
-    // ensure labels reflect selected IDs *now*
+    // ensure labels reflect selected IDs *now* (won't blank)
     _syncLabelsFromSelection();
   }
 
@@ -291,17 +304,39 @@ class WorkorderInfoController extends GetxController {
     return hit?.displayName ?? '';
   }
 
+  String _labelForSafe({
+    required List<LookupValues> options,
+    required String id,
+    required String current,
+  }) {
+    final computed = _labelFor(options, id);
+    if (computed.isNotEmpty) return computed;
+    // if lookups aren't loaded yet or id not found, keep what user sees
+    return current;
+  }
+
   void _syncLabelsFromSelection() {
-    issueType.value = _labelFor(issueTypeOptions, selectedIssueTypeId.value);
-    impact.value = _labelFor(impactOptions, selectedImpactId.value);
+    final it = _labelFor(issueTypeOptions, selectedIssueTypeId.value);
+    if (it.isNotEmpty) issueType.value = it;
+
+    final im = _labelFor(impactOptions, selectedImpactId.value);
+    if (im.isNotEmpty) impact.value = im;
   }
 
   void saveToBag() {
-    final issueTypeLabel =
-        _labelFor(issueTypeOptions, selectedIssueTypeId.value);
-    final impactLabel = _labelFor(impactOptions, selectedImpactId.value);
+    final issueTypeLabel = _labelForSafe(
+      options: issueTypeOptions,
+      id: selectedIssueTypeId.value,
+      current: issueType.value, // keep current if options missing
+    );
 
-    // keep the reactive mirrors in sync (useful for UI)
+    final impactLabel = _labelForSafe(
+      options: impactOptions,
+      id: selectedImpactId.value,
+      current: impact.value,
+    );
+
+    // keep the reactive mirrors in sync (and never blank them)
     issueType.value = issueTypeLabel;
     impact.value = impactLabel;
 

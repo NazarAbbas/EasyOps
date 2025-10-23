@@ -1,6 +1,6 @@
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/utils/share_preference.dart'
     show SharePreferences, engineerRole;
-import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/domain/work_order_list_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
     show WorkOrder, Tenant, Client, Asset;
 import 'package:flutter/material.dart';
@@ -9,8 +9,7 @@ import 'package:get/get.dart';
 class WorkOrdersController extends GetxController {
   var userRole = ''.obs;
 
-  final WorkOrderListRepositoryImpl repositoryImpl =
-      WorkOrderListRepositoryImpl();
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
   // ---------------- UI state ----------------
   final loading = true.obs; // first-load spinner
@@ -80,6 +79,7 @@ class WorkOrdersController extends GetxController {
       orders.assignAll(list);
       //  orders.assignAll(mockWorkOrders);
     } catch (e) {
+      String mess = e.toString();
       // Fallback to mock data on error
       //orders.assignAll(mockWorkOrders);
     }

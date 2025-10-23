@@ -1,5 +1,7 @@
+import 'package:easy_ops/core/network/network_repository/network_repository.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
-import 'package:easy_ops/database/db_repository/lookup_repository.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/domain/new_suggestion_repository_impl.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -9,10 +11,10 @@ import 'package:get/get.dart';
 /// =================== CONTROLLER ===================
 
 class NewSuggestionController extends GetxController {
-  final NewSuggestionRepositoryImpl suggestionRepositoryImpl =
-      NewSuggestionRepositoryImpl();
-  final LookupRepository lookupRepository = Get.find<LookupRepository>();
-
+  final NetworkRepositoryImpl suggestionRepositoryImpl =
+      NetworkRepositoryImpl();
+  //final LookupRepository lookupRepository = Get.find<LookupRepository>();
+  final repository = Get.find<DBRepository>();
   final RxList<LookupValues> locationTypeOptions = <LookupValues>[].obs;
   final RxList<LookupValues> suggestionTypeOptions = <LookupValues>[].obs;
 
@@ -70,10 +72,10 @@ class NewSuggestionController extends GetxController {
 
   void _initAsync() async {
     final List<LookupValues> deptList =
-        await lookupRepository.getLookupByType(LookupType.department);
+        await repository.getLookupByType(LookupType.department);
 
     final List<LookupValues> suggestionList =
-        await lookupRepository.getLookupByType(LookupType.suggestion);
+        await repository.getLookupByType(LookupType.suggestion);
 
     // Build typed option lists (with placeholders)
     locationTypeOptions.assignAll([

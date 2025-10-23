@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/controller/cancel_work_order_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -101,11 +103,16 @@ class CancelWorkOrderPage extends GetView<CancelWorkOrderController> {
             SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24 + kb),
               child: Column(
-                children: const [
-                  _IssueHeaderCard(),
-                  SizedBox(height: 12),
-                  _CancelFormCard(),
-                  SizedBox(height: 90),
+                children: [
+                  //_IssueHeaderCard(),
+                  WorkOrderTile(
+                    workOrderInfo: controller.workOrderInfo!,
+                    onTap: () => print('Open work order'),
+                  ),
+
+                  const SizedBox(height: 12),
+                  const _CancelFormCard(),
+                  const SizedBox(height: 90),
                 ],
               ),
             ),
@@ -480,7 +487,7 @@ class _ReasonPickerField extends GetView<CancelWorkOrderController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final sel = controller.selectedCancelOrderReason.value;
+      final sel = controller.selectedReason.value;
       final isPlaceholder =
           sel == null || (sel.id.isEmpty && sel.displayName == 'Select reason');
 
@@ -489,7 +496,18 @@ class _ReasonPickerField extends GetView<CancelWorkOrderController> {
           : (sel.displayName.isEmpty ? '(Unnamed)' : sel.displayName);
 
       return InkWell(
-        onTap: () => _openReasonSheet(context),
+        onTap: () async {
+          final v = await LookupPicker.show(
+            context: context,
+            lookupType: LookupType.resolution.name,
+            selected: controller.selectedReason.value,
+          );
+          if (v != null) {
+            controller.selectedReason.value = v;
+            controller.selectedReasonValue.value =
+                v.displayName; // <-- update the text
+          }
+        },
         borderRadius: BorderRadius.circular(12),
         child: InputDecorator(
           decoration: _D.field().copyWith(
@@ -507,128 +525,143 @@ class _ReasonPickerField extends GetView<CancelWorkOrderController> {
     });
   }
 
-  void _openReasonSheet(BuildContext context) {
-    final current = controller.selectedCancelOrderReason.value;
-    final options = controller.cancelOrderReason
-        .where((lv) => !(lv.id.isEmpty && lv.displayName == 'Select reason'))
-        .toList();
-    final kb = MediaQuery.of(context).viewInsets.bottom;
+  // Future<void> _openReasonSheet(BuildContext context) async {
+  //   if (controller.isSubmitting.value) return;
 
-    Get.bottomSheet(
-      isScrollControlled: true,
-      SafeArea(
-        child: FractionallySizedBox(
-          heightFactor: 0.85,
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            padding: EdgeInsets.fromLTRB(16, 10, 16, 12 + kb),
-            child: Column(
-              children: [
-                Container(
-                  width: 44,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8EDF6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Select reason',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: options.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, color: _C.line),
-                    itemBuilder: (ctx, i) {
-                      final lv = options[i];
-                      final isSelected = current?.id == lv.id;
-                      return ListTile(
-                        dense: true,
-                        leading: CircleAvatar(
-                          radius: 14,
-                          backgroundColor: const Color(0xFFF2F5FF),
-                          child: Text(
-                            (lv.displayName.isNotEmpty
-                                    ? lv.displayName[0]
-                                    : '?')
-                                .toUpperCase(),
-                            style: const TextStyle(
-                              color: _C.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          lv.displayName.isEmpty ? '(Unnamed)' : lv.displayName,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        subtitle: (lv.code.isNotEmpty)
-                            ? Text(
-                                lv.code,
-                                style: const TextStyle(
-                                  color: _C.muted,
-                                  fontSize: 12,
-                                ),
-                              )
-                            : null,
-                        trailing: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: isSelected
-                              ? const Icon(Icons.check_circle,
-                                  color: _C.primary)
-                              : const SizedBox(width: 24),
-                        ),
-                        onTap: () {
-                          controller.selectedCancelOrderReason.value = lv;
-                          Get.back();
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _C.primary,
-                          side: const BorderSide(color: _C.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: Get.back,
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      backgroundColor: Colors.transparent,
-      enableDrag: true,
-    );
-  }
+  //   final chosen = await ReasonPicker.show(
+  //     context: context,
+  //     items: controller.reason.toList(), // List<LookupValues>
+  //     selected: controller.selectedReason.value, // LookupValues?
+  //     title: 'Select Reason',
+  //   );
+
+  //   if (chosen != null) {
+  //     controller.selectedReason.value = chosen; // ⬅️ key unchanged
+  //   }
 }
+
+// void _openReasonSheet(BuildContext context) {
+//   final current = controller.selectedReason.value;
+//   final options = controller.reason
+//       .where((lv) => !(lv.id.isEmpty && lv.displayName == 'Select reason'))
+//       .toList();
+//   final kb = MediaQuery.of(context).viewInsets.bottom;
+
+//   Get.bottomSheet(
+//     isScrollControlled: true,
+//     SafeArea(
+//       child: FractionallySizedBox(
+//         heightFactor: 0.85,
+//         child: Container(
+//           decoration: const BoxDecoration(
+//             color: Colors.white,
+//             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//           ),
+//           padding: EdgeInsets.fromLTRB(16, 10, 16, 12 + kb),
+//           child: Column(
+//             children: [
+//               Container(
+//                 width: 44,
+//                 height: 5,
+//                 margin: const EdgeInsets.only(bottom: 12),
+//                 decoration: BoxDecoration(
+//                   color: const Color(0xFFE8EDF6),
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//               ),
+//               const Align(
+//                 alignment: Alignment.centerLeft,
+//                 child: Text(
+//                   'Select reason',
+//                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+//                 ),
+//               ),
+//               const SizedBox(height: 8),
+//               Expanded(
+//                 child: ListView.separated(
+//                   itemCount: options.length,
+//                   separatorBuilder: (_, __) =>
+//                       const Divider(height: 1, color: _C.line),
+//                   itemBuilder: (ctx, i) {
+//                     final lv = options[i];
+//                     final isSelected = current?.id == lv.id;
+//                     return ListTile(
+//                       dense: true,
+//                       leading: CircleAvatar(
+//                         radius: 14,
+//                         backgroundColor: const Color(0xFFF2F5FF),
+//                         child: Text(
+//                           (lv.displayName.isNotEmpty
+//                                   ? lv.displayName[0]
+//                                   : '?')
+//                               .toUpperCase(),
+//                           style: const TextStyle(
+//                             color: _C.primary,
+//                             fontWeight: FontWeight.w800,
+//                             fontSize: 12,
+//                           ),
+//                         ),
+//                       ),
+//                       title: Text(
+//                         lv.displayName.isEmpty ? '(Unnamed)' : lv.displayName,
+//                         overflow: TextOverflow.ellipsis,
+//                         style: const TextStyle(fontWeight: FontWeight.w700),
+//                       ),
+//                       subtitle: (lv.code.isNotEmpty)
+//                           ? Text(
+//                               lv.code,
+//                               style: const TextStyle(
+//                                 color: _C.muted,
+//                                 fontSize: 12,
+//                               ),
+//                             )
+//                           : null,
+//                       trailing: AnimatedSwitcher(
+//                         duration: const Duration(milliseconds: 200),
+//                         child: isSelected
+//                             ? const Icon(Icons.check_circle,
+//                                 color: _C.primary)
+//                             : const SizedBox(width: 24),
+//                       ),
+//                       onTap: () {
+//                         controller.selectedReason.value = lv;
+//                         Get.back();
+//                       },
+//                     );
+//                   },
+//                 ),
+//               ),
+//               const SizedBox(height: 10),
+//               Row(
+//                 children: [
+//                   Expanded(
+//                     child: OutlinedButton(
+//                       style: OutlinedButton.styleFrom(
+//                         foregroundColor: _C.primary,
+//                         side: const BorderSide(color: _C.primary),
+//                         shape: RoundedRectangleBorder(
+//                           borderRadius: BorderRadius.circular(12),
+//                         ),
+//                       ),
+//                       onPressed: Get.back,
+//                       child: const Text(
+//                         'Close',
+//                         style: TextStyle(fontWeight: FontWeight.w700),
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     ),
+//     backgroundColor: Colors.transparent,
+//     enableDrag: true,
+//   );
+// }
+//}
 
 /* ===================== Small Pieces & Styles ===================== */
 

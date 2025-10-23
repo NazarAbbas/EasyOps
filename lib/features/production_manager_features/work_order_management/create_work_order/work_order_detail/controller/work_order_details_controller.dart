@@ -1,11 +1,12 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/database/db_repository/login_person_details_repository.dart';
+
 import 'package:easy_ops/database/db_repository/offline_work_order_repository.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/domain/create_work_order_repository_impl.dart'
-    show CreateWorkOrderRepositoryImpl;
+
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/offline_work_order.dart';
@@ -16,11 +17,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 class WorkOrderDetailsController extends GetxController {
-  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
+
+  // final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
+  final repository = Get.find<DBRepository>();
 
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
-  final CreateWorkOrderRepositoryImpl repositoryImpl =
-      CreateWorkOrderRepositoryImpl();
+
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
   // Header / UI labels
   final title = 'Work Order Details'.obs;
@@ -61,7 +64,8 @@ class WorkOrderDetailsController extends GetxController {
     final loginPerson = prefs.getString(Constant.loginPersonId);
 
     if (loginPerson != null) {
-      final details = await loginPersonDetailsRepository.getPersonById(
+ 
+      final details = await repository.getPersonById(
         loginPerson,
       );
       if (details != null) {
@@ -198,6 +202,7 @@ class WorkOrderDetailsController extends GetxController {
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
       operatorPhoneNumber.value =
           _bag.get<String>(WOKeys.operatorPhoneNumber, '');
+    
       var operatorId = _bag.get<String>(WOKeys.operatorId, '');
 
       issueType.value = _bag.get<String>(WOKeys.issueType, '');

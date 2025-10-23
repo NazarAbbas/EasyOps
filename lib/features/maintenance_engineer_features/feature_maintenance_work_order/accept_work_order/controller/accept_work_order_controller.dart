@@ -1,60 +1,154 @@
 // work_order_details_controller.dart
 // ignore: file_names
-import 'package:audioplayers/audioplayers.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
+  // ----- Base URL to prefix -----
+  static const String _BASE_URL = 'https://user-dev.eazyops.in:8443/v1/api/';
+
   // Header
   final title = 'Work Order Details'.obs;
 
   // Operator
-  final operatorName = 'Rajesh Kumar'.obs;
-  final operatorInfo = 'Assembly | Plant A | Shift B'.obs;
-  final operatorPhoneNumber = '+91 98765 43210'.obs;
-
-  // Banner
-  final successTitle = 'Work Order Created\nSuccessfully'.obs;
-  final successSub = 'Work Order ID - BD-102'.obs;
+  final operatorName = ''.obs;
+  final operatorInfo = ''.obs;
+  final operatorPhoneNumber = ''.obs;
 
   // Reporter
-  final reportedBy = 'Ashwath Mohan Mahendran'.obs;
+  final reportedBy = ''.obs;
 
   // Summary
-  final descriptionText =
-      'Tool misalignment and spindle speed issues in Bay 3 causing uneven cuts and delays. Immediate attention needed.'
-          .obs;
-  final priority = 'High'.obs; // pill
-  final issueType = 'Mechanical'.obs; // category
-  final status = 'Pending'.obs; // category
+  final remark = ''.obs;
+  final priority = ''.obs;
+  final issueType = ''.obs;
 
   // Time / Date
-  final orderId = 'BD-102'.obs; // HH:mm
-  final time = '18:08'.obs; // HH:mm
-  final date = '09 Aug'.obs; // dd MMM
+  final date = ''.obs;
+
+  // Location line under summary
+  final line = ''.obs;
+  final location = ''.obs;
 
   // Body
-  final headline = 'Conveyor Belt Stopped Abruptly During Operation'.obs;
-  final problemDescription =
-      'Suspected bearing wear; request inspection and calibration.'.obs;
+  final headline = ''.obs;
+  final workOrderTitle = ''.obs;
+  final description = ''.obs;
+  final problemDescrition = ''.obs;
 
-  // Media (hard-coded URLs)
-  final photoPaths = <String>[
-    // Fallback URLs (replace with assets later if you prefer)
-    'https://fastly.picsum.photos/id/459/200/200.jpg?hmac=WxFjGfN8niULmp7dDQKtjraxfa4WFX-jcTtkMyH4I-Y',
-    'https://fastly.picsum.photos/id/416/200/300.jpg?hmac=KIMUiPYQ0X2OQBuJIwtfL9ci1AGeu2OqrBH4GqpE7Bc',
-    'https://fastly.picsum.photos/id/459/200/200.jpg?hmac=WxFjGfN8niULmp7dDQKtjraxfa4WFX-jcTtkMyH4I-Y',
-    'https://fastly.picsum.photos/id/416/200/300.jpg?hmac=KIMUiPYQ0X2OQBuJIwtfL9ci1AGeu2OqrBH4GqpE7Bc',
-  ].obs;
+  // Media
+  final photoPaths = <String>[].obs; // image URLs (absolute)
+  final voiceNotePath = ''.obs; // first audio URL (absolute)
 
-  final voiceNotePath =
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'.obs;
+  final cnc_1 = ''.obs;
+  final issueNo = ''.obs;
+  final status = ''.obs;
 
-  // Extra
-  final cnc_1 = 'CNC-1'.obs;
+  @override
+  void onInit() {
+    super.onInit();
 
-  // (Optional) date formatter kept if you want to compute dates later
-  String _formatDate(DateTime d) {
+    final workTabsController = Get.find<UpdateWorkTabsController>();
+    final workOrderInfo = workTabsController.workOrder;
+
+    if (workOrderInfo == null) return;
+
+    // ----- Operator -----
+
+    status.value = workOrderInfo.status;
+    issueNo.value = workOrderInfo.issueNo ?? '-';
+    final first = (workOrderInfo.operator?.firstName ?? '').trim();
+    final last = (workOrderInfo.operator?.lastName ?? '').trim();
+    final name = ('$first $last').trim();
+
+    operatorName.value = name.isEmpty ? 'Not available' : name;
+    operatorPhoneNumber.value =
+        workOrderInfo.operator?.phone ?? 'Not available';
+    operatorInfo.value = workOrderInfo.asset.name.isNotEmpty
+        ? workOrderInfo.asset.name
+        : 'Not available';
+
+    cnc_1.value = '${workOrderInfo.asset.name}(${workOrderInfo.asset.assetNo})';
+    issueType.value = workOrderInfo.type ?? "-";
+
+    // ----- Media binding (images + single audio) -----
+    final files = workOrderInfo.mediaFiles ?? const <MediaFile>[];
+
+    final images = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    photoPaths.assignAll(images.toList());
+
+    // First audio/* -> absolute URL
+    final firstAudio = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
+        .map((f) => _absoluteUrlForAudio(f.filePath))
+        .firstWhere(
+          (p) => p.isNotEmpty,
+          orElse: () => '',
+        );
+    voiceNotePath.value = firstAudio;
+
+    // ----- Reporter -----
+    final rFirst = (workOrderInfo.reportedBy?.firstName ?? '').trim();
+    final rLast = (workOrderInfo.reportedBy?.lastName ?? '').trim();
+    final rName = ('$rFirst $rLast').trim();
+    reportedBy.value = rName.isEmpty ? 'Not available' : rName;
+
+    // ----- Meta / summary -----
+    date.value = _formatDate(workOrderInfo.createdAt);
+    priority.value = workOrderInfo.priority;
+    final t = (workOrderInfo.title).trim();
+    workOrderTitle.value = t.isEmpty ? 'Not available' : t;
+    final r = (workOrderInfo.remark ?? '').trim();
+    remark.value = r.isEmpty ? 'Not available' : r;
+    description.value = workOrderInfo.description;
+  }
+
+  // --------- Helpers ---------
+
+  /// Makes an absolute URL:
+  /// - returns empty string for null/empty
+  /// - returns as-is if already absolute (http/https)
+  /// - otherwise prefixes [_BASE_URL] (with clean single slash)
+  String _absoluteUrl(String? raw) {
+    final p = (raw ?? '').trim();
+    if (p.isEmpty) return '';
+    final lower = p.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) {
+      return 'https://picsum.photos/200/300'; //p;
+    }
+    // normalize slashes
+    final base = _BASE_URL.endsWith('/')
+        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
+        : _BASE_URL;
+    final path = p.startsWith('/') ? p.substring(1) : p;
+    return 'https://picsum.photos/200/300'; //'$base/$path';
+  }
+
+  String _absoluteUrlForAudio(String? raw) {
+    final p = (raw ?? '').trim();
+    if (p.isEmpty) return '';
+    final lower = p.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) {
+      return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //p;
+    }
+    // normalize slashes
+    final base = _BASE_URL.endsWith('/')
+        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
+        : _BASE_URL;
+    final path = p.startsWith('/') ? p.substring(1) : p;
+    return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //'$base/$path';
+  }
+
+  String _formatDate(DateTime dt) {
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
     const months = [
       'Jan',
       'Feb',
@@ -67,51 +161,19 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
       'Sep',
       'Oct',
       'Nov',
-      'Dec',
+      'Dec'
     ];
-    final dd = d.day.toString().padLeft(2, '0');
-    final mon = months[d.month - 1];
-    return '$dd $mon';
+    final day = dt.day.toString().padLeft(2, '0');
+    final month = months[dt.month - 1];
+    return '$hh:$mm | $day $month';
   }
 
-  // // Actions
-  // void acceptWorkOrder() {
-
-  //   Get.toNamed(Routes.startWorkOrderScreen);
-  // }
-
-  // void reAssignWorkOrder() {
-  //   Get.toNamed(Routes.reassignWorkOrderScreen);
-  // }
-
-  final Set<AudioPlayer> _players = {};
-  // Called by audio bubbles
-  void registerPlayer(AudioPlayer p) => _players.add(p);
-  void unregisterPlayer(AudioPlayer p) => _players.remove(p);
-
-  Future<void> stopAllAudio() async {
-    for (final p in _players.toList()) {
-      try {
-        await p.stop();
-      } catch (_) {}
-    }
-  }
-
-  @override
-  void onClose() {
-    // ensure nothing leaks if page is destroyed
-    stopAllAudio();
-    super.onClose();
-  }
-
-  // Your navigation actions:
+//   // Your navigation actions:
   Future<void> acceptWorkOrder() async {
-    await stopAllAudio();
     Get.toNamed(Routes.maintenanceEngeneerstartWorkOrderScreen);
   }
 
   Future<void> reAssignWorkOrder() async {
-    await stopAllAudio();
     Get.toNamed(Routes.maintenanceEngeneerreassignWorkOrderScreen);
   }
 }

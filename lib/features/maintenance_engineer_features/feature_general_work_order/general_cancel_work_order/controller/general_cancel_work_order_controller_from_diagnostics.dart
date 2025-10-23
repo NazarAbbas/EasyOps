@@ -1,64 +1,124 @@
+import 'package:easy_ops/core/network/network_repository/network_repository.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_repository_impl.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerGeneralCancelWorkOrderController
     extends GetxController {
-  // UI state
-  final isLoading = false.obs;
-  final reasons = const <String>[
-    'Busy with Critical',
-    'Shift Over',
-    'Machine Not Available',
-    'Waiting for Parts',
-    'Other',
-  ];
-  final selectedReason = RxnString('Busy with Critical');
-  final remarks = ''.obs;
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
-  void onReasonChanged(String? v) => selectedReason.value = v;
+  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+  bool _isPlaceholder(LookupValues? v) =>
+      v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
-  Future<void> submit() async {
-    if (selectedReason.value == null || selectedReason.value!.isEmpty) {
-      Get.snackbar('Missing reason', 'Please select a reason.');
+  final TextEditingController remarksCtrl = TextEditingController();
+  final RxString remarks = ''.obs;
+
+  final RxBool isSubmitting = false.obs;
+  WorkOrder? workOrderInfo;
+
+  @override
+  void onInit() async {
+    super.onInit();
+    final workTabsController = Get.find<UpdateWorkTabsController>();
+    workOrderInfo = workTabsController.workOrder!;
+    remarks.value = remarksCtrl.text;
+  }
+
+  @override
+  void onClose() {
+    remarksCtrl.dispose();
+    super.onClose();
+  }
+
+  void onDiscard() => Get.back();
+
+  Future<void> onCancel() async {
+    if (_isPlaceholder(selectedReason.value)) {
+      Get.snackbar(
+        'Reason required',
+        'Please select a reason to reassign this work order.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(12),
+      );
       return;
     }
-    try {
-      isLoading.value = true;
-      await CancelWorkOrderApi.cancel(
-        workOrderId: '1',
-        reason: selectedReason.value!,
-        remarks: remarks.value.trim().isEmpty ? null : remarks.value.trim(),
-      );
-      isLoading.value = false;
-      // Get.back(result: true); // pop with success
-      Get.offAllNamed(
-        Routes.maintenanceEngeneergeneralWorkOrderScreen,
-        arguments: {'tab': 2}, // open Work Orders
-      );
 
-      Get.snackbar('Success', 'Work order canceled');
-    } catch (e) {
-      isLoading.value = false;
-      Get.snackbar('Error', 'Failed to cancel work order');
+    final woId = workOrderInfo?.id ?? '';
+    if (woId.isEmpty) {
+      Get.snackbar(
+        'Missing ID',
+        'Work order ID not found.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.black87,
+        margin: const EdgeInsets.all(12),
+      );
+      return;
     }
-  }
 
-  void discard() {
-    Get.back(result: false);
-  }
-}
+    try {
+      isSubmitting.value = true;
 
-class CancelWorkOrderApi {
-  /// Fake API call: cancels the work order with a reason + remarks.
-  static Future<void> cancel({
-    required String workOrderId,
-    required String reason,
-    String? remarks,
-  }) async {
-    // simulate latency
-    await Future.delayed(const Duration(seconds: 2));
+      // Build request (map the reason as needed: id/code/displayName)
+      final sel = selectedReason.value!;
+      final req = CancelWorkOrderRequest(
+        status: 'Cancel',
+        remark: remarksCtrl.text.trim(),
+        comment: sel.displayName, // or sel.id / sel.code per API contract
+      );
 
-    // You could throw to simulate failure:
-    // throw Exception('Network error');
+      final result = await repositoryImpl.cancelOrder(
+        cancelWorkOrderId: woId,
+        cancelWorkOrderRequest: req,
+      );
+
+      if (result.httpCode == 200 && result.data != null) {
+        Get.snackbar(
+          'Cancelled',
+          'Work order cancelled successfully.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+        Get.offAllNamed(
+          Routes.landingDashboardScreen,
+          arguments: {'tab': 3},
+        );
+      } else {
+        Get.snackbar(
+          'Cancel failed',
+          (result.message?.trim().isNotEmpty ?? false)
+              ? result.message!
+              : 'Unexpected response (code ${result.httpCode}).',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.black87,
+        margin: const EdgeInsets.all(12),
+      );
+    } finally {
+      // isSubmitting.value = false;
+    }
   }
 }
