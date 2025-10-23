@@ -565,6 +565,14 @@ class _$LookupDao extends LookupDao {
   }
 
   @override
+  Future<List<LookupEntity>> getActiveByCode(String lookupCode) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: _lookupTypeConverter.decode(row['lookupType'] as String), sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
+        arguments: [lookupCode]);
+  }
+
+  @override
   Future<void> upsertAll(List<LookupEntity> rows) async {
     await _lookupEntityInsertionAdapter.insertList(
         rows, OnConflictStrategy.replace);

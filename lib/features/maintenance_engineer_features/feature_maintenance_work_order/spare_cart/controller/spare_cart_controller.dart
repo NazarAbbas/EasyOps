@@ -1,47 +1,48 @@
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/start_work_order_controller.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter/material.dart';
+
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
 
 class MaintenanceEnginnerSpareCartController extends GetxController {
   final RxList<CartLine> cart = <CartLine>[].obs;
   final RxSet<String> editingKeys = <String>{}.obs;
 
-  // storage
   static const _kCart = 'spare_cart_v1';
   final _box = GetStorage();
 
   @override
   void onInit() {
     super.onInit();
-
-    // Load saved cart (if any)
-    _loadCart();
-
-    // Save whenever cart changes
-    ever<List<CartLine>>(cart, (_) => _saveCart());
-
-    debugPrint('[SpareCartController] onInit hash=${identityHashCode(this)}');
+    _loadCart(); // load persisted cart
+    ever<List<CartLine>>(cart, (_) => _saveCart()); // save on any change
   }
 
-  /* ---------- public API ---------- */
+  /* ---------- public API (unchanged signatures) ---------- */
+
+  /// Adds/merges by item + **category names** (cat1/cat2 are names).
   void addOrMerge(SpareItem it, int qty, {String? cat1, String? cat2}) {
     if (qty <= 0) return;
-    final key = _makeKey(it, cat1, cat2);
-    final idx = cart.indexWhere((e) => e.key == key);
-    if (idx >= 0) {
-      cart[idx].qty += qty;
+
+    final c1 = _clean(cat1); // treat as names
+    final c2 = _clean(cat2);
+
+    final key = _makeKey(it, c1, c2);
+    final i = cart.indexWhere((e) => e.key == key);
+
+    if (i >= 0) {
+      cart[i].qty += qty;
       cart.refresh();
     } else {
-      cart.add(CartLine(key: key, item: it, qty: qty, cat1: cat1, cat2: cat2));
+      cart.add(CartLine(key: key, item: it, qty: qty, cat1: c1, cat2: c2));
     }
   }
 
   List<CartGroup> grouped() {
     final map = <String, CartGroup>{};
     for (final l in cart) {
-      final k = '${l.cat1 ?? "-"}|${l.cat2 ?? "-"}';
+      final k = '${l.cat1 ?? "-"}|${l.cat2 ?? "-"}'; // group by names
       map.putIfAbsent(k, () => CartGroup(l.cat1, l.cat2)).lines.add(l);
     }
     return map.values.toList();
@@ -76,107 +77,107 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
         content: const Text('This will remove all items from the cart.'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Get.back(result: false),
+              child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Get.back(result: true),
-            child: const Text('Reset'),
-          ),
+              onPressed: () => Get.back(result: true),
+              child: const Text('Reset')),
         ],
       ),
     );
     if (ok == true) cart.clear();
   }
 
-  // spare_cart_controller.dart  (only the placeOrder part shown)
   Future<void> placeOrder() async {
     if (cart.isEmpty) {
-      Get.snackbar(
-        'Cart Empty',
-        'Please add items first.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar('Cart Empty', 'Please add items first.',
+          snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    // Ensure we reference the SAME StartWorkOrderController
     final start =
         Get.isRegistered<MaintenanceEnginnerStartWorkOrderController>()
             ? Get.find<MaintenanceEnginnerStartWorkOrderController>()
             : Get.put(MaintenanceEnginnerStartWorkOrderController(),
                 permanent: true);
 
-    // Merge cart into WO page
+    // hand over to WO
     start.addSparesFromCart(cart.toList());
 
-    // Now clear the cart and close the screens
+    // clear & close
     cart.clear();
     editingKeys.clear();
 
-    if (Get.key.currentState?.canPop() ?? false) Get.back(); // close View Cart
-    if (Get.key.currentState?.canPop() ?? false)
-      Get.back(); // close Request Spares
+    if (Get.key.currentState?.canPop() ?? false) Get.back();
+    if (Get.key.currentState?.canPop() ?? false) Get.back();
 
-    Get.snackbar(
-      'Order Placed',
-      'Spares added to Work Order.',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    Get.snackbar('Order Placed', 'Spares added to Work Order.',
+        snackPosition: SnackPosition.BOTTOM);
   }
 
   /* ---------- private ---------- */
+
+  // Key uses item.id + **category names** (cat1/cat2 are names)
   String _makeKey(SpareItem it, String? cat1, String? cat2) =>
       '${it.id}__${cat1 ?? ""}__${cat2 ?? ""}';
 
+  String? _clean(String? s) {
+    final t = s?.trim();
+    return (t == null || t.isEmpty) ? null : t;
+    // ensures empty strings don't pollute keys/storage
+  }
+
   void _saveCart() {
-    final data = cart.map((e) => _lineToMap(e)).toList();
-    _box.write(_kCart, data);
+    _box.write(
+      _kCart,
+      cart
+          .map((l) => {
+                'key': l.key,
+                'qty': l.qty,
+                'cat1': l.cat1, // names persisted
+                'cat2': l.cat2, // names persisted
+                'item': {
+                  'id': l.item.id,
+                  'name': l.item.name,
+                  'code': l.item.code,
+                  'stock': l.item.stock,
+                },
+              })
+          .toList(),
+    );
   }
 
   void _loadCart() {
     final raw = _box.read<List<dynamic>>(_kCart);
     if (raw == null) return;
+
     final parsed = <CartLine>[];
     for (final x in raw) {
-      if (x is Map) {
-        parsed.add(_lineFromMap(Map<String, dynamic>.from(x)));
-      }
+      if (x is! Map) continue;
+      final m = Map<String, dynamic>.from(x);
+      parsed.add(
+        CartLine(
+          key: m['key'] as String,
+          qty: (m['qty'] as num).toInt(),
+          cat1: m['cat1'] as String?, // names restored
+          cat2: m['cat2'] as String?, // names restored
+          item: SpareItem(
+            id: (m['item']?['id'] ?? '') as String,
+            name: (m['item']?['name'] ?? '') as String,
+            code: (m['item']?['code'] ?? '') as String,
+            stock: ((m['item']?['stock']) as num?)?.toInt() ?? 0,
+          ),
+        ),
+      );
     }
     cart.assignAll(parsed);
   }
-
-  Map<String, dynamic> _lineToMap(CartLine l) => {
-        'key': l.key,
-        'qty': l.qty,
-        'cat1': l.cat1,
-        'cat2': l.cat2,
-        'item': {
-          'id': l.item.id,
-          'name': l.item.name,
-          'code': l.item.code,
-          'stock': l.item.stock,
-        },
-      };
-
-  CartLine _lineFromMap(Map<String, dynamic> m) => CartLine(
-        key: m['key'] as String,
-        qty: (m['qty'] as num).toInt(),
-        cat1: m['cat1'] as String?,
-        cat2: m['cat2'] as String?,
-        item: SpareItem(
-          id: (m['item']?['id'] ?? '') as String,
-          name: (m['item']?['name'] ?? '') as String,
-          code: (m['item']?['code'] ?? '') as String,
-          stock: ((m['item']?['stock']) as num?)?.toInt() ?? 0,
-        ),
-      );
 }
 
-/* helper for grouped UI */
+/* helper for grouped UI — unchanged API */
 class CartGroup {
-  final String? cat1;
-  final String? cat2;
+  final String? cat1; // NAME
+  final String? cat2; // NAME
   final List<CartLine> lines = [];
   CartGroup(this.cat1, this.cat2);
 }

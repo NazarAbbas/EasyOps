@@ -1,5 +1,6 @@
 // start_work_page.dart
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -26,9 +27,14 @@ class MaintenanceEnginnerStartWorkSubmitController extends GetxController {
 
   @override
   void onInit() {
+    super.onInit();
     estimate.value = estimateCtrl.text;
     remarks.value = remarksCtrl.text;
-    super.onInit();
+
+    final workTabsController =
+        Get.find<MaintenanceEngineerWorkTabsController>();
+    final workOrderInfo = workTabsController.workOrder;
+    final xx = "";
   }
 
   @override

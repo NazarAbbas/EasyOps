@@ -8,13 +8,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_assets_m
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/alerts/controller/alerts_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/home_dashboard/controller/home_dashboard_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/my_dashboard/controller/my_dashboard_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/new_suggestion/controller/new_suggestions_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/profile/controller/profile_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/staff/controller/current_shift_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/staff/controller/staff_search_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/suggestion/controller/suggestion_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/suggestions_details/controller/suggestions_details_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_profile_staff_suggestion/support/controller/support_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/general_work_order/controller/genral_work_order_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/landing_dashboard/controller/landing_dashboard_nav_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/preventive_dashboard/controller/preventive_dashboard_controller.dart';
@@ -46,9 +42,10 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/controller/rca_analysis_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/controller/reassign_work_order_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/controller/request_spares_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/ui/maintenance_engeneer_request_spares_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/controller/return_spare_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/controller/spare_cart_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/start_work_order_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_submit/controller/start_work_submit_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/tabs/controller/work_order_details_tabs_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/timeline/controller/timeline_controller.dart';
@@ -220,6 +217,8 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => MaintenanceEnginnerGeneralPendingActivityController());
     Get.lazyPut(() => MaintenanceEnginnerGeneralRcaAnalysisController());
     Get.lazyPut(() => MaintenanceEnginnerGeneralReturnSpareController());
+    Get.lazyPut(() => MaintenanceEnginnerStartWorkOrderController());
+
     //Get.lazyPut(() => PreventiveRootNavController());
     Get.lazyPut<MaintenanceEnginnerPreventiveRootNavController>(
       () => MaintenanceEnginnerPreventiveRootNavController(),

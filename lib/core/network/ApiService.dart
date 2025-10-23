@@ -1,7 +1,8 @@
 // lib/network/api_service.dart
 import 'dart:convert';
 import 'dart:io';
-import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
@@ -134,6 +135,19 @@ class ApiService {
   }) async {
     try {
       return await _api.getShiftData();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<List<SparePartsResponse>> spareParts({
+    String? assetId,
+    String? partCat1Id,
+    String? partCat2Id,
+  }) async {
+    try {
+      return await _api.spareParts(
+          assetId: assetId!, partCat1Id: partCat1Id!, partCat2Id: partCat2Id!);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

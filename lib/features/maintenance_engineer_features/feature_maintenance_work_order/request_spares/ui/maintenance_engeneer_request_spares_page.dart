@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/controller/request_spares_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart'
+    show LookupType, LookupValues;
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -73,7 +76,7 @@ class MaintenanceEngineerRequestSparesPage
                           BoxShadow(
                             color: Colors.black.withOpacity(0.10),
                             blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            offset: Offset(0, 2),
                           ),
                         ],
                       ),
@@ -105,7 +108,7 @@ class MaintenanceEngineerRequestSparesPage
           // Results header
           Obx(() {
             if (!controller.showResults.value) return const SizedBox.shrink();
-            final results = List<SpareItem>.from(controller.results);
+            final results = controller.results; // RxList<SpareItem>
             return _ResultsHeader(count: results.length);
           }),
           const SizedBox(height: 6),
@@ -113,7 +116,7 @@ class MaintenanceEngineerRequestSparesPage
           // Results list
           Obx(() {
             if (!controller.showResults.value) return const SizedBox.shrink();
-            final results = List<SpareItem>.from(controller.results);
+            final results = controller.results;
 
             if (results.isEmpty) {
               return const _EmptyState(
@@ -218,19 +221,18 @@ class _CartSummary extends GetView<MaintenanceEnginnerSparesRequestController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: [
-                const Icon(
+              children: const [
+                Icon(
                   Icons.shopping_bag_outlined,
                   size: 18,
                   color: _C.primary,
                 ),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   'Items in Cart',
                   style: TextStyle(fontWeight: FontWeight.w800, color: _C.text),
                 ),
-                const Spacer(),
-                _Chip.filled('$totalQty qty'),
+                Spacer(),
               ],
             ),
             const SizedBox(height: 8),
@@ -364,11 +366,10 @@ class _CartSummary extends GetView<MaintenanceEnginnerSparesRequestController> {
 
 /* ───────────────────────── Edit Qty Bottom Sheet ───────────────────────── */
 
-// LIVE-SYNC BOTTOM SHEET: plus/minus immediately updates cart
 void showEditCartLineSheet({
   required BuildContext context,
   required MaintenanceEnginnerSparesRequestController controller,
-  required dynamic line, // use your concrete type if available
+  required dynamic line,
 }) {
   final Color primary = Theme.of(context).appBarTheme.backgroundColor ??
       Theme.of(context).colorScheme.primary;
@@ -606,20 +607,12 @@ class _ResultsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
-        const Icon(Icons.inventory_2_outlined, size: 18, color: _C.muted),
-        const SizedBox(width: 8),
-        const Text(
+      children: const [
+        Icon(Icons.inventory_2_outlined, size: 18, color: _C.muted),
+        SizedBox(width: 8),
+        Text(
           'Results',
           style: TextStyle(color: _C.text, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(width: 8),
-        const _Chip.ghost(''),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: _Chip.ghost('$count items'),
-          ),
         ),
       ],
     );
@@ -658,84 +651,97 @@ class _FilterCard extends GetView<MaintenanceEnginnerSparesRequestController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
-              Icon(Icons.apartment_rounded, size: 18, color: _C.muted),
-              SizedBox(width: 8),
-              Text(
-                'Assets Shop',
-                style: TextStyle(color: _C.text, fontWeight: FontWeight.w700),
-              ),
-              SizedBox(width: 8),
-              _Chip.ghost('CNC 1'),
-            ],
-          ),
+          Row(children: const [
+            Icon(Icons.apartment_rounded, size: 18, color: _C.muted),
+            SizedBox(width: 8),
+            Text('Assets Shop',
+                style: TextStyle(color: _C.text, fontWeight: FontWeight.w700)),
+          ]),
           const SizedBox(height: 10),
           const Divider(height: 1, color: _C.border),
           const SizedBox(height: 12),
+
+          // Cat 1
           Text('Cat 1', style: labelStyle),
           const SizedBox(height: 6),
-          Obx(
-            () => DropdownButtonFormField<String>(
-              value: controller.selectedCat1.value,
-              isExpanded: true,
-              decoration: _ddDecoration(),
-              items: controller.cat1List
-                  .map(
-                    (r) => DropdownMenuItem<String>(
-                      value: r,
-                      child: Text(r, style: const TextStyle(color: _C.text)),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => controller.selectedCat1.value = v,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              hint: const Text('Option 1'),
-            ),
-          ),
+          Obx(() {
+            final sel = controller.selectedCat1.value;
+            final text = sel?.displayName ?? 'Select reason';
+            return _TapField(
+              text: text.trim().isEmpty ? 'Select reason' : text,
+              onTap: () async {
+                final v = await LookupPicker.show(
+                  context: context,
+                  lookupType: LookupType.assetcat1.name,
+                  selected: sel,
+                );
+                if (v != null) controller.selectCat1(v);
+              },
+            );
+          }),
+
           const SizedBox(height: 12),
+
+          // Cat 2
           Text('Cat 2', style: labelStyle),
           const SizedBox(height: 6),
-          Obx(
-            () => DropdownButtonFormField<String>(
-              value: controller.selectedCat2.value,
-              isExpanded: true,
-              decoration: _ddDecoration(),
-              items: controller.cat2List
-                  .map(
-                    (r) => DropdownMenuItem<String>(
-                      value: r,
-                      child: Text(r, style: const TextStyle(color: _C.text)),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => controller.selectedCat2.value = v,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              hint: const Text('Option 2'),
-            ),
-          ),
+          Obx(() {
+            final selC1 = controller.selectedCat1.value;
+            final selC2 = controller.selectedCat2.value;
+
+            final label = selC1 == null
+                ? 'Select Cat 1 first'
+                : (selC2?.displayName ?? 'Select reason');
+
+            return _TapField(
+              text: label,
+              onTap: () async {
+                if (selC1 == null) return;
+
+                // If your LookupPicker supports a dependent type/code,
+                // pass selC1.code so it fetches Cat-2 for that Cat-1.
+                final v = await LookupPicker.show(
+                  context: context,
+                  // If your picker supports "lookupType: selC1.code"
+                  // replace the next line with that:
+                  lookupType: LookupType.resolution.name,
+                  selected: selC2,
+                );
+                if (v != null) controller.selectCat2(v);
+              },
+              enabled: selC1 != null,
+            );
+          }),
+
           const SizedBox(height: 14),
+
+          // Go
           Row(
             children: [
               const Spacer(),
               SizedBox(
                 height: 44,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                child: Obx(() {
+                  final canGo = controller.selectedCat1.value != null &&
+                      controller.selectedCat2.value != null;
+                  return FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor:
+                          canGo ? primary : primary.withOpacity(0.35),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 1.5,
                     ),
-                    elevation: 1.5,
-                  ),
-                  onPressed: controller.go,
-                  icon: const Icon(Icons.search_rounded, size: 20),
-                  label: const Text(
-                    'Go',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
+                    onPressed: canGo ? controller.go : null,
+                    icon: const Icon(Icons.search_rounded, size: 20),
+                    label: const Text(
+                      'Go',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  );
+                }),
               ),
             ],
           ),
@@ -743,20 +749,6 @@ class _FilterCard extends GetView<MaintenanceEnginnerSparesRequestController> {
       ),
     );
   }
-
-  InputDecoration _ddDecoration() => InputDecoration(
-        hintText: 'Select',
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _C.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _C.border),
-        ),
-      );
 }
 
 /* ───────── Result Item Row ───────── */
@@ -930,17 +922,14 @@ class _Chip extends StatelessWidget {
     super.key,
   });
 
-  const _Chip.filled(String t, {Key? key})
-      : this(text: t, bg: const Color(0xFFEFF4FF), fg: _C.primary, key: key);
-  const _Chip.ghost(String t, {Key? key})
-      : this(text: t, bg: const Color(0xFFF4F6FA), fg: _C.muted, key: key);
   const _Chip.outlined(String t, {required Color color, Key? key})
       : this(
-            text: t,
-            bg: Colors.transparent,
-            fg: color,
-            outline: true,
-            key: key);
+          text: t,
+          bg: Colors.transparent,
+          fg: color,
+          outline: true,
+          key: key,
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -1000,6 +989,64 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// ───────────────────────── Mini Widgets ─────────────────────────
+class _TapField extends StatelessWidget {
+  const _TapField({
+    required this.text,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  final String text;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPlaceholder = text.trim().isEmpty ||
+        text == 'Select reason' ||
+        text == 'Select Cat 1 first';
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: enabled ? onTap : null,
+      child: InputDecorator(
+        decoration: InputDecoration(
+          isDense: true,
+          filled: true,
+          fillColor: const Color(0xFFF6F7FB),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          suffixIcon: const Padding(
+            padding: EdgeInsets.only(right: 6),
+            child: Icon(Icons.keyboard_arrow_down_rounded, color: _C.muted),
+          ),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 32, minHeight: 32),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: _C.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: _C.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFBFD0FF)),
+          ),
+        ),
+        child: Text(
+          isPlaceholder ? 'Select reason' : text,
+          style: TextStyle(
+            color: enabled ? (isPlaceholder ? _C.muted : _C.text) : _C.muted,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }

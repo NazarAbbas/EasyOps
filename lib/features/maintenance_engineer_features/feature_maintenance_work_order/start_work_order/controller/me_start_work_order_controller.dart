@@ -1,20 +1,25 @@
 // start_work_order_controller.dart
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/utils.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/controller/spare_cart_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerStartWorkOrderController extends GetxController {
   // Demo hero values
-  final subject = 'Hydraulic Leak in CNC-1'.obs;
-  final priority = 'High'.obs;
-  final elapsed = '00:23'.obs;
-  final woCode = 'WO-2025-00123'.obs;
+  final subject = ''.obs; // 'Hydraulic Leak in CNC-1'.obs;
+  final priority = ''.obs; // 'High'.obs;
+  final elapsed = ''.obs; //'00:23'.obs;
+  final woCode = ''.obs; // 'WO-2025-00123'.obs;
   final time = '10:15 AM'.obs;
   final date = '13 Sep 2025'.obs;
   final category = 'Breakdown'.obs;
+  final status = ''.obs;
 
   // Phone numbers (bind your real values)
   final reportedByPhone = '+911234567890'.obs;
@@ -56,6 +61,25 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
     }
   }
 
+  WorkOrder? workOrderInfo;
+
+  @override
+  void onInit() {
+    // TODO: implement onInit
+    super.onInit();
+    // Warm the bag with present (possibly empty) values
+    final workTabsController =
+        Get.find<MaintenanceEngineerWorkTabsController>();
+    workOrderInfo = workTabsController.workOrder;
+    subject.value = workOrderInfo!.title;
+    priority.value = workOrderInfo!.priority;
+    elapsed.value = workOrderInfo!.estimatedTimeToFix;
+    woCode.value = workOrderInfo!.issueNo;
+    status.value = workOrderInfo!.status;
+    date.value = formatDate(workOrderInfo!.createdAt);
+    final args = Get.arguments;
+  }
+
   @override
   void onClose() {
     // ensure we stop anything if controller/page is disposed
@@ -69,7 +93,13 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
 
   Future<void> startOrder() async {
     await stopAllAudio(); // ⬅️ stop audio before navigating
-    Get.toNamed(Routes.maintenanceEngeneerstartWorkSubmitScreen);
+    // Get.toNamed(Routes.maintenanceEngeneerstartWorkSubmitScreen);
+    Get.toNamed(
+      Routes.maintenanceEngeneerstartWorkSubmitScreen,
+      arguments: {
+        Constant.workOrderInfo: workOrderInfo,
+      },
+    );
   }
 
   /// Open Request Spares and pre-fill with already requested items
@@ -90,8 +120,13 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
           ),
         ),
       );
-
-    Get.toNamed(Routes.maintenanceEngeneerrequestSparesScreen);
+    Get.toNamed(
+      Routes.maintenanceEngeneerrequestSparesScreen,
+      arguments: {
+        Constant.workOrderInfo: workOrderInfo,
+      },
+    );
+    //Get.toNamed(Routes.maintenanceEngeneerrequestSparesScreen);
   }
 
   /// Merge-in lines from the cart (called by SpareCartController.placeOrder()).

@@ -3,9 +3,10 @@
 
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/start_work_order_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,11 @@ import 'package:url_launcher/url_launcher.dart';
 class MaintenanceEngineerStartWorkOrderPage
     extends GetView<MaintenanceEnginnerStartWorkOrderController> {
   const MaintenanceEngineerStartWorkOrderPage({super.key});
+
+  // Inline register (works even without route binding)
+  @override
+  MaintenanceEnginnerStartWorkOrderController get controller =>
+      Get.put(MaintenanceEnginnerStartWorkOrderController());
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -169,10 +175,18 @@ class MaintenanceEngineerStartWorkOrderPage
 
     if (selected == 'hold') {
       await c.stopAllAudio();
-      Get.toNamed(Routes.maintenanceEngeneerholdWorkOrderScreen);
+      Get.toNamed(
+        Routes.maintenanceEngeneerholdWorkOrderScreen,
+        arguments: {
+          Constant.workOrderInfo: controller.workOrderInfo,
+        },
+      );
     } else if (selected == 'cancel') {
       await c.stopAllAudio();
-      Get.toNamed(Routes.maintenanceEngeneergeneralCancelWorkOrderScreen);
+      Get.toNamed(
+        Routes.maintenanceEngeneergeneralCancelWorkOrderScreen,
+        arguments: {Constant.workOrderInfo: controller.workOrderInfo},
+      );
     }
   }
 }
@@ -254,17 +268,18 @@ class _SummaryHeroCard extends StatelessWidget {
     final blue = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
+    String or(String a, String b) => a.trim().isEmpty ? b : a;
+
     return Obx(() {
-      final title = c.subject.value.isEmpty
-          ? 'Conveyor Belt Stopped Abruptly During Operation'
-          : c.subject.value;
-      final code = c.woCode.value.isEmpty ? 'BD-102' : c.woCode.value;
-      final time = c.time.value.isEmpty ? '18:08' : c.time.value;
-      final date = c.date.value.isEmpty ? '09 Aug' : _shortDate(c.date.value);
-      final prio = c.priority.value.isEmpty ? 'High' : c.priority.value;
-      final status = 'In Progress';
-      final cat = c.category.value.isEmpty ? 'Mechanical' : c.category.value;
-      final elapsed = c.elapsed.value.isEmpty ? '1h 20m' : c.elapsed.value;
+      final title = or(
+          c.subject.value, 'Conveyor Belt Stopped Abruptly During Operation');
+      final code = or(c.woCode.value, 'BD-102');
+      final time = or(c.time.value, '18:08');
+      final date = or(_shortDate(c.date.value), '09 Aug');
+      final prio = or(c.priority.value, 'High');
+      final status = or(c.status.value, 'In Progress');
+      final cat = or(c.category.value, 'Mechanical');
+      final elapsed = or(c.elapsed.value, '1h 20m');
 
       return Stack(
         clipBehavior: Clip.none,
