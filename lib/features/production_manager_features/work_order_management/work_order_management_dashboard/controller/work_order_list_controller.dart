@@ -5,6 +5,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
     show WorkOrder, Tenant, Client, Asset;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class WorkOrdersController extends GetxController {
   var userRole = ''.obs;
@@ -16,6 +17,10 @@ class WorkOrdersController extends GetxController {
   final isRefreshing = false.obs; // pull-to-refresh spinner
   final selectedDay = DateTime.now().obs;
   final focusedDay = DateTime.now().obs;
+
+  static const Color _critical = Color(0xFFED3B40); // red
+  static const Color _high     = Color(0xFFF59E0B); // amber
+  static const Color _open     = Color(0xFF2F6BFF); // blue
 
   // whether the calendar date filter is active
   final dateFilterEnabled = false.obs;
@@ -32,6 +37,55 @@ class WorkOrdersController extends GetxController {
     dateFilterEnabled.value = false;
     _recomputeVisible();
   }
+
+  String _tagFor(WorkOrder wo) {
+    final pri = (wo.priority ?? '').toUpperCase().trim();  // e.g., 'CRITICAL','HIGH'
+    if (pri == 'CRITICAL') return 'CRITICAL';
+    if (pri == 'HIGH') return 'HIGH';
+
+    final st = (wo.status ?? '').toUpperCase().trim();     // e.g., 'OPEN','PENDING'
+    if (st == 'OPEN' || st == 'PENDING') return 'OPEN';
+
+    return 'OPEN'; // default tag
+  }
+
+  Color _colorForTag(String tag) {
+    switch (tag) {
+      case 'CRITICAL': return _critical;
+      case 'HIGH':     return _high;
+      default:         return _open; // OPEN (and others)
+    }
+  }
+
+  /// TableCalendar event loader (bind this to `eventLoader:`)
+  /// You can either:
+  ///   A) return one dot per WO (lots of dots), or
+  ///   B) return at most one dot per tag for that day (cleaner).
+  /// Below is (B): unique tags → max 3 dots (Critical, High, Open).
+  List<MarkerEvent> eventsFor(DateTime day) {
+    // choose which date field to anchor on
+    Iterable<WorkOrder> todays = orders.where((wo) {
+      final d = wo.scheduledStart ?? wo.createdAt;
+      return d != null && isSameDay(d, day);
+    });
+
+    // dedupe by tag so you get at most one dot per status severity
+    final byTag = <String, MarkerEvent>{};
+    for (final wo in todays) {
+      final tag = _tagFor(wo);                // 'CRITICAL' | 'HIGH' | 'OPEN'
+      byTag.putIfAbsent(tag, () => MarkerEvent(_colorForTag(tag), tag));
+    }
+
+    // Order: CRITICAL → HIGH → OPEN, then take top 4 if you like
+    const order = ['CRITICAL', 'HIGH', 'OPEN'];
+    final list = byTag.values.toList()
+      ..sort((a, b) =>
+          order.indexOf(a.tag).compareTo(order.indexOf(b.tag)));
+
+    return list; // markerBuilder will paint e.color
+  }
+
+
 
   DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);
   DateTime _nextDayLocal(DateTime d) => _startOfDayLocal(d).add(const Duration(days: 1));
@@ -184,7 +238,7 @@ class WorkOrdersController extends GetxController {
     ],
   };
 
-  List<MarkerEvent> eventsFor(DateTime day) => eventMap[_d(day)] ?? [];
+  //List<MarkerEvent> eventsFor(DateTime day) => eventMap[_d(day)] ?? [];
 }
 
 // Simple event marker for the calendar

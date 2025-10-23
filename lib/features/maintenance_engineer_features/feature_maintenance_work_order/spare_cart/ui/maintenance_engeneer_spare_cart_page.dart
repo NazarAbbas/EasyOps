@@ -92,18 +92,16 @@ class MaintenanceEngineerSparesCartPage
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // location header
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: const [
                       Icon(Icons.apartment_rounded, size: 18, color: _C.muted),
-                      SizedBox(width: 8),
                       Text(
                         'Assets Shop',
-                        style: TextStyle(
-                          color: _C.text,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(color: _C.text, fontWeight: FontWeight.w700),
                       ),
-                      SizedBox(width: 8),
                       _Chip(text: 'CNC 1', bg: _C.pill, fg: _C.muted),
                     ],
                   ),
@@ -258,37 +256,45 @@ class _GroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         const Icon(Icons.category_outlined, size: 18, color: _C.muted),
-        const SizedBox(width: 6),
         _Chip(text: 'Cat 1: ${cat1 ?? "-"}', bg: _C.pill, fg: _C.text),
-        const SizedBox(width: 6),
         _Chip(text: 'Cat 2: ${cat2 ?? "-"}', bg: _C.pill, fg: _C.text),
       ],
     );
   }
 }
 
+
 class _ListHeader extends StatelessWidget {
   const _ListHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+  return  Row(
       children: const [
         Expanded(
           child: Text(
             'Part No.',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
           ),
         ),
-        SizedBox(width: 8),
         Expanded(
-          child: Text(
-            'Required',
-            textAlign: TextAlign.right,
-            style: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'Required',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
+            ),
           ),
         ),
       ],
@@ -387,79 +393,71 @@ class _CartLineRow extends GetView<MaintenanceEnginnerSpareCartController> {
               ),
 
               const SizedBox(width: 8),
-
-              // Qty / editor + actions
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isEditing)
-                      _StepperInline(
-                        qty: line.qty,
-                        onInc: () => controller.inc(line.key),
-                        onDec: () => controller.dec(line.key),
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _C.pill,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${line.qty.toString().padLeft(2, '0')} nos',
-                          style: const TextStyle(
-                            color: _C.text,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 8),
-                    _IconBtn(
-                      icon:
-                          isEditing ? Icons.check_rounded : Icons.edit_outlined,
-                      tooltip: isEditing ? 'Done' : 'Edit',
-                      onTap: () => controller.toggleEdit(line.key),
-                    ),
-                    const SizedBox(width: 6),
-                    _IconBtn(
-                      icon: Icons.delete_outline,
-                      tooltip: 'Delete',
-                      color: _C.danger,
-                      onTap: () async {
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Remove item?'),
-                            content: Text(
-                              'Remove "${line.item.code}" from cart?',
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (isEditing)
+                        _StepperInline(
+                          qty: line.qty,
+                          onInc: () => controller.inc(line.key),
+                          onDec: () => controller.dec(line.key),
+                        )
+                      else
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 50), // was 58, safer smaller
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _C.pill,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Get.back(result: false),
-                                child: const Text('Cancel'),
+                            child: Text(
+                              '${line.qty.toString().padLeft(2, '0')} nos',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _C.text,
+                                fontWeight: FontWeight.w800,
                               ),
-                              TextButton(
-                                onPressed: () => Get.back(result: true),
-                                child: const Text(
-                                  'Remove',
-                                  style: TextStyle(
-                                    color: _C.danger,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        );
-                        if (ok == true) controller.delete(line.key);
-                      },
-                    ),
-                  ],
+                        ),
+
+                      // action buttons (fixed size; Wrap will move them to next line if needed)
+                      _IconBtn(
+                        icon: isEditing ? Icons.check_rounded : Icons.edit_outlined,
+                        tooltip: isEditing ? 'Done' : 'Edit',
+                        onTap: () => controller.toggleEdit(line.key),
+                      ),
+                      _IconBtn(
+                        icon: Icons.delete_outline,
+                        tooltip: 'Delete',
+                        color: _C.danger,
+                        onTap: () async {
+                          final ok = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Remove item?'),
+                              content: Text('Remove "${line.item.code}" from cart?'),
+                              actions: [
+                                TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
+                                TextButton(
+                                  onPressed: () => Get.back(result: true),
+                                  child: const Text('Remove', style: TextStyle(color: _C.danger, fontWeight: FontWeight.w700)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (ok == true) controller.delete(line.key);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

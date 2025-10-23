@@ -36,13 +36,19 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
 
   // -------- Derived --------
   int get cartCount => cartCtrl.cart.length;
+
   int get draftTotal => qtyDraft.values.fold(0, (s, v) => s + v);
 
   int leftFor(String id) {
-    final v = stockLeft[id];
-    if (v != null) return v;
-    final it = results.firstWhereOrNull((e) => e.id == id);
-    return it?.stock ?? 0;
+    final base = stockLeft[id] ??
+        results.firstWhereOrNull((e) => e.id == id)?.stock ??
+        0;
+
+    final inCart =
+        cartCtrl.cart.firstWhereOrNull((l) => l.item.id == id)?.qty ?? 0;
+
+    final remaining = base - inCart;
+    return remaining < 0 ? 0 : remaining;
   }
 
   String _lookupTypeAsString(LookupValues e) {
@@ -113,10 +119,11 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
 
   // -------- Selections --------
   void selectCat1(LookupValues? v) => selectedCat1.value = v;
+
   void selectCat2(LookupValues? v) => selectedCat2.value = v;
 
   // -------- Search / Actions --------
-  Future<void> go() async {
+  Future<void> go({bool prefillFromCart = false}) async {
     final c1 = selectedCat1.value;
     final c2 = selectedCat2.value;
     if (assetId.isEmpty || c1 == null || c2 == null) return;
@@ -124,36 +131,38 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
     try {
       isSubmitting.value = true;
 
-      // Call the repository -> returns ApiResult<List<SparePartsResponse>>
       final ApiResult<List<SparePartsResponse>> res =
-          await repositoryImpl.spareParts('AST-30Sep2025030526669006',
-              'CLU-23Oct2025103143874011', 'CLU-23Oct2025103519159013');
+          await repositoryImpl.spareParts(
+        'AST-30Sep2025030526669006',
+        'CLU-23Oct2025103143874011',
+        'CLU-23Oct2025103519159013',
+      );
 
       if (res.httpCode == 200 && res.data != null) {
-        // Map API -> UI model expected by the page (quantity -> stock)
         final items = res.data!
-            .map(
-              (p) => SpareItem(
-                id: p.id,
-                name: p.partName,
-                code: p.partNumber,
-                stock: p.quantity!, // quantity from API becomes stock for UI
-              ),
-            )
+            .map((p) => SpareItem(
+                  id: p.id,
+                  name: p.partName,
+                  code: p.partNumber,
+                  stock: p.quantity!,
+                ))
             .toList();
 
         results
           ..clear()
           ..addAll(items);
 
-        // drafts + stock
-        qtyDraft
-          ..clear()
-          ..addEntries(results.map((e) => MapEntry(e.id, 0)));
-
+        // stocks for UI
         for (final it in results) {
           stockLeft[it.id] = it.stock;
         }
+
+        // IMPORTANT: don't wipe user draft when prefilling
+        if (!prefillFromCart) qtyDraft.clear();
+        for (final it in results) {
+          qtyDraft.putIfAbsent(it.id, () => 0);
+        }
+        if (prefillFromCart) _seedDraftWithCart();
 
         showResults.value = true;
       } else {
@@ -166,6 +175,15 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  void _seedDraftWithCart() {
+    for (final l in cartCtrl.cart) {
+      final id = l.item.id;
+      final q = l.qty ?? 0;
+      if (q > 0) qtyDraft[id] = q;
+    }
+    qtyDraft.refresh();
   }
 
   void inc(String id) {
@@ -208,7 +226,15 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
     showResults.value = false;
   }
 
-  void addMore() => go();
+  Future<void> addMore() async {
+    if (results.isEmpty) {
+      await go(prefillFromCart: true);
+    } else {
+      _seedDraftWithCart();
+      showResults.value = true;
+    }
+  }
+
   void viewCart() => Get.toNamed(Routes.maintenanceEngeneersparesCartScreen);
 
   // Optional: edit/remove by key if you expose keys in the cart
@@ -220,6 +246,7 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
   }
 
   void removeLine(String key) => cartCtrl.delete(key);
+
   void resetAll() => cartCtrl.resetCart();
 
   void removeCartLine(dynamic line) {

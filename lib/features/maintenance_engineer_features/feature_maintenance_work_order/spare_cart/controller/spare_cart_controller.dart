@@ -25,18 +25,62 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
   void addOrMerge(SpareItem it, int qty, {String? cat1, String? cat2}) {
     if (qty <= 0) return;
 
-    final c1 = _clean(cat1); // treat as names
+    final c1 = _clean(cat1);
     final c2 = _clean(cat2);
-
     final key = _makeKey(it, c1, c2);
     final i = cart.indexWhere((e) => e.key == key);
 
+    // compute remaining for this item across cart
+    final total = it.stock; // persisted with item
+    final reserved = _reservedElsewhere(it.id, excludeKey: i >= 0 ? key : null);
+    final current = i >= 0 ? cart[i].qty : 0;
+    final canAdd = total - reserved - current;
+    if (canAdd <= 0) {
+      Get.snackbar('Out of stock', 'No more "${it.code}" available.',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    final toAdd = qty > canAdd ? canAdd : qty;
+
     if (i >= 0) {
-      cart[i].qty += qty;
+      cart[i].qty += toAdd;
       cart.refresh();
     } else {
-      cart.add(CartLine(key: key, item: it, qty: qty, cat1: c1, cat2: c2));
+      cart.add(CartLine(key: key, item: it, qty: toAdd, cat1: c1, cat2: c2));
     }
+
+    if (toAdd < qty) {
+      Get.snackbar('Limited stock',
+          'Only $toAdd added for "${it.code}" (stock capped).',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+
+  int _totalStockFor(String itemId) {
+    // any line with same itemId has the same stock value
+    final l = cart.firstWhereOrNull((e) => e.item.id == itemId);
+    return l?.item.stock ?? 0;
+  }
+
+  int _reservedElsewhere(String itemId, {String? excludeKey}) {
+    int sum = 0;
+    for (final l in cart) {
+      if (l.item.id == itemId && l.key != excludeKey) {
+        sum += l.qty;
+      }
+    }
+    return sum;
+  }
+
+  int _remainingForLine(String key) {
+    final i = cart.indexWhere((e) => e.key == key);
+    if (i < 0) return 0;
+    final itemId = cart[i].item.id;
+    final total = _totalStockFor(itemId);
+    final reserved = _reservedElsewhere(itemId, excludeKey: key);
+    final remaining = total - reserved - cart[i].qty; // how many more THIS line can add
+    return remaining < 0 ? 0 : remaining;
   }
 
   List<CartGroup> grouped() {
@@ -55,6 +99,14 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
   void inc(String key) {
     final i = cart.indexWhere((e) => e.key == key);
     if (i < 0) return;
+
+    final remaining = _remainingForLine(key);
+    if (remaining <= 0) {
+      Get.snackbar('Max reached',
+          'No more available for "${cart[i].item.code}".',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     cart[i].qty++;
     cart.refresh();
   }
