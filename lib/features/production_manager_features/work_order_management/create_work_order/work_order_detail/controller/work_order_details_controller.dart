@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 
 class WorkOrderDetailsController extends GetxController {
   final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
+
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
   final CreateWorkOrderRepositoryImpl repositoryImpl =
       CreateWorkOrderRepositoryImpl();
@@ -197,7 +198,7 @@ class WorkOrderDetailsController extends GetxController {
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
       operatorPhoneNumber.value =
           _bag.get<String>(WOKeys.operatorPhoneNumber, '');
-      final operatorId = _bag.get<String>(WOKeys.operatorId, '');
+      var operatorId = _bag.get<String>(WOKeys.operatorId, '');
 
       issueType.value = _bag.get<String>(WOKeys.issueType, '');
       priority.value = _bag.get<String>(WOKeys.typeText, '');
@@ -256,15 +257,17 @@ class WorkOrderDetailsController extends GetxController {
       final typeEnum = WorkType.breakdownManagement;
       final priorityEnum = PriorityX.fromApi(priority.value);
       final statusEnum = WorkStatus.open;
-      final title=problemTitle.value.isNotEmpty
-          ? problemTitle.value
-          : "";
+      final title = problemTitle.value.isNotEmpty ? problemTitle.value : "";
       final descText = problemDescription.value.isNotEmpty
           ? problemDescription.value
           : descriptionText.value;
       final remarkText = operatorInfo.value.isNotEmpty
           ? operatorInfo.value
           : 'Created from mobile app';
+
+      if (isSameAsOperator == 'true') {
+        operatorId = reporterId;
+      }
 
       final req = CreateWorkOrderRequest(
         operatorId: operatorId,
