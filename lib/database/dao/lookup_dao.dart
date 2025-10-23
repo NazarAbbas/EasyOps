@@ -18,4 +18,14 @@ abstract class LookupDao {
   Future<List<LookupEntity>> getActiveByType(
     LookupType lookupType,
   );
+
+  @Query('''
+    SELECT * FROM lookup
+    WHERE lookupType = :lookupCode
+      AND recordStatus = 1
+    ORDER BY sortOrder
+  ''')
+  Future<List<LookupEntity>> getActiveByCode(
+    String lookupCode,
+  );
 }

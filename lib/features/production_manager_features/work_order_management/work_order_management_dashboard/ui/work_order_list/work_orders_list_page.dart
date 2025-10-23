@@ -496,9 +496,49 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             final userRole =
                 await SharePreferences.get<String>(SharePreferences.userRole)
                     as String;
+            // final status = (order.status).toUpperCase();
+            // if (userRole == SharePreferences.engineerRole) {
+            //   if (status == "OPEN") {
+            //     Get.toNamed(
+            //       Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+            //       arguments: {
+            //         Constant.workOrderInfo: order,
+            //         Constant.workOrderStatus: WorkOrderStatus.open,
+            //       },
+            //     );
+            //   }
+            //   if (status == "INPROGRESS") {
+            //     Get.toNamed(
+            //       Routes.maintenanceEngeneerstartWorkOrderScreen,
+            //       arguments: {
+            //         Constant.workOrderInfo: order,
+            //         Constant.workOrderStatus: WorkOrderStatus.open,
+            //       },
+            //     );
+            //   }
+            // } else {
+            //   if (status == "RESOLVED") {
+            //     Get.toNamed(
+            //       Routes.updateWorkOrderTabScreen,
+            //       arguments: {
+            //         Constant.workOrderInfo: order,
+            //         Constant.workOrderStatus: WorkOrderStatus.resolved,
+            //       },
+            //     );
+            //   }
+            //   if (status == "OPEN") {
+            //     Get.toNamed(
+            //       Routes.workOrderTabShellScreen,
+            //       arguments: {
+            //         Constant.workOrderInfo: order,
+            //         Constant.workOrderStatus: WorkOrderStatus.open,
+            //       },
+            //     );
+            //   }
+            // }
 
             Get.toNamed(
-              Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+              Routes.maintenanceEngeneerstartWorkOrderScreen,
               arguments: {
                 Constant.workOrderInfo: order,
                 Constant.workOrderStatus: WorkOrderStatus.open,
@@ -506,7 +546,15 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             );
 
             // Get.toNamed(
-            //   Routes.workOrderTabShellScreen,
+            //   Routes.maintenanceEngeneerstartWorkOrderScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+
+            // Get.toNamed(
+            //   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
             //   arguments: {
             //     Constant.workOrderInfo: order,
             //     Constant.workOrderStatus: WorkOrderStatus.open,

@@ -149,6 +149,7 @@ enum LookupType {
   suggestion,
   resolution,
   cancellation,
+  assetcat1,
   unknown
 }
 
@@ -169,6 +170,8 @@ extension LookupTypeX on LookupType {
         return LookupType.resolution;
       case 'CANCELLATION':
         return LookupType.cancellation;
+      case 'ASSETCAT1':
+        return LookupType.assetcat1;
       default:
         return LookupType.unknown;
     }

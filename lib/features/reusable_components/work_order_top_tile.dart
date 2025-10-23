@@ -1,3 +1,4 @@
+import 'package:easy_ops/core/utils/utils.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class WorkOrderTile extends StatelessWidget {
     final bg = theme.colorScheme.surface;
 
     // "HH:mm | dd Mon" -> split for UI
-    final timeDate = _formatDate(workOrderInfo.createdAt);
+    final timeDate = formatDate(workOrderInfo.createdAt);
     final parts = timeDate.split('|');
     final time = parts.isNotEmpty ? parts[0].trim() : '';
     final date = parts.length > 1 ? parts[1].trim() : '';
@@ -218,27 +219,27 @@ _PillColors _priorityColors(String raw) {
   return const _PillColors(_Colors.pillBg, _Colors.primary);
 }
 
-/// Returns "HH:mm | dd Mon"
-String _formatDate(DateTime dt) {
-  final hh = dt.hour.toString().padLeft(2, '0');
-  final mm = dt.minute.toString().padLeft(2, '0');
+// /// Returns "HH:mm | dd Mon"
+// String _formatDate(DateTime dt) {
+//   final hh = dt.hour.toString().padLeft(2, '0');
+//   final mm = dt.minute.toString().padLeft(2, '0');
 
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
-  final day = dt.day.toString().padLeft(2, '0');
-  final month = months[dt.month - 1];
+//   const months = [
+//     'Jan',
+//     'Feb',
+//     'Mar',
+//     'Apr',
+//     'May',
+//     'Jun',
+//     'Jul',
+//     'Aug',
+//     'Sep',
+//     'Oct',
+//     'Nov',
+//     'Dec'
+//   ];
+//   final day = dt.day.toString().padLeft(2, '0');
+//   final month = months[dt.month - 1];
 
-  return '$hh:$mm | $day $month';
-}
+//   return '$hh:$mm | $day $month';
+// }

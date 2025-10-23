@@ -173,6 +173,11 @@ class DBRepository {
     return rows.map((e) => e.toDomain()).toList();
   }
 
+  Future<List<LookupValues>> getLookupByCode(String type) async {
+    final List<LookupEntity> rows = await db.lookupDao.getActiveByCode(type);
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
   Future<void> upsertLookupData(LookupData apiPage) async {
     final dao = db.lookupDao;
     final entities = apiPage.content.map((e) => e.toEntity()).toList();

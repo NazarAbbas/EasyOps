@@ -1,6 +1,6 @@
 // lib/network/rest_client.dart
 import 'package:dio/dio.dart' hide Headers;
-import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
@@ -53,6 +53,13 @@ abstract class RestClient {
 
   @GET('/shift/')
   Future<ShiftData> getShiftData();
+
+  @GET('/asset-spare/by-criteria')
+  Future<List<SparePartsResponse>> spareParts({
+    @Query('assetId') required String assetId,
+    @Query('partCat1Id') required String partCat1Id,
+    @Query('partCat2Id') required String partCat2Id,
+  });
 
   @GET('/asset/')
   Future<AssetsData> getAssetsData();

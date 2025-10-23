@@ -2,7 +2,7 @@ import 'package:easy_ops/core/network/api_result.dart';
 import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/common_features/login/models/login_response.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
-import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/domain/cancel_work_order_request.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';

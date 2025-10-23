@@ -11,17 +11,21 @@ class LookupPicker {
     required BuildContext context,
     required String lookupType, // e.g. "resolution"
     required LookupValues? selected,
+    String lookupCode = '',
     String title = 'Select',
   }) async {
     //final lookupRepository = Get.find<LookupRepository>();
     final repository = Get.find<DBRepository>();
-    final type = _parseLookupType(lookupType);
-
-    // Fetch from repo
-    final serverItems = await repository.getLookupByType(type);
+    List<LookupValues>? serverItems;
+    if (lookupCode.isEmpty) {
+      final type = _parseLookupType(lookupType);
+      serverItems = await repository.getLookupByType(type);
+    } else {
+      serverItems = await repository.getLookupByCode(lookupCode);
+    }
 
     // Remove any placeholder-like entries + empty IDs (safety)
-    final items = serverItems
+    final items = serverItems!
         .where((e) =>
             e.id.isNotEmpty &&
             e.displayName.trim().toLowerCase() != 'select reason')
@@ -57,6 +61,8 @@ class LookupPicker {
         return LookupType.department;
       case 'impact':
         return LookupType.impact;
+      case 'assetcat1':
+        return LookupType.assetcat1;
       default:
         return LookupType.resolution;
     }
