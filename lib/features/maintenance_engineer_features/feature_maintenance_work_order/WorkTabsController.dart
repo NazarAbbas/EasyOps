@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEngineerWorkTabsController extends GetxController {
-  WorkOrder? workOrder;
+  WorkOrders? workOrder;
   WorkOrderStatus? workOrderStatus;
 
   /// Tabs shown in header (keep in sync with body pages below)
@@ -38,7 +38,7 @@ class MaintenanceEngineerWorkTabsController extends GetxController {
       final wo = map[Constant.workOrderInfo];
       final ws = map[Constant.workOrderStatus];
 
-      if (wo is WorkOrder) workOrder = wo;
+      if (wo is WorkOrders) workOrder = wo;
       if (ws is WorkOrderStatus) workOrderStatus = ws;
     } catch (e, st) {
       if (kDebugMode) {

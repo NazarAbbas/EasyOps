@@ -1,4 +1,5 @@
 import 'package:easy_ops/core/theme/app_colors.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 
 const _kBlue = Color(0xFF2F6BFF);
@@ -111,4 +112,28 @@ String formatDate(DateTime dt) {
   final month = months[dt.month - 1];
 
   return '$hh:$mm | $day $month';
+}
+
+WorkOrders? getWorkOrderFromArgs(dynamic args) {
+  // If caller passed the model directly
+  if (args is WorkOrders) return args;
+
+  // If caller passed a Map (JSON or wrapper)
+  if (args is Map) {
+    final map = args.cast<String, dynamic>();
+
+    // Common keys you might use when pushing arguments
+    final raw = map['work_order_info'] ??
+        map['workOrder'] ??
+        map['work_order'] ??
+        map['workOrderInfo'];
+
+    if (raw is WorkOrders) return raw;
+    if (raw is Map) {
+      return WorkOrders.fromJson(Map<String, dynamic>.from(raw));
+    }
+  }
+
+  // Nothing usable
+  return null;
 }

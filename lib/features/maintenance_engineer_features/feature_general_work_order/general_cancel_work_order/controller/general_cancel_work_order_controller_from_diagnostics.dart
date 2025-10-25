@@ -21,7 +21,7 @@ class MaintenanceEnginnerGeneralCancelWorkOrderController
   final RxString remarks = ''.obs;
 
   final RxBool isSubmitting = false.obs;
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   @override
   void onInit() async {

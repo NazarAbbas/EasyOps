@@ -8,9 +8,12 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/controller/spare_cart_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerStartWorkOrderController extends GetxController {
+  static const String _BASE_URL =
+      'https://user-dev.eazyops.in:8443/v1/api/uploads/';
   // Demo hero values
   final subject = ''.obs; // 'Hydraulic Leak in CNC-1'.obs;
   final priority = ''.obs; // 'High'.obs;
@@ -26,25 +29,13 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
   final maintenanceManagerPhone = '+919876543210'.obs;
 
   final operatorOpen = true.obs;
-  final reportedBy = 'Rakesh Sharma'.obs;
-  final maintenanceManager = 'Anita Verma'.obs;
-
+  final reportedBy = ''.obs;
+  final maintenanceManager = ''.obs;
   final workInfoOpen = true.obs;
   final assetLine = 'CNC-1 · Line A'.obs;
   final assetLocation = 'Bay 2 · Shop Floor'.obs;
-  final description =
-      'Observed hydraulic oil droplets near the spindle. Requires inspection of hoses and seals.'
-          .obs;
+  final description = ''.obs;
 
-  // Media
-  final RxList<String> photoPaths = <String>[
-    'https://fastly.picsum.photos/id/459/200/200.jpg?hmac=WxFjGfN8niULmp7dDQKtjraxfa4WFX-jcTtkMyH4I-Y',
-    'https://fastly.picsum.photos/id/416/200/300.jpg?hmac=KIMUiPYQ0X2OQBuJIwtfL9ci1AGeu2OqrBH4GqpE7Bc',
-  ].obs;
-  final voiceNotePath =
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'.obs;
-
-  /// Items confirmed from the cart (after Place Order)
   final RxList<CartLine> requestedSpares = <CartLine>[].obs;
 
   // Track active audio players from the page
@@ -52,6 +43,10 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
 
   void registerPlayer(AudioPlayer p) => _players.add(p);
   void unregisterPlayer(AudioPlayer p) => _players.remove(p);
+
+  // Media
+  final photoPaths = <String>[].obs; // image URLs (absolute)
+  final voiceNotePath = ''.obs; // first audio URL (absolute)
 
   Future<void> stopAllAudio() async {
     for (final p in _players.toList()) {
@@ -61,23 +56,85 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
     }
   }
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
-    // Warm the bag with present (possibly empty) values
     final workTabsController =
         Get.find<MaintenanceEngineerWorkTabsController>();
-    workOrderInfo = workTabsController.workOrder;
+    if (workTabsController.workOrder == null) {
+      workOrderInfo = getWorkOrderFromArgs(Get.arguments);
+    } else {
+      workOrderInfo = workTabsController.workOrder;
+    }
     subject.value = workOrderInfo!.title;
     priority.value = workOrderInfo!.priority;
     elapsed.value = workOrderInfo!.estimatedTimeToFix;
     woCode.value = workOrderInfo!.issueNo;
     status.value = workOrderInfo!.status;
     date.value = formatDate(workOrderInfo!.createdAt);
-    final args = Get.arguments;
+    description.value = workOrderInfo!.description;
+
+    reportedByPhone.value = (workOrderInfo?.reportedBy?.phone).orNA();
+    final operatorName = [
+      workOrderInfo?.reportedBy?.firstName,
+      workOrderInfo?.reportedBy?.lastName
+    ]
+        .whereType<String>()
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .join(' ');
+    reportedBy.value = operatorName.orNA();
+
+    maintenanceManagerPhone.value = (workOrderInfo?.operator?.phone).orNA();
+    final managerName = [
+      workOrderInfo?.operator?.firstName,
+      workOrderInfo?.operator?.lastName
+    ]
+        .whereType<String>()
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .join(' ');
+    maintenanceManager.value = managerName.orNA();
+
+    // final args = Get.arguments;
+
+    // ----- Media binding (images + single audio) -----
+    final files = workOrderInfo?.mediaFiles ?? const <MediaFile>[];
+
+    final images = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    photoPaths.assignAll(images.toList());
+
+    // First audio/* -> absolute URL
+    final firstAudio = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .firstWhere(
+          (p) => p.isNotEmpty,
+          orElse: () => '',
+        );
+    voiceNotePath.value = firstAudio;
+  }
+
+  String _absoluteUrl(String? raw) {
+    final p = (raw ?? '').trim();
+    if (p.isEmpty) return '';
+    final lower = p.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) {
+      return p;
+    }
+    // normalize slashes
+    final base = _BASE_URL.endsWith('/')
+        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
+        : _BASE_URL;
+    final path = p.startsWith('/') ? p.substring(1) : p;
+    return '$base/$path';
   }
 
   @override
@@ -159,5 +216,12 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
       'Open asset history for ${assetLine.value}',
       snackPosition: SnackPosition.BOTTOM,
     );
+  }
+}
+
+extension StringOrNA on String? {
+  String orNA([String fallback = 'Not available']) {
+    final s = (this ?? '').trim();
+    return s.isEmpty ? fallback : s;
   }
 }

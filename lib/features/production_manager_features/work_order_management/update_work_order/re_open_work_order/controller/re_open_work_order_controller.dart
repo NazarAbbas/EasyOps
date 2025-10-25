@@ -26,7 +26,7 @@ class ReopenWorkOrderController extends GetxController {
   // form
   final remarkCtrl = TextEditingController();
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   @override
   void onInit() async {

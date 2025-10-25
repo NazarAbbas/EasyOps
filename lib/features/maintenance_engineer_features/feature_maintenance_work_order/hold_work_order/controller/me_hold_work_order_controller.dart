@@ -47,7 +47,7 @@ class MEHoldWorkOrderController extends GetxController {
   // submit state
   final RxBool isSubmitting = false.obs;
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   @override
   void onInit() {

@@ -1,22 +1,38 @@
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
+import 'package:easy_ops/core/utils/utils.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 
 class MaintenanceEnginnerSpareCartController extends GetxController {
   final RxList<CartLine> cart = <CartLine>[].obs;
   final RxSet<String> editingKeys = <String>{}.obs;
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
   static const _kCart = 'spare_cart_v1';
   final _box = GetStorage();
+  static WorkOrders? workOrderInfo;
 
   @override
   void onInit() {
     super.onInit();
     _loadCart(); // load persisted cart
     ever<List<CartLine>>(cart, (_) => _saveCart()); // save on any change
+
+    final workTabsController =
+        Get.find<MaintenanceEngineerWorkTabsController>();
+    if (workOrderInfo == null) {
+      if (workTabsController.workOrder == null) {
+        workOrderInfo = getWorkOrderFromArgs(Get.arguments);
+      } else {
+        workOrderInfo = workTabsController.workOrder;
+      }
+    }
   }
 
   /* ---------- public API (unchanged signatures) ---------- */
@@ -50,12 +66,11 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
     }
 
     if (toAdd < qty) {
-      Get.snackbar('Limited stock',
-          'Only $toAdd added for "${it.code}" (stock capped).',
+      Get.snackbar(
+          'Limited stock', 'Only $toAdd added for "${it.code}" (stock capped).',
           snackPosition: SnackPosition.BOTTOM);
     }
   }
-
 
   int _totalStockFor(String itemId) {
     // any line with same itemId has the same stock value
@@ -79,7 +94,8 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
     final itemId = cart[i].item.id;
     final total = _totalStockFor(itemId);
     final reserved = _reservedElsewhere(itemId, excludeKey: key);
-    final remaining = total - reserved - cart[i].qty; // how many more THIS line can add
+    final remaining =
+        total - reserved - cart[i].qty; // how many more THIS line can add
     return remaining < 0 ? 0 : remaining;
   }
 
@@ -102,8 +118,8 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
 
     final remaining = _remainingForLine(key);
     if (remaining <= 0) {
-      Get.snackbar('Max reached',
-          'No more available for "${cart[i].item.code}".',
+      Get.snackbar(
+          'Max reached', 'No more available for "${cart[i].item.code}".',
           snackPosition: SnackPosition.BOTTOM);
       return;
     }
@@ -146,6 +162,20 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
           snackPosition: SnackPosition.BOTTOM);
       return;
     }
+// cart can be List<CartLine> or RxList<CartLine>
+    final List<SparePartsRequest> sparePartsRequest = cart
+        .where((line) => line.qty > 0) // optional: skip zero/negative qty
+        .map((line) => SparePartsRequest(
+              assetSpareId: line.item.id, // or line.item.assetSpareId
+              requestedQty: line.qty,
+              status: 'REQUESTED',
+            ))
+        .toList();
+
+    final result = await repositoryImpl.sendBulkSpareRequest(
+      workOrderInfo!.id,
+      sparePartsRequest,
+    );
 
     final start =
         Get.isRegistered<MaintenanceEnginnerStartWorkOrderController>()

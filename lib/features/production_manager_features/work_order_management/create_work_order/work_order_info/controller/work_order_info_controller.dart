@@ -73,7 +73,7 @@ class WorkorderInfoController extends GetxController {
 
   late final VoidCallback _assetListener;
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
   WorkOrderStatus? workOrderStatus;
 
   // ─────────────────────────────────────────────────────────────────────────

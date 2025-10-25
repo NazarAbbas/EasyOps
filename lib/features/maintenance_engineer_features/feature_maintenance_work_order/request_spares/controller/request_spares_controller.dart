@@ -1,12 +1,17 @@
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/api_result.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
+import 'package:easy_ops/core/utils/utils.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/controller/spare_cart_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
+
+import '../../maintenance_wotk_order_management/models/work_order.dart';
 
 /// One shared SpareCartController (bound in GlobalBindings).
 class MaintenanceEnginnerSparesRequestController extends GetxController {
@@ -33,7 +38,7 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
   final qtyDraft = <String, int>{}.obs; // itemId -> qty
   final stockLeft = <String, int>{}.obs; // itemId -> remaining stock (UI only)
   final isSubmitting = false.obs;
-
+  WorkOrders? workOrderInfo;
   // -------- Derived --------
   int get cartCount => cartCtrl.cart.length;
 
@@ -74,8 +79,12 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
     // get assetId from WorkTabsController
     final workTabsController =
         Get.find<MaintenanceEngineerWorkTabsController>();
-    final wo = workTabsController.workOrder;
-    assetId = wo?.asset.id ?? '';
+    if (workTabsController.workOrder == null) {
+      workOrderInfo = getWorkOrderFromArgs(Get.arguments);
+    } else {
+      workOrderInfo = workTabsController.workOrder;
+    }
+    assetId = workOrderInfo?.asset.id ?? '';
 
     // If you already have lookup values, call loadLookups(_yourList_)
 
@@ -133,9 +142,9 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
 
       final ApiResult<List<SparePartsResponse>> res =
           await repositoryImpl.spareParts(
-        'AST-30Sep2025030526669006',
-        'CLU-23Oct2025103143874011',
-        'CLU-23Oct2025103519159013',
+        'AST-30Sep2025030526669006', //assetId
+        'CLU-23Oct2025103143874011', //c1.id
+        'CLU-23Oct2025103519159013', //c2.id
       );
 
       if (res.httpCode == 200 && res.data != null) {
@@ -235,7 +244,13 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
     }
   }
 
-  void viewCart() => Get.toNamed(Routes.maintenanceEngeneersparesCartScreen);
+  void viewCart() => Get.toNamed(
+        Routes.maintenanceEngeneersparesCartScreen,
+        arguments: {
+          Constant.workOrderInfo: workOrderInfo,
+          Constant.workOrderStatus: WorkOrderStatus.open,
+        },
+      );
 
   // Optional: edit/remove by key if you expose keys in the cart
   void updateLineQty(String key, int qty) {

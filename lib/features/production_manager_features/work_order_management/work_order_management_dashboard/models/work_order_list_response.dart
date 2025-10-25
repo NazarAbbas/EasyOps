@@ -12,7 +12,7 @@ String workOrderListResponseToJson(WorkOrderListResponse data) =>
     json.encode(data.toJson());
 
 class WorkOrderListResponse {
-  final List<WorkOrder> content;
+  final List<WorkOrders> content;
   final Page page;
 
   WorkOrderListResponse({
@@ -25,7 +25,7 @@ class WorkOrderListResponse {
     final list = (raw is List ? raw : const <dynamic>[]);
     return WorkOrderListResponse(
       content: list
-          .map((e) => WorkOrder.fromJson((e as Map).cast<String, dynamic>()))
+          .map((e) => WorkOrders.fromJson((e as Map).cast<String, dynamic>()))
           .toList(),
       page: Page.fromJson((json['page'] as Map).cast<String, dynamic>()),
     );
@@ -43,7 +43,7 @@ class WorkOrderListResponse {
   String toJsonString() => json.encode(toJson());
 }
 
-class WorkOrder {
+class WorkOrders {
   final String id;
   final String type;
   final String issueNo;
@@ -91,7 +91,7 @@ class WorkOrder {
 
   final List<MediaFile> mediaFiles;
 
-  WorkOrder({
+  WorkOrders({
     required this.id,
     required this.issueNo,
     required this.type,
@@ -127,12 +127,12 @@ class WorkOrder {
     required this.mediaFiles,
   });
 
-  factory WorkOrder.fromJson(Map<String, dynamic> json) {
+  factory WorkOrders.fromJson(Map<String, dynamic> json) {
     List<dynamic> mf = [];
     final rawMf = json['mediaFiles'];
     if (rawMf is List) mf = rawMf;
 
-    return WorkOrder(
+    return WorkOrders(
       id: _string(json['id'])!, // non-nullable: throw if truly missing
       issueNo: _string(json['issueNo'])!, // no
       criticality: _string(json['criticality']) ?? '', // no
@@ -218,6 +218,8 @@ class Person {
   final String? lastName;
   final String? email;
   final String? phone;
+  final String? managerName;
+  final String? managerContact;
 
   Person({
     required this.id,
@@ -225,6 +227,8 @@ class Person {
     this.lastName,
     this.email,
     this.phone,
+    this.managerName,
+    this.managerContact,
   });
 
   factory Person.fromJson(Map<String, dynamic> json) => Person(
@@ -233,6 +237,8 @@ class Person {
         lastName: json['lastName'],
         email: json['email'],
         phone: json['phone'],
+        managerName: json['managerName'],
+        managerContact: json['managerContact'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -241,6 +247,8 @@ class Person {
         'lastName': lastName,
         'email': email,
         'phone': phone,
+        'managerContact': managerContact,
+        'managerName': managerName,
       };
 }
 
@@ -412,7 +420,7 @@ DateTime? _date(dynamic v) {
   return DateTime.parse(s);
 }
 
-extension WorkOrderX on WorkOrder {
+extension WorkOrderX on WorkOrders {
   int get timeLeftMinutes => int.tryParse(estimatedTimeToFix) ?? 0;
 
   String get timeLeftHm {
@@ -423,6 +431,6 @@ extension WorkOrderX on WorkOrder {
   }
 }
 
-extension WorkOrderY on WorkOrder {
+extension WorkOrderY on WorkOrders {
   String get escalatedLabel => escalated > 0 ? 'Escalated' : 'No escalated';
 }

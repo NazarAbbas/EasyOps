@@ -705,6 +705,7 @@ class _FilterCard extends GetView<MaintenanceEnginnerSparesRequestController> {
                   // If your picker supports "lookupType: selC1.code"
                   // replace the next line with that:
                   lookupType: LookupType.resolution.name,
+                  lookupCode: selC1.code,
                   selected: selC2,
                 );
                 if (v != null) controller.selectCat2(v);

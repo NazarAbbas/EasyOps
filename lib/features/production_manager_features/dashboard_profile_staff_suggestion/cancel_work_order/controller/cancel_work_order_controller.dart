@@ -48,7 +48,7 @@ class CancelWorkOrderController extends GetxController {
   final remarksCtrl = TextEditingController();
   final isSubmitting = false.obs;
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   // // Optional sample asset
   // final asset = AssetSummary(

@@ -1,138 +1,110 @@
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerDiagnosticsController extends GetxController {
-  final isLoading = true.obs;
-  final wo = Rxn<WorkOrder>();
+  static const String _BASE_URL =
+      'https://user-dev.eazyops.in:8443/v1/api/uploads/';
 
+  /// top progress
+  final isLoading = true.obs;
+
+  /// accordions
   final opInfoExpanded = true.obs;
   final woInfoExpanded = false.obs;
 
-  // Media
-  final photoPaths = <String>[
-    // Fallback URLs (replace with assets later if you prefer)
-    'https://fastly.picsum.photos/id/459/200/200.jpg?hmac=WxFjGfN8niULmp7dDQKtjraxfa4WFX-jcTtkMyH4I-Y',
-    'https://fastly.picsum.photos/id/416/200/300.jpg?hmac=KIMUiPYQ0X2OQBuJIwtfL9ci1AGeu2OqrBH4GqpE7Bc',
-    'https://fastly.picsum.photos/id/459/200/200.jpg?hmac=WxFjGfN8niULmp7dDQKtjraxfa4WFX-jcTtkMyH4I-Y',
-    'https://fastly.picsum.photos/id/416/200/300.jpg?hmac=KIMUiPYQ0X2OQBuJIwtfL9ci1AGeu2OqrBH4GqpE7Bc',
-  ].obs;
+  /// current work order (nullable until resolved)
+  WorkOrders? workOrderInfo;
 
-  // You can switch to an asset later: assets/dummy/work_orders/voice_note1.m4a
-  final voiceNotePath =
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'.obs;
-
-  Future<void> load() async {
-    try {
-      isLoading.value = true;
-      wo.value = await WorkOrderApi.fetchById('WO-1');
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to load work order');
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> endWork() async {
-    // isLoading.value = true;
-    // await Future.delayed(const Duration(seconds: 1));
-    // isLoading.value = false;
-    Get.toNamed(Routes.maintenanceEngeneerclosureScreen);
-    //Get.snackbar('Success', 'Work ended');
-  }
-
-  Future<void> hold() async {
-    //isLoading.value = true;
-    //await Future.delayed(const Duration(milliseconds: 900));
-    Get.toNamed(Routes.maintenanceEngeneerholdWorkOrderScreen);
-    //isLoading.value = false;
-    //Get.snackbar('Updated', 'Work order put on Hold');
-  }
-
-  Future<void> reassign() async {
-    //isLoading.value = true;
-    //await Future.delayed(const Duration(milliseconds: 900));
-    Get.toNamed(Routes.maintenanceEngeneerreassignWorkOrderScreen);
-    //isLoading.value = false;
-    //Get.snackbar('Updated', 'Reassignment started');
-  }
-
-  Future<void> cancel() async {
-    // isLoading.value = true;
-    //await Future.delayed(const Duration(milliseconds: 900));
-    Get.toNamed(Routes.maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen);
-    //isLoading.value = false;
-    // Get.snackbar('Updated', 'Work order canceled');
-  }
+  /// Media
+  final photoPaths = <String>[].obs; // absolute image URLs
+  final voiceNotePath = ''.obs; // absolute audio URL
 
   @override
   void onInit() {
-    load();
     super.onInit();
+
+    // Resolve work order (from tab controller or route args)
+    final workTabsController =
+        Get.find<MaintenanceEngineerWorkTabsController>();
+    if (workTabsController.workOrder == null) {
+      workOrderInfo = getWorkOrderFromArgs(Get.arguments);
+    } else {
+      workOrderInfo = workTabsController.workOrder;
+    }
+
+    // Populate media from work order
+    final files = workOrderInfo?.mediaFiles ?? const <MediaFile>[];
+
+    final images = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    photoPaths.assignAll(images);
+
+    final firstAudio = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .firstWhere((p) => p.isNotEmpty, orElse: () => '');
+    voiceNotePath.value = firstAudio;
+
+    // page initial state
+    isLoading.value = false;
   }
-}
 
-class Person {
-  final String name;
-  final String role;
-  final String phone;
+  /* -------------------------- Actions (footer) -------------------------- */
 
-  const Person({required this.name, required this.role, required this.phone});
-}
+  Future<void> endWork() async {
+    Get.toNamed(Routes.maintenanceEngeneerclosureScreen);
+  }
 
-class WorkOrder {
-  final String id;
-  final String title;
-  final String code;
-  final String priority; // High / Medium / Low
-  final String status; // In Progress / Open / Closed
-  final String category; // Mechanical etc.
-  final DateTime createdAt;
-  final Duration elapsed;
-  final Duration estimated;
+  Future<void> hold() async {
+    Get.toNamed(Routes.maintenanceEngeneerholdWorkOrderScreen);
+  }
 
-  final Person reportedBy;
-  final Person manager;
+  Future<void> reassign() async {
+    Get.toNamed(Routes.maintenanceEngeneerreassignWorkOrderScreen);
+  }
 
-  const WorkOrder({
-    required this.id,
-    required this.title,
-    required this.code,
-    required this.priority,
-    required this.status,
-    required this.category,
-    required this.createdAt,
-    required this.elapsed,
-    required this.estimated,
-    required this.reportedBy,
-    required this.manager,
-  });
-}
+  Future<void> cancel() async {
+    Get.toNamed(Routes.maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen);
+  }
 
-class WorkOrderApi {
-  // Simulates network latency and returns fake data
-  static Future<WorkOrder> fetchById(String id) async {
-    await Future.delayed(const Duration(seconds: 2)); // fake delay
-    final now = DateTime.now();
-    return WorkOrder(
-      id: id,
-      title: 'Conveyor Belt Stopped\nAbruptly During Operation',
-      code: 'BD-102',
-      priority: 'High',
-      status: 'In Progress',
-      category: 'Mechanical',
-      createdAt: DateTime(now.year, now.month, now.day, 18, 8),
-      elapsed: const Duration(hours: 1, minutes: 20),
-      estimated: const Duration(hours: 3),
-      reportedBy: const Person(
-        name: 'Ashwath Mohan\nMahendran',
-        role: 'Reported By',
-        phone: '+91-00000-00000',
-      ),
-      manager: const Person(
-        name: 'Rajesh Kumar',
-        role: 'Maintenance Manager',
-        phone: '+91-11111-11111',
-      ),
-    );
+  /* ----------------------------- Helpers ----------------------------- */
+
+  /// Accepts either a WorkOrders instance or a Map with common keys.
+  WorkOrders? getWorkOrderFromArgs(dynamic args) {
+    if (args is WorkOrders) return args;
+
+    if (args is Map) {
+      final map = args.cast<String, dynamic>();
+      final raw = map['work_order_info'] ??
+          map['workOrder'] ??
+          map['work_order'] ??
+          map['workOrderInfo'] ??
+          args; // sometimes route sends the JSON itself
+
+      if (raw is WorkOrders) return raw;
+      if (raw is Map) {
+        return WorkOrders.fromJson(Map<String, dynamic>.from(raw));
+      }
+    }
+    return null;
+  }
+
+  /// Turn a relative path into an absolute URL using _BASE_URL.
+  String _absoluteUrl(String? raw) {
+    final p = (raw ?? '').trim();
+    if (p.isEmpty) return '';
+    final lower = p.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) return p;
+
+    final base = _BASE_URL.endsWith('/')
+        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
+        : _BASE_URL;
+    final path = p.startsWith('/') ? p.substring(1) : p;
+    return '$base/$path';
   }
 }

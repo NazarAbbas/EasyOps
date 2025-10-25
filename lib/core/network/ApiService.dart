@@ -1,7 +1,10 @@
 // lib/network/api_service.dart
 import 'dart:convert';
 import 'dart:io';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
@@ -123,6 +126,27 @@ class ApiService {
         size: size,
         sort: sort,
       );
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<SparePartsResponse> sendBulkSpareRequest(
+    String workOrderId,
+    List<SparePartsRequest> sparePartsRequest,
+  ) async {
+    try {
+      return await _api.bulkSparePartRequest(workOrderId, sparePartsRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<RcaResponse> createRca(
+    RcaRequest rcaRequest,
+  ) async {
+    try {
+      return await _api.createRca(rcaRequest);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

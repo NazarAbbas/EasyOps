@@ -1,6 +1,6 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
-    show WorkOrder;
+    show WorkOrders;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
@@ -9,7 +9,7 @@ class WorkTabsController extends GetxController {
   final selectedTab = 0.obs; // 0 = WorkOrderPage (default)
   void goTo(int i) => selectedTab.value = i;
 
-  WorkOrder? workOrder;
+  WorkOrders? workOrder;
   WorkOrderStatus? workOrderStatus;
 
   @override
@@ -27,7 +27,7 @@ class WorkTabsController extends GetxController {
     // ✅ Expect a Map of arguments
     final map = args as Map;
     try {
-      workOrder = map[Constant.workOrderInfo] as WorkOrder;
+      workOrder = map[Constant.workOrderInfo] as WorkOrders;
       workOrderStatus = map[Constant.workOrderStatus] as WorkOrderStatus;
     } catch (e) {}
   }

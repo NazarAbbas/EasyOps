@@ -36,17 +36,17 @@ class MaintenanceEnginnerRcaAnalysisController extends GetxController {
     correctiveCtrl = TextEditingController();
     super.onInit();
     final arg = Get.arguments;
-    if (arg is RcaResult) {
-      // Prefill with incoming data
-      problemCtrl.text = arg.problemIdentified;
-      rootCauseCtrl.text = arg.rootCause;
-      correctiveCtrl.text = arg.correctiveAction;
-      whyCtrls[0].text = arg.fiveWhys[0];
-      whyCtrls[1].text = arg.fiveWhys[1];
-      whyCtrls[2].text = arg.fiveWhys[2];
-      whyCtrls[3].text = arg.fiveWhys[3];
-      whyCtrls[4].text = arg.fiveWhys[4];
-    }
+    //if (arg is RcaResult) {
+    // Prefill with incoming data
+    problemCtrl.text = arg.problemIdentified;
+    rootCauseCtrl.text = arg.rootCause;
+    correctiveCtrl.text = arg.correctiveAction;
+    whyCtrls[0].text = arg.fiveWhys[0];
+    whyCtrls[1].text = arg.fiveWhys[1];
+    whyCtrls[2].text = arg.fiveWhys[2];
+    whyCtrls[3].text = arg.fiveWhys[3];
+    whyCtrls[4].text = arg.fiveWhys[4];
+    // }
   }
 
   // void saveAndBack() {
@@ -88,16 +88,16 @@ class MaintenanceEnginnerRcaAnalysisController extends GetxController {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
     isSaving.value = true;
-    await Future.delayed(const Duration(milliseconds: 800)); // fake API
+    //await Future.delayed(const Duration(milliseconds: 800)); // fake API
     isSaving.value = false;
 
-    final result = RcaResult(
-      problemIdentified: problemCtrl.text.trim(),
-      fiveWhys: whyCtrls.map((e) => e.text.trim()).toList(growable: false),
-      rootCause: rootCauseCtrl.text.trim(),
-      correctiveAction: correctiveCtrl.text.trim(),
-    );
+    // final result = RcaResult(
+    //   problemIdentified: problemCtrl.text.trim(),
+    //   fiveWhys: whyCtrls.map((e) => e.text.trim()).toList(growable: false),
+    //   rootCause: rootCauseCtrl.text.trim(),
+    //   correctiveAction: correctiveCtrl.text.trim(),
+    // );
 
-    Get.back(result: result);
+    //Get.back(result: result);
   }
 }

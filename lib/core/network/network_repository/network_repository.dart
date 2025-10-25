@@ -2,6 +2,8 @@ import 'package:easy_ops/core/network/api_result.dart';
 import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/common_features/login/models/login_response.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
@@ -57,4 +59,7 @@ abstract class NetworkRepository {
     required String closeWorkOrderId,
     required CloseWorkOrderRequest closeWorkOrderRequest,
   });
+
+  Future<ApiResult<SparePartsResponse>> sendBulkSpareRequest(
+      String workOrderId, List<SparePartsRequest> sparePartsRequest);
 }

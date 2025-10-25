@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/diagnostics/controller/diagnostics_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart'; // <-- added
 
 class MaintenanceEngineerDiagnosticsPage
     extends GetView<MaintenanceEnginnerDiagnosticsController> {
@@ -16,7 +19,6 @@ class MaintenanceEngineerDiagnosticsPage
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = controller.isLoading.value;
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
     return Scaffold(
@@ -28,26 +30,20 @@ class MaintenanceEngineerDiagnosticsPage
         title: const Text('Diagnostics'),
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.wo.value == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
         return Stack(
           children: [
-            RefreshIndicator(
-              onRefresh: controller.load,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _WorkOrderContent(controller.wo.value!),
-                    const SizedBox(height: 12),
-                    _MediaSection(controller: controller),
-                    const SizedBox(height: 12),
-                    const _SparesSection(), // 👈 NEW: Spares card
-                  ],
-                ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _WorkOrderContent(controller.workOrderInfo!),
+                  const SizedBox(height: 12),
+                  _MediaSection(controller: controller),
+                  const SizedBox(height: 12),
+                  const _SparesSection(), // 👈 NEW: Spares card
+                ],
               ),
             ),
             if (controller.isLoading.value)
@@ -79,7 +75,7 @@ class MaintenanceEngineerDiagnosticsPage
 /* --------------------------- Content Body --------------------------- */
 
 class _WorkOrderContent extends StatelessWidget {
-  final WorkOrder w;
+  final WorkOrders w;
   const _WorkOrderContent(this.w);
 
   String _fmtDur(Duration d) {
@@ -88,76 +84,30 @@ class _WorkOrderContent extends StatelessWidget {
     return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}Hrs';
   }
 
+  String _fullName(String? first, String? last) {
+    final f = (first ?? '').trim();
+    final l = (last ?? '').trim();
+    final s = [f, l].where((e) => e.isNotEmpty).join(' ');
+    return s.isEmpty ? 'Not available' : s;
+  }
+
+  String _orNA(String? v) {
+    final s = (v ?? '').trim();
+    return s.isEmpty ? 'Not available' : s;
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Extract phones (safely). Adjust keys per your model.
+    final reporterPhone = (w.reportedBy?.phone ?? '').trim();
+    // final managerPhone  = (w.reportedBy?.managerPhone ?? '').trim(); // if available
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title row
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      w.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1.25,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2430),
-                      ),
-                    ),
-                  ),
-                  _Chip(text: w.priority, color: const Color(0xFFED3B40)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Code + date + status
-              Row(
-                children: [
-                  Text(
-                    '${w.code}   '
-                    '${w.createdAt.hour.toString().padLeft(2, '0')}:'
-                    '${w.createdAt.minute.toString().padLeft(2, '0')}  |  '
-                    '${w.createdAt.day.toString().padLeft(2, '0')} '
-                    '${_month(w.createdAt.month)}',
-                    style: const TextStyle(color: Color(0xFF7C8698)),
-                  ),
-                  const Spacer(),
-                  Text(
-                    w.status,
-                    style: const TextStyle(
-                      color: Color(0xFF2F6BFF),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _Tag(w.category),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.link, size: 18, color: Color(0xFF2F6BFF)),
-                  const Spacer(),
-                  const Icon(
-                    Icons.access_time,
-                    size: 18,
-                    color: Color(0xFF7C8698),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${w.elapsed.inHours}h ${w.elapsed.inMinutes.remainder(60)}m',
-                    style: const TextStyle(color: Color(0xFF7C8698)),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        WorkOrderTile(
+          workOrderInfo: w,
+          onTap: () => print('Open work order'),
         ),
         const SizedBox(height: 12),
         _Card(
@@ -170,7 +120,7 @@ class _WorkOrderContent extends StatelessWidget {
                 ),
               ),
               Text(
-                _fmtDur(w.estimated),
+                w.estimatedTimeToFix,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1F2430),
@@ -185,9 +135,20 @@ class _WorkOrderContent extends StatelessWidget {
           initiallyOpen: true,
           content: Column(
             children: [
-              _InfoRow('Reported By', w.reportedBy.name, call: true),
+              _InfoRow(
+                'Reported By',
+                _fullName(w.reportedBy?.firstName, w.reportedBy?.lastName),
+                call: true,
+                callNumber: w.reportedBy?.phone, // <-- bind phone to call icon
+              ),
               const SizedBox(height: 8),
-              _InfoRow('Maintenance\nManager', w.manager.name, call: true),
+              _InfoRow(
+                'Maintenance\nManager',
+                _orNA(w.reportedBy?.managerName),
+                call: true,
+                callNumber: w.reportedBy
+                    ?.managerContact, // <-- uncomment if you have manager phone field
+              ),
             ],
           ),
         ),
@@ -624,20 +585,47 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
   final bool call;
+  final String? callNumber; // <-- added
   final IconData? trailingIcon;
 
   const _InfoRow(
     this.label,
     this.value, {
     this.call = false,
+    this.callNumber,
     this.trailingIcon,
   });
 
+  Future<void> _makeCall(String number) async {
+    final trimmed = number.trim();
+    if (trimmed.isEmpty) return;
+    HapticFeedback.lightImpact();
+    final uri = Uri(scheme: 'tel', path: trimmed);
+    // Using launchUrl directly (canLaunchUrl is optional with url_launcher >=6)
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      // Optional: show a SnackBar/Toast in your app context if desired
+      debugPrint('Could not launch phone dialer for $trimmed');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final canCall =
+        call && (callNumber != null && callNumber!.trim().isNotEmpty);
+
     final right = trailingIcon != null
         ? Icon(trailingIcon, color: const Color(0xFF2F6BFF))
-        : (call ? const Icon(Icons.call, color: Color(0xFF2F6BFF)) : null);
+        : (canCall
+            ? IconButton(
+                tooltip: 'Call',
+                icon: const Icon(Icons.call, color: Color(0xFF2F6BFF)),
+                onPressed: () => _makeCall(callNumber!.trim()),
+              )
+            : (call
+                ? const Icon(Icons.call,
+                    color: Color(0xFFBFC6D2)) // disabled look
+                : null));
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

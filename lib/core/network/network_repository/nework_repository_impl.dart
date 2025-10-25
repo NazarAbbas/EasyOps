@@ -6,7 +6,10 @@ import 'package:easy_ops/core/network/network_repository/network_repository.dart
 import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/common_features/login/models/login_response.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
@@ -424,6 +427,62 @@ class NetworkRepositoryImpl implements NetworkRepository {
       );
     } catch (e) {
       return ApiResult<List<SparePartsResponse>>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<SparePartsResponse>> sendBulkSpareRequest(
+      String workOrderId, List<SparePartsRequest> sparePartsRequest) async {
+    try {
+      final result = await _apiService.sendBulkSpareRequest(
+          workOrderId, sparePartsRequest);
+
+      return ApiResult<SparePartsResponse>(
+        httpCode: 200,
+        data: result,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<SparePartsResponse>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<SparePartsResponse>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<RcaResponse>> createRca(RcaRequest rcaRequest) async {
+    try {
+      final result = await _apiService.createRca(rcaRequest);
+
+      return ApiResult<RcaResponse>(
+        httpCode: 200,
+        data: result,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<RcaResponse>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<RcaResponse>(
         httpCode: 0,
         data: null,
         message: e.toString(),

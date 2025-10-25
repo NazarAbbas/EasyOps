@@ -26,7 +26,7 @@ class ClosureWorkOrderController extends GetxController {
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   final pageTitle = 'Closure'.obs;
   final noteCtrl = TextEditingController();

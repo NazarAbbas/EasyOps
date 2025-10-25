@@ -7,7 +7,8 @@ import 'package:get/get.dart';
 
 class UpdateWorkOrderDetailsController extends GetxController {
   // ----- Base URL to prefix -----
-  static const String _BASE_URL = 'https://user-dev.eazyops.in:8443/v1/api/';
+  static const String _BASE_URL =
+      'https://user-dev.eazyops.in:8443/v1/api/uploads/';
 
   // Header
   final title = 'Work Order Details'.obs;
@@ -16,10 +17,6 @@ class UpdateWorkOrderDetailsController extends GetxController {
   final operatorName = ''.obs;
   final operatorInfo = ''.obs;
   final operatorPhoneNumber = ''.obs;
-
-  // Banner
-  //final successTitle = 'Work Order Created\nSuccessfully'.obs;
-  //final successSub = 'Work Order ID - BD265'.obs;
 
   // Reporter
   final reportedBy = ''.obs;
@@ -87,7 +84,7 @@ class UpdateWorkOrderDetailsController extends GetxController {
     // First audio/* -> absolute URL
     final firstAudio = files
         .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
-        .map((f) => _absoluteUrlForAudio(f.filePath))
+        .map((f) => _absoluteUrl(f.filePath))
         .firstWhere(
           (p) => p.isNotEmpty,
           orElse: () => '',
@@ -121,30 +118,30 @@ class UpdateWorkOrderDetailsController extends GetxController {
     if (p.isEmpty) return '';
     final lower = p.toLowerCase();
     if (lower.startsWith('http://') || lower.startsWith('https://')) {
-      return 'https://picsum.photos/200/300'; //p;
+      return p;
     }
     // normalize slashes
     final base = _BASE_URL.endsWith('/')
         ? _BASE_URL.substring(0, _BASE_URL.length - 1)
         : _BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
-    return 'https://picsum.photos/200/300'; //'$base/$path';
+    return '$base/$path';
   }
 
-  String _absoluteUrlForAudio(String? raw) {
-    final p = (raw ?? '').trim();
-    if (p.isEmpty) return '';
-    final lower = p.toLowerCase();
-    if (lower.startsWith('http://') || lower.startsWith('https://')) {
-      return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //p;
-    }
-    // normalize slashes
-    final base = _BASE_URL.endsWith('/')
-        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
-        : _BASE_URL;
-    final path = p.startsWith('/') ? p.substring(1) : p;
-    return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //'$base/$path';
-  }
+  // String _absoluteUrlForAudio(String? raw) {
+  //   final p = (raw ?? '').trim();
+  //   if (p.isEmpty) return '';
+  //   final lower = p.toLowerCase();
+  //   if (lower.startsWith('http://') || lower.startsWith('https://')) {
+  //     return p;
+  //   }
+  //   // normalize slashes
+  //   final base = _BASE_URL.endsWith('/')
+  //       ? _BASE_URL.substring(0, _BASE_URL.length - 1)
+  //       : _BASE_URL;
+  //   final path = p.startsWith('/') ? p.substring(1) : p;
+  //   return '$base/$path';
+  // }
 
   String _formatDate(DateTime dt) {
     final hh = dt.hour.toString().padLeft(2, '0');

@@ -10,7 +10,7 @@ class WorkOrderTile extends StatelessWidget {
     this.onTap,
   });
 
-  final WorkOrder workOrderInfo;
+  final WorkOrders workOrderInfo;
   final VoidCallback? onTap;
 
   // ── Hard-coded styles (no longer arguments) ────────────────────────────────

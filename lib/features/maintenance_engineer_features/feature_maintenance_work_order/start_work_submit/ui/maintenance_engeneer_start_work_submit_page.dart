@@ -1,5 +1,6 @@
 import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_submit/controller/start_work_submit_controller.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -59,7 +60,11 @@ class MaintenanceEngineerStartWorkSubmitPage
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
                 children: [
-                  _WoInfoCard(c),
+                  //  _WoInfoCard(c),
+                  WorkOrderTile(
+                    workOrderInfo: controller.workOrderInfo!,
+                    onTap: () => print('Open work order'),
+                  ),
                   const SizedBox(height: 12),
                   _FormCard(c),
                 ],

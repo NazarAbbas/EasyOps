@@ -6,7 +6,7 @@ import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/controller/work_order_list_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
-    show WorkOrder, Status, Priority;
+    show WorkOrders, Status, Priority;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +44,7 @@ class WorkOrdersListPage extends GetView<WorkOrdersController> {
               }
 
               // 2) Use controller.visibleOrders (already filtered by tab + query)
-              final List<WorkOrder> data = controller.visibleOrders;
+              final List<WorkOrders> data = controller.visibleOrders;
 
               if (data.isEmpty) {
                 return _EmptyState(
@@ -437,7 +437,7 @@ class _CalendarCard extends GetView<WorkOrdersController> {
 /* ───────────────────────── List items ───────────────────────── */
 
 class _WorkOrderCard extends StatefulWidget {
-  final WorkOrder order;
+  final WorkOrders order;
   const _WorkOrderCard({required this.order});
 
   @override

@@ -8,7 +8,7 @@ class UpdateWorkTabsController extends GetxController {
   final selectedTab = 0.obs; // 0 = WorkOrderInfoPage (default)
   void goTo(int i) => {selectedTab.value = i};
 
-  WorkOrder? workOrder;
+  WorkOrders? workOrder;
   //WorkOrderStatus? workOrderStatus;
 
   @override
@@ -25,7 +25,7 @@ class UpdateWorkTabsController extends GetxController {
 
     try {
       final map = args as Map;
-      workOrder = map[Constant.workOrderInfo] as WorkOrder;
+      workOrder = map[Constant.workOrderInfo] as WorkOrders;
     } catch (_) {}
   }
 }

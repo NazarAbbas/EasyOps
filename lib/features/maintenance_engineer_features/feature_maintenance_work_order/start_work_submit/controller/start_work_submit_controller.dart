@@ -1,6 +1,10 @@
 // start_work_page.dart
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/utils.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,6 +28,7 @@ class MaintenanceEnginnerStartWorkSubmitController extends GetxController {
   final RxString estimate = ''.obs; // “HH:MM” or any text you like
   final RxString remarks = ''.obs;
   final RxBool isSubmitting = false.obs;
+  WorkOrders? workOrderInfo;
 
   @override
   void onInit() {
@@ -33,8 +38,11 @@ class MaintenanceEnginnerStartWorkSubmitController extends GetxController {
 
     final workTabsController =
         Get.find<MaintenanceEngineerWorkTabsController>();
-    final workOrderInfo = workTabsController.workOrder;
-    final xx = "";
+    if (workTabsController.workOrder == null) {
+      workOrderInfo = getWorkOrderFromArgs(Get.arguments);
+    } else {
+      workOrderInfo = workTabsController.workOrder;
+    }
   }
 
   @override
@@ -80,7 +88,13 @@ class MaintenanceEnginnerStartWorkSubmitController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         margin: const EdgeInsets.all(12),
       );
-      Get.toNamed(Routes.maintenanceEngeneerdiagnosticsScreen);
+      Get.toNamed(
+        Routes.maintenanceEngeneerdiagnosticsScreen,
+        arguments: {
+          Constant.workOrderInfo: workOrderInfo,
+          Constant.workOrderStatus: WorkOrderStatus.open,
+        },
+      );
       //Get.back(); // close page
     } catch (_) {
       Get.snackbar(

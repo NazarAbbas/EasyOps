@@ -2,7 +2,7 @@ import 'package:easy_ops/core/network/network_repository/nework_repository_impl.
 import 'package:easy_ops/core/utils/share_preference.dart'
     show SharePreferences, engineerRole;
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
-    show WorkOrder, Tenant, Client, Asset;
+    show WorkOrders, Tenant, Client, Asset;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -19,8 +19,8 @@ class WorkOrdersController extends GetxController {
   final focusedDay = DateTime.now().obs;
 
   static const Color _critical = Color(0xFFED3B40); // red
-  static const Color _high     = Color(0xFFF59E0B); // amber
-  static const Color _open     = Color(0xFF2F6BFF); // blue
+  static const Color _high = Color(0xFFF59E0B); // amber
+  static const Color _open = Color(0xFF2F6BFF); // blue
 
   // whether the calendar date filter is active
   final dateFilterEnabled = false.obs;
@@ -32,18 +32,20 @@ class WorkOrdersController extends GetxController {
     dateFilterEnabled.value = true;
     _recomputeVisible();
   }
+
   // Optional: clear date filter (use Today/Open/Escalated/Critical logic only)
   void clearDateFilter() {
     dateFilterEnabled.value = false;
     _recomputeVisible();
   }
 
-  String _tagFor(WorkOrder wo) {
-    final pri = (wo.priority ?? '').toUpperCase().trim();  // e.g., 'CRITICAL','HIGH'
+  String _tagFor(WorkOrders wo) {
+    final pri =
+        (wo.priority ?? '').toUpperCase().trim(); // e.g., 'CRITICAL','HIGH'
     if (pri == 'CRITICAL') return 'CRITICAL';
     if (pri == 'HIGH') return 'HIGH';
 
-    final st = (wo.status ?? '').toUpperCase().trim();     // e.g., 'OPEN','PENDING'
+    final st = (wo.status ?? '').toUpperCase().trim(); // e.g., 'OPEN','PENDING'
     if (st == 'OPEN' || st == 'PENDING') return 'OPEN';
 
     return 'OPEN'; // default tag
@@ -51,9 +53,12 @@ class WorkOrdersController extends GetxController {
 
   Color _colorForTag(String tag) {
     switch (tag) {
-      case 'CRITICAL': return _critical;
-      case 'HIGH':     return _high;
-      default:         return _open; // OPEN (and others)
+      case 'CRITICAL':
+        return _critical;
+      case 'HIGH':
+        return _high;
+      default:
+        return _open; // OPEN (and others)
     }
   }
 
@@ -64,7 +69,7 @@ class WorkOrdersController extends GetxController {
   /// Below is (B): unique tags → max 3 dots (Critical, High, Open).
   List<MarkerEvent> eventsFor(DateTime day) {
     // choose which date field to anchor on
-    Iterable<WorkOrder> todays = orders.where((wo) {
+    Iterable<WorkOrders> todays = orders.where((wo) {
       final d = wo.scheduledStart ?? wo.createdAt;
       return d != null && isSameDay(d, day);
     });
@@ -72,24 +77,21 @@ class WorkOrdersController extends GetxController {
     // dedupe by tag so you get at most one dot per status severity
     final byTag = <String, MarkerEvent>{};
     for (final wo in todays) {
-      final tag = _tagFor(wo);                // 'CRITICAL' | 'HIGH' | 'OPEN'
+      final tag = _tagFor(wo); // 'CRITICAL' | 'HIGH' | 'OPEN'
       byTag.putIfAbsent(tag, () => MarkerEvent(_colorForTag(tag), tag));
     }
 
     // Order: CRITICAL → HIGH → OPEN, then take top 4 if you like
     const order = ['CRITICAL', 'HIGH', 'OPEN'];
     final list = byTag.values.toList()
-      ..sort((a, b) =>
-          order.indexOf(a.tag).compareTo(order.indexOf(b.tag)));
+      ..sort((a, b) => order.indexOf(a.tag).compareTo(order.indexOf(b.tag)));
 
     return list; // markerBuilder will paint e.color
   }
 
-
-
   DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);
-  DateTime _nextDayLocal(DateTime d) => _startOfDayLocal(d).add(const Duration(days: 1));
-
+  DateTime _nextDayLocal(DateTime d) =>
+      _startOfDayLocal(d).add(const Duration(days: 1));
 
   // Tabs / search
   final tabs = const ['Today', 'Open', 'Escalated', 'Critical'];
@@ -97,8 +99,8 @@ class WorkOrdersController extends GetxController {
   final query = ''.obs;
 
   // Data
-  final orders = <WorkOrder>[].obs; // full dataset
-  final visibleOrders = <WorkOrder>[].obs; // filtered for UI
+  final orders = <WorkOrders>[].obs; // full dataset
+  final visibleOrders = <WorkOrders>[].obs; // filtered for UI
 
   // ---------------- Lifecycle ----------------
   @override
@@ -129,7 +131,7 @@ class WorkOrdersController extends GetxController {
 
     try {
       final res = await repositoryImpl.workOrderList();
-      final list = res.data?.content ?? const <WorkOrder>[];
+      final list = res.data?.content ?? const <WorkOrders>[];
       orders.assignAll(list);
       //  orders.assignAll(mockWorkOrders);
     } catch (e) {
@@ -149,7 +151,7 @@ class WorkOrdersController extends GetxController {
 
     try {
       final res = await repositoryImpl.workOrderList();
-      final list = res.data?.content ?? const <WorkOrder>[];
+      final list = res.data?.content ?? const <WorkOrders>[];
       orders.assignAll(list);
     } catch (e) {
       // For demo: shuffle mock data to simulate change
@@ -166,7 +168,7 @@ class WorkOrdersController extends GetxController {
   void setQuery(String v) => query.value = v;
 
   void _recomputeVisible() {
-    List<WorkOrder> src = orders;
+    List<WorkOrders> src = orders;
 
     // 0) Calendar date window by createdAt -> applied if user picked a day
     DateTime? start;

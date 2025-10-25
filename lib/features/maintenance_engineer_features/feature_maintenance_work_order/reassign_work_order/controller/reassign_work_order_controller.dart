@@ -27,7 +27,7 @@ class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
   // submitting state
   final RxBool isSubmitting = false.obs;
 
-  WorkOrder? workOrderInfo;
+  WorkOrders? workOrderInfo;
 
   @override
   void onInit() async {

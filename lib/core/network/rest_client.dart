@@ -1,6 +1,9 @@
 // lib/network/rest_client.dart
 import 'package:dio/dio.dart' hide Headers;
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/home_dashboard/models/logout_response.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/new_suggestion/models/new_suggestion_request.dart';
@@ -96,4 +99,15 @@ abstract class RestClient {
 
   @GET('/person/')
   Future<OperatorsDetailsResponse> operatorDetails();
+
+  @POST('/work-order-spare-part/bulk/{workOrderId}')
+  Future<SparePartsResponse> bulkSparePartRequest(
+    @Path('workOrderId') String workOrderId,
+    @Body() List<SparePartsRequest> lines,
+  );
+
+  @POST('/v1/api/work-order-rca/')
+  Future<RcaResponse> createRca(
+    @Body() RcaRequest body,
+  );
 }
