@@ -12,8 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerStartWorkOrderController extends GetxController {
-  static const String _BASE_URL =
-      'https://user-dev.eazyops.in:8443/v1/api/uploads/';
+  // static const String Constant.BASE_URL =
+  //     'https://user-dev.eazyops.in:8443/v1/api/uploads/';
   // Demo hero values
   final subject = ''.obs; // 'Hydraulic Leak in CNC-1'.obs;
   final priority = ''.obs; // 'High'.obs;
@@ -130,9 +130,9 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
       return p;
     }
     // normalize slashes
-    final base = _BASE_URL.endsWith('/')
-        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
-        : _BASE_URL;
+    final base = Constant.BASE_URL.endsWith('/')
+        ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
+        : Constant.BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
     return '$base/$path';
   }

@@ -493,6 +493,8 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
         child: InkWell(
           onHighlightChanged: (v) => setState(() => _pressed = v),
           onTap: () async {
+            await SharePreferences.setObject(
+                Constant.workOrder, order.toJson());
             final userRole =
                 await SharePreferences.get<String>(SharePreferences.userRole)
                     as String;

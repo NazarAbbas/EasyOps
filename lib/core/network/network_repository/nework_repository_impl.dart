@@ -6,6 +6,9 @@ import 'package:easy_ops/core/network/network_repository/network_repository.dart
 import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/common_features/login/models/login_response.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
@@ -483,6 +486,62 @@ class NetworkRepositoryImpl implements NetworkRepository {
       );
     } catch (e) {
       return ApiResult<RcaResponse>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<UsersResponse>> getUsersList() async {
+    try {
+      final result = await _apiService.getUsersList();
+
+      return ApiResult<UsersResponse>(
+        httpCode: 200,
+        data: result,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<UsersResponse>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<UsersResponse>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<PendingActivityResponse>> createActivitiesBulk(
+      List<PendingActivityRequest> pendingActivityRequest) async {
+    try {
+      final result =
+          await _apiService.createActivitiesBulk(pendingActivityRequest);
+
+      return ApiResult<PendingActivityResponse>(
+        httpCode: 200,
+        data: result,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<PendingActivityResponse>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<PendingActivityResponse>(
         httpCode: 0,
         data: null,
         message: e.toString(),

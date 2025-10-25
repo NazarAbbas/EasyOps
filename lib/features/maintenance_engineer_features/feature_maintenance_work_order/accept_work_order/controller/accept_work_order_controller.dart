@@ -1,5 +1,6 @@
 // work_order_details_controller.dart
 // ignore: file_names
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
@@ -7,7 +8,7 @@ import 'package:get/get.dart';
 
 class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   // ----- Base URL to prefix -----
-  static const String _BASE_URL = 'https://user-dev.eazyops.in:8443/v1/api/';
+  //static const String Constant.BASE_URL = 'https://user-dev.eazyops.in:8443/v1/api/';
 
   // Header
   final title = 'Work Order Details'.obs;
@@ -115,7 +116,7 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   /// Makes an absolute URL:
   /// - returns empty string for null/empty
   /// - returns as-is if already absolute (http/https)
-  /// - otherwise prefixes [_BASE_URL] (with clean single slash)
+  /// - otherwise prefixes [Constant.BASE_URL] (with clean single slash)
   String _absoluteUrl(String? raw) {
     final p = (raw ?? '').trim();
     if (p.isEmpty) return '';
@@ -124,9 +125,9 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
       return 'https://picsum.photos/200/300'; //p;
     }
     // normalize slashes
-    final base = _BASE_URL.endsWith('/')
-        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
-        : _BASE_URL;
+    final base = Constant.BASE_URL.endsWith('/')
+        ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
+        : Constant.BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
     return 'https://picsum.photos/200/300'; //'$base/$path';
   }
@@ -139,9 +140,9 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
       return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //p;
     }
     // normalize slashes
-    final base = _BASE_URL.endsWith('/')
-        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
-        : _BASE_URL;
+    final base = Constant.BASE_URL.endsWith('/')
+        ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
+        : Constant.BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
     return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //'$base/$path';
   }

@@ -1,11 +1,12 @@
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerDiagnosticsController extends GetxController {
-  static const String _BASE_URL =
-      'https://user-dev.eazyops.in:8443/v1/api/uploads/';
+  // static const String Constant.BASE_URL =
+  //     'https://user-dev.eazyops.in:8443/v1/api/uploads/';
 
   /// top progress
   final isLoading = true.obs;
@@ -94,16 +95,16 @@ class MaintenanceEnginnerDiagnosticsController extends GetxController {
     return null;
   }
 
-  /// Turn a relative path into an absolute URL using _BASE_URL.
+  /// Turn a relative path into an absolute URL using Constant.BASE_URL.
   String _absoluteUrl(String? raw) {
     final p = (raw ?? '').trim();
     if (p.isEmpty) return '';
     final lower = p.toLowerCase();
     if (lower.startsWith('http://') || lower.startsWith('https://')) return p;
 
-    final base = _BASE_URL.endsWith('/')
-        ? _BASE_URL.substring(0, _BASE_URL.length - 1)
-        : _BASE_URL;
+    final base = Constant.BASE_URL.endsWith('/')
+        ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
+        : Constant.BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
     return '$base/$path';
   }

@@ -1,92 +1,134 @@
 import 'dart:async';
+import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_closure/controller/general_closure_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_pending_activity/controller/general_pending_activity_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_request.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-enum PendingActivityType { pmShutdownWeekend, breakdown, inspection }
-
-// You can keep the other actions if you want, but we will only return `back`.
-enum PendingActivityAction { added, updated, deleted, back }
-
-extension _EnumName on Enum {
-  String get name => toString().split('.').last;
-}
-
-class ActivityItem {
-  final String id;
-  final String title;
-  final PendingActivityType type;
-  final String? assignee;
-  final DateTime? targetDate;
-  final String? note;
-  final String status;
-
-  ActivityItem({
-    required this.id,
-    required this.title,
-    required this.type,
-    this.assignee,
-    this.targetDate,
-    this.note,
-    this.status = 'In Progress',
-  });
-
-  ActivityItem copyWith({
-    String? id,
-    String? title,
-    PendingActivityType? type,
-    String? assignee,
-    DateTime? targetDate,
-    String? note,
-    String? status,
-  }) {
-    return ActivityItem(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      type: type ?? this.type,
-      assignee: assignee ?? this.assignee,
-      targetDate: targetDate ?? this.targetDate,
-      note: note ?? this.note,
-      status: status ?? this.status,
-    );
-  }
-}
-
-/// ==== STRONGLY-TYPED RESULT (no Map) ====
-class PendingActivityResult {
-  final PendingActivityAction action; // will be PendingActivityAction.back
-  final List<ActivityItem> activities;
-
-  const PendingActivityResult({required this.action, required this.activities});
-}
-
 class MaintenanceEnginnerPendingActivityController extends GetxController {
+  // ---- Local UI list
   final RxList<ActivityItem> activities = <ActivityItem>[].obs;
 
-  // form fields
+  // ---- Repos
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
+  final DBRepository repository = Get.find<DBRepository>();
+
+  // ---- Lookups (activity type)
+  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+  final selectedReasonValue = 'Select Reason'.obs;
+  bool _isPlaceholder(LookupValues? v) =>
+      v == null || (v.id.isEmpty && v.displayName == 'Select activity type');
+
+  // ---- Users (from Floor)
+  final RxList<UserSummary> userSummary = <UserSummary>[].obs;
+  final Rxn<UserSummary> selectedAssignee = Rxn<UserSummary>();
+
+  // ---- Form fields
   final titleCtrl = TextEditingController();
   final noteCtrl = TextEditingController();
   final Rx<PendingActivityType> selectedType =
       PendingActivityType.pmShutdownWeekend.obs;
-  final RxString assignee = ''.obs;
   final Rx<DateTime?> targetDate = Rx<DateTime?>(null);
 
-  // ui state
+  // ---- UI state
   final RxBool isSubmitting = false.obs;
-
-  // editing state (null => adding new)
   final RxnInt editingIndex = RxnInt();
 
-  final people = const ['Ramesh', 'Suresh', 'Priya', 'Aditi'];
+  WorkOrders? workOrdersInfo;
+
+  // Helper: Full name for display
+  String _fullName(UserSummary u) => [u.firstName, u.lastName]
+      .where((s) => s.trim().isNotEmpty)
+      .join(' ')
+      .trim();
+
+  // Helper: find user by display name (used when editing an existing row)
+  UserSummary? _findUserByName(String? name) {
+    if (name == null || name.trim().isEmpty) return null;
+    final n = name.trim().toLowerCase();
+    for (final u in userSummary) {
+      final fn = _fullName(u).toLowerCase();
+      if (fn == n) return u;
+    }
+    return null;
+  }
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
+
+    // Load incoming activities (if any)
     final args = Get.arguments;
     if (args is PendingActivityArgs) {
-      // Make a shallow copy so we don’t mutate caller’s list by reference
       activities.assignAll(List<ActivityItem>.from(args.initial));
     }
+
+    // Active work order
+    workOrdersInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+
+    // Lookups for activity type
+    final List<LookupValues> activityTypeList =
+        await repository.getLookupByType(LookupType.activityType);
+
+    final placeholder = LookupValues(
+      id: '',
+      code: '',
+      displayName: 'Select activity type',
+      description: '',
+      lookupType: LookupType.department,
+      sortOrder: -1,
+      recordStatus: 1,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      tenantId: '',
+      clientId: '',
+    );
+    reason.assignAll([placeholder, ...activityTypeList]);
+    selectedReason.value = placeholder;
+
+    // Users from Floor
+    final usersList = await repository.getAllUsers();
+
+    // Placeholder for users dropdown
+    final userPlaceholder = UserSummary(
+      id: '',
+      email: '',
+      communicationEmail: '',
+      passwordHash: '',
+      firstName: 'Select',
+      lastName: 'assignee',
+      phone: '',
+      userType: UserType.unknown,
+      recordStatus: 1,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      tenantId: '',
+      tenantName: '',
+      clientId: '',
+      clientName: '',
+      orgId: '',
+      orgName: '',
+    );
+
+    userSummary.assignAll([userPlaceholder, ...usersList]);
+    selectedAssignee.value = userPlaceholder;
+  }
+
+  @override
+  void onClose() {
+    titleCtrl.dispose();
+    noteCtrl.dispose();
+    super.onClose();
   }
 
   Future<void> pickDate(BuildContext context) async {
@@ -101,27 +143,19 @@ class MaintenanceEnginnerPendingActivityController extends GetxController {
   }
 
   String _newId() => 'AC-${300 + activities.length + 1}';
-
-  Future<ActivityItem> _fakeCreate(ActivityItem item) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    return item;
-  }
-
-  Future<ActivityItem> _fakeUpdate(ActivityItem item) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return item;
-  }
-
   bool get isEditing => editingIndex.value != null;
 
   void beginEdit(int index) {
     final a = activities[index];
     editingIndex.value = index;
+
     titleCtrl.text = a.title;
     noteCtrl.text = a.note ?? '';
     selectedType.value = a.type;
-    assignee.value = a.assignee ?? '';
     targetDate.value = a.targetDate;
+
+    // try to find matching user in the loaded list
+    selectedAssignee.value = _findUserByName(a.assignee) ?? userSummary.first;
   }
 
   void cancelEdit() {
@@ -129,101 +163,170 @@ class MaintenanceEnginnerPendingActivityController extends GetxController {
     _resetForm();
   }
 
-  /// ---- Add / Update: modify list & stay on page (NO Get.back) ----
+  // ===== Helpers: UI -> API =====
+
+  String _typeIdFor(PendingActivityType t) {
+    switch (t) {
+      case PendingActivityType.pmShutdownWeekend:
+        return 'CLU-PM-SHUTDOWN-WEEKEND';
+      case PendingActivityType.breakdown:
+        return 'CLU-BREAKDOWN';
+      case PendingActivityType.inspection:
+        return 'CLU-INSPECTION';
+    }
+  }
+
+  String _yyyyMmDd(DateTime d) {
+    final mm = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '${d.year}-$mm-$dd';
+  }
+
+  /// Build payload for API from current `activities`
+  List<PendingActivityRequest> _buildRequests() {
+    final woId = workOrdersInfo?.id ?? '';
+    if (woId.isEmpty) {
+      throw StateError('Work order not loaded.');
+    }
+
+    final list = <PendingActivityRequest>[];
+    for (var i = 0; i < activities.length; i++) {
+      final a = activities[i];
+
+      // Resolve assignedToId from the name stored in ActivityItem.assignee
+      final matchedUser = _findUserByName(a.assignee);
+      final assignedToId = (matchedUser == null || matchedUser.id.isEmpty)
+          ? 'UNASSIGNED'
+          : matchedUser.id;
+
+      list.add(PendingActivityRequest(
+        sequence: i + 1,
+        workOrderId: woId,
+        title: a.title,
+        typeId: _typeIdFor(a.type),
+        requestedTargetDate: _yyyyMmDd(a.targetDate ?? DateTime.now()),
+        remark: (a.note ?? '').trim(),
+        status: a.status.isEmpty ? 'Pending' : a.status,
+        assignedToId: assignedToId,
+      ));
+    }
+    return list;
+  }
+
+  /// Add / Update locally
   Future<void> submit() async {
     final title = titleCtrl.text.trim();
     if (title.isEmpty) {
-      Get.snackbar(
-        'Missing Title',
-        'Please enter Activity Title',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar('Missing Title', 'Please enter Activity Title',
+          snackPosition: SnackPosition.BOTTOM);
       return;
     }
-    isSubmitting.value = true;
 
+    // Determine selected assignee name (for local UI list)
+    final assigneeUser = selectedAssignee.value;
+    final assigneeName = (assigneeUser == null || assigneeUser.id.isEmpty)
+        ? null
+        : _fullName(assigneeUser);
+
+    isSubmitting.value = true;
     try {
       if (isEditing) {
         final idx = editingIndex.value!;
-        final existing = activities[idx];
-        final updated = existing.copyWith(
+        final updated = activities[idx].copyWith(
           title: title,
           type: selectedType.value,
-          assignee: assignee.value.isEmpty ? null : assignee.value,
+          assignee: assigneeName, // store display name locally
           targetDate: targetDate.value,
           note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
+          status: 'Pending',
         );
-        final saved = await _fakeUpdate(updated);
-        activities[idx] = saved;
-        // (optional) bump edited item to top as in your other screen
+        activities[idx] = updated;
         activities.removeAt(idx);
-        activities.insert(0, saved);
-
-        Get.snackbar(
-          'Updated',
-          'Activity updated',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        activities.insert(0, updated);
         cancelEdit();
-        return;
+        Get.snackbar('Updated', 'Activity updated',
+            snackPosition: SnackPosition.BOTTOM);
+      } else {
+        activities.insert(
+          0,
+          ActivityItem(
+            id: _newId(),
+            title: title,
+            type: selectedType.value,
+            assignee: assigneeName, // store display name locally
+            targetDate: targetDate.value,
+            note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
+            status: 'Pending',
+          ),
+        );
+        _resetForm();
+        Get.snackbar('Added', 'Activity added',
+            snackPosition: SnackPosition.BOTTOM);
       }
-
-      // create
-      final item = ActivityItem(
-        id: _newId(),
-        title: title,
-        type: selectedType.value,
-        assignee: assignee.value.isEmpty ? null : assignee.value,
-        targetDate: targetDate.value,
-        note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
-      );
-      final created = await _fakeCreate(item);
-      activities.insert(0, created);
-
-      Get.snackbar(
-        'Added',
-        'Activity added',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      _resetForm(); // stay on page
     } finally {
       isSubmitting.value = false;
     }
   }
 
-  /// ---- Delete: modify list & stay on page (NO Get.back) ----
+  /// Save to API (bulk) & go back with typed result
+  Future<void> saveAndBack() async {
+    isSubmitting.value = true;
+    try {
+      final pendingActivityList = _buildRequests();
+      final res =
+          await repositoryImpl.createActivitiesBulk(pendingActivityList);
+      final code = res.httpCode ?? 0;
+
+      if (code == 200 || code == 201 || code == 204) {
+        final result = PendingActivityResult(
+          action: PendingActivityAction.back,
+          activities: List<ActivityItem>.from(activities),
+        );
+        Get.back(result: result);
+      } else {
+        Get.snackbar(
+          'Failed',
+          (res.message?.trim().isNotEmpty ?? false)
+              ? res.message!.trim()
+              : 'Unexpected response (code $code).',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.black87,
+        margin: const EdgeInsets.all(12),
+      );
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
   void deleteAt(int index) {
     activities.removeAt(index);
     if (editingIndex.value == index) cancelEdit();
-    Get.snackbar(
-      'Deleted',
-      'Activity removed',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-
-  /// ---- Save & Back / Back: RETURN TYPED RESULT ----
-  void saveAndBack() {
-    final result = PendingActivityResult(
-      action: PendingActivityAction.back,
-      activities: List<ActivityItem>.from(activities),
-    );
-    Get.back(result: result);
+    Get.snackbar('Deleted', 'Activity removed',
+        snackPosition: SnackPosition.BOTTOM);
   }
 
   void _resetForm() {
     titleCtrl.clear();
     noteCtrl.clear();
     selectedType.value = PendingActivityType.pmShutdownWeekend;
-    assignee.value = '';
     targetDate.value = null;
-  }
 
-  @override
-  void onClose() {
-    titleCtrl.dispose();
-    noteCtrl.dispose();
-    super.onClose();
+    // reset assignee to placeholder
+    if (userSummary.isNotEmpty) {
+      selectedAssignee.value = userSummary.first;
+    } else {
+      selectedAssignee.value = null;
+    }
   }
 }

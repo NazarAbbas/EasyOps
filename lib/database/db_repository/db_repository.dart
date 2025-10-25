@@ -1,5 +1,7 @@
 // lib/database/db_repository/asset_repository.dart
+import 'package:easy_ops/database/entity/user_list_entity.dart';
 import 'package:easy_ops/database/mappers/mappers.dart';
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
@@ -212,6 +214,16 @@ class DBRepository {
 
   Future<List<Shift>> getAllShift() async {
     final List<ShiftEntity> rows = await db.shiftDao.getAllShift();
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<void> upsertAllUsers(UsersResponse resp) async {
+    final entities = resp.content.map((e) => e.toEntity()).toList();
+    await db.userListDao.upsertUsers(entities);
+  }
+
+  Future<List<UserSummary>> getAllUsers() async {
+    final List<UserListEntity> rows = await db.userListDao.getAllUsers();
     return rows.map((e) => e.toDomain()).toList();
   }
 }

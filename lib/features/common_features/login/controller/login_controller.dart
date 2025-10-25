@@ -65,6 +65,10 @@ class LoginPageController extends GetxController {
         //const userRole = 'maintenance_engineer';
         const userRole = 'production_manager';
 
+        final userList = await repositoryImpl.getUsersList();
+        await repository.upsertAllUsers(userList.data!);
+        //final details = await repository.getAllUsers();
+
         final loginPersonDetails =
             await repositoryImpl.loginPersonDetails(result.data!.userName);
 

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_pending_activity/controller/general_pending_activity_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_rca_analysis/controller/general_rca_analysis_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure/controller/closure_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure_signature/controller/sign_off_controller.dart'
     show SignatureResult;

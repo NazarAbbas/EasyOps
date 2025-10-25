@@ -1,5 +1,8 @@
 // lib/network/rest_client.dart
 import 'package:dio/dio.dart' hide Headers;
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
@@ -106,8 +109,16 @@ abstract class RestClient {
     @Body() List<SparePartsRequest> lines,
   );
 
-  @POST('/v1/api/work-order-rca/')
+  @POST('/work-order-rca/')
   Future<RcaResponse> createRca(
     @Body() RcaRequest body,
   );
+
+  /// Sends a JSON array body
+  @POST('work-order-activity/bulk')
+  Future<PendingActivityResponse> createActivitiesBulk(
+      @Body() List<PendingActivityRequest> items);
+
+  @GET('/user/')
+  Future<UsersResponse> getUsersList();
 }

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_pending_activity/controller/general_pending_activity_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_rca_analysis/controller/general_rca_analysis_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure/controller/closure_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure_signature/controller/sign_off_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/controller/rca_analysis_controller.dart';
@@ -864,35 +865,6 @@ class _PendingActivity extends GetView<MaintenanceEnginnerClosureController> {
         ],
       );
 }
-
-// class _EnterRowAddActivity extends GetView<ClosureController> {
-//   final String text;
-//   final IconData icon;
-//   const _EnterRowAddActivity({required this.text, required this.icon});
-//   @override
-//   Widget build(BuildContext context) => Row(
-//     children: [
-//       Expanded(
-//         child: Text(
-//           text,
-//           style: const TextStyle(
-//             color: _C.primary,
-//             fontWeight: FontWeight.w800,
-//           ),
-//         ),
-//       ),
-//       _IconChip(
-//         icon: CupertinoIcons.wrench_fill,
-//         bg: const Color(0xFFEFF4FF),
-//         fg: _C.primary,
-//         onTap: () async {
-//           final res = await Get.toNamed(Routes.rcaAnalysisScreen);
-//           controller.rcaResult.value = res;
-//         },
-//       ),
-//     ],
-//   );
-// }
 
 class _KVRow extends StatelessWidget {
   final String leftTitle;

@@ -150,6 +150,7 @@ enum LookupType {
   resolution,
   cancellation,
   assetcat1,
+  activityType,
   unknown
 }
 
@@ -172,6 +173,8 @@ extension LookupTypeX on LookupType {
         return LookupType.cancellation;
       case 'ASSETCAT1':
         return LookupType.assetcat1;
+      case 'ACTIVITYTYPE':
+        return LookupType.activityType;
       default:
         return LookupType.unknown;
     }

@@ -12,6 +12,9 @@ class Constant {
   static const String workOrderInfo = 'work_order_info';
   static const String workOrderStatus = 'work_order_status';
   static const String loginPersonId = 'login_person_id';
+  static const String workOrder = 'work_order';
+  static const String BASE_URL =
+      'https://user-dev.eazyops.in:8443/v1/api/uploads/';
 }
 
 enum WorkOrderStatus {

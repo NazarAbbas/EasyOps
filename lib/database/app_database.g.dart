@@ -92,6 +92,8 @@ class _$AppDatabase extends AppDatabase {
 
   LoginPersonHolidaysDao? _loginPersonHolidaysDaoInstance;
 
+  UserListDao? _userListDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -133,6 +135,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `operators_details_entity` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` INTEGER, `updatedAt` INTEGER, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `userId` TEXT, `organizationId` TEXT, `parentStaffId` TEXT, `managerId` TEXT, `shiftId` TEXT, `departmentId` TEXT, `userEmail` TEXT, `organizationName` TEXT, `parentStaffName` TEXT, `managerName` TEXT, `shiftName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_holidays` (`id` TEXT NOT NULL, `holidayDate` INTEGER, `holidayName` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `users_list` (`id` TEXT NOT NULL, `email` TEXT NOT NULL, `communicationEmail` TEXT, `passwordHash` TEXT NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `phone` TEXT NOT NULL, `userType` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `tenantName` TEXT NOT NULL, `clientId` TEXT NOT NULL, `clientName` TEXT NOT NULL, `orgId` TEXT, `orgName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
         await database.execute(
@@ -231,6 +235,11 @@ class _$AppDatabase extends AppDatabase {
   LoginPersonHolidaysDao get loginPersonHolidaysDao {
     return _loginPersonHolidaysDaoInstance ??=
         _$LoginPersonHolidaysDao(database, changeListener);
+  }
+
+  @override
+  UserListDao get userListDao {
+    return _userListDaoInstance ??= _$UserListDao(database, changeListener);
   }
 }
 
@@ -984,9 +993,78 @@ class _$LoginPersonHolidaysDao extends LoginPersonHolidaysDao {
   }
 }
 
+class _$UserListDao extends UserListDao {
+  _$UserListDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _userListEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'users_list',
+            (UserListEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'email': item.email,
+                  'communicationEmail': item.communicationEmail,
+                  'passwordHash': item.passwordHash,
+                  'firstName': item.firstName,
+                  'lastName': item.lastName,
+                  'phone': item.phone,
+                  'userType': _userTypeConverter.encode(item.userType),
+                  'recordStatus': item.recordStatus,
+                  'createdAt': _dateTimeIsoConverter.encode(item.createdAt),
+                  'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt),
+                  'tenantId': item.tenantId,
+                  'tenantName': item.tenantName,
+                  'clientId': item.clientId,
+                  'clientName': item.clientName,
+                  'orgId': item.orgId,
+                  'orgName': item.orgName
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<UserListEntity> _userListEntityInsertionAdapter;
+
+  @override
+  Future<List<UserListEntity>> getAllUsers() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM users_list ORDER BY updatedAt DESC',
+        mapper: (Map<String, Object?> row) => UserListEntity(
+            id: row['id'] as String,
+            email: row['email'] as String,
+            communicationEmail: row['communicationEmail'] as String?,
+            passwordHash: row['passwordHash'] as String,
+            firstName: row['firstName'] as String,
+            lastName: row['lastName'] as String,
+            phone: row['phone'] as String,
+            userType: _userTypeConverter.decode(row['userType'] as String),
+            recordStatus: row['recordStatus'] as int,
+            createdAt: _dateTimeIsoConverter.decode(row['createdAt'] as String),
+            updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
+            tenantId: row['tenantId'] as String,
+            tenantName: row['tenantName'] as String,
+            clientId: row['clientId'] as String,
+            clientName: row['clientName'] as String,
+            orgId: row['orgId'] as String?,
+            orgName: row['orgName'] as String?));
+  }
+
+  @override
+  Future<void> upsertUsers(List<UserListEntity> users) async {
+    await _userListEntityInsertionAdapter.insertList(
+        users, OnConflictStrategy.replace);
+  }
+}
+
 // ignore_for_file: unused_element
 final _epochDateTimeConverter = EpochDateTimeConverter();
 final _lookupTypeConverter = LookupTypeConverter();
 final _dateTimeIsoConverter = DateTimeIsoConverter();
 final _criticalityConverter = CriticalityConverter();
 final _assetStatusConverter = AssetStatusConverter();
+final _dateTimeConverter = DateTimeConverter();
+final _userTypeConverter = UserTypeConverter();

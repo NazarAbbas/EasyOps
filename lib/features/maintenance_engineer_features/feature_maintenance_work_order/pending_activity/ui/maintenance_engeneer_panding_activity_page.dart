@@ -1,4 +1,8 @@
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_pending_activity/controller/general_pending_activity_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/controller/pending_activity_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,10 +21,7 @@ class MaintenanceEngineerPendingActivityPage
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           children: [
-            ...controller.activities
-                .asMap()
-                .entries
-                .map(
+            ...controller.activities.asMap().entries.map(
                   (e) => _ActivityCard(
                     item: e.value,
                     index: e.key,
@@ -33,12 +34,11 @@ class MaintenanceEngineerPendingActivityPage
                     },
                     onDelete: () => _confirmDelete(context, e.key),
                   ),
-                )
-                .toList(),
+                ),
             const SizedBox(height: 12),
             _FormCard(controller: controller, formKey: _formKey),
             const SizedBox(height: 20),
-            _GoBackButton(),
+            const _GoBackButton(),
           ],
         );
       }),
@@ -112,7 +112,7 @@ class _ActivityCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCBD5E1)), // subtle border
+        border: Border.all(color: const Color(0xFFCBD5E1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,36 +125,30 @@ class _ActivityCard extends StatelessWidget {
                 child: Text(
                   item.title,
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                      fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
               IconButton(
-                onPressed: onEdit,
-                icon: const Icon(CupertinoIcons.pencil, size: 18),
-              ),
+                  onPressed: onEdit,
+                  icon: const Icon(CupertinoIcons.pencil, size: 18)),
               IconButton(
-                onPressed: onDelete,
-                icon: const Icon(CupertinoIcons.delete, size: 18),
-              ),
+                  onPressed: onDelete,
+                  icon: const Icon(CupertinoIcons.delete, size: 18)),
             ],
           ),
           const SizedBox(height: 6),
           Row(
             children: [
-              Text(
-                item.id,
-                style: const TextStyle(color: Color(0xFF7C8698), fontSize: 12),
-              ),
+              Text(item.id,
+                  style:
+                      const TextStyle(color: Color(0xFF7C8698), fontSize: 12)),
               const Spacer(),
               Text(
                 item.status,
                 style: const TextStyle(
-                  color: Color(0xFF2F6BFF),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+                    color: Color(0xFF2F6BFF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -172,10 +166,8 @@ class _ActivityCard extends StatelessWidget {
               const Spacer(),
               const Icon(CupertinoIcons.person, size: 16),
               const SizedBox(width: 6),
-              Text(
-                item.assignee ?? 'Unassigned',
-                style: const TextStyle(fontSize: 13),
-              ),
+              Text(item.assignee ?? 'Unassigned',
+                  style: const TextStyle(fontSize: 13)),
             ],
           ),
         ],
@@ -205,6 +197,11 @@ class _FormCard extends StatelessWidget {
         ),
       );
 
+  String _userLabel(UserSummary u) {
+    final name = '${u.firstName} ${u.lastName}'.trim();
+    return name.isEmpty ? u.email : name;
+  }
+
   @override
   Widget build(BuildContext context) {
     final labelStyle = const TextStyle(
@@ -224,66 +221,51 @@ class _FormCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(
-            () => Center(
-              child: Text(
-                controller.isEditing ? 'Edit Activity' : 'Add Activity',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
+          Obx(() => Center(
+                child: Text(
+                  controller.isEditing ? 'Edit Activity' : 'Add Activity',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 15),
                 ),
-              ),
-            ),
-          ),
+              )),
           const SizedBox(height: 16),
+
+          // Title
           Text('Activity Title', style: labelStyle),
           const SizedBox(height: 6),
           TextField(
-            controller: controller.titleCtrl,
-            decoration: _decor('Enter activity title'),
-          ),
+              controller: controller.titleCtrl,
+              decoration: _decor('Enter activity title')),
           const SizedBox(height: 14),
+
+          // Activity Type (lookup picker)
           Text('Activity Type', style: labelStyle),
           const SizedBox(height: 6),
-          Obx(() {
-            return DropdownButtonFormField<PendingActivityType>(
-              value: controller.selectedType.value,
-              decoration: _decor('Select type'),
-              items: const [
-                DropdownMenuItem(
-                  value: PendingActivityType.pmShutdownWeekend,
-                  child: Text('PM/shutdown/weekend'),
-                ),
-                DropdownMenuItem(
-                  value: PendingActivityType.breakdown,
-                  child: Text('Breakdown'),
-                ),
-                DropdownMenuItem(
-                  value: PendingActivityType.inspection,
-                  child: Text('Inspection'),
-                ),
-              ],
-              onChanged: (v) {
-                if (v != null) controller.selectedType.value = v;
-              },
-            );
-          }),
+          const _ReasonPickerField(),
           const SizedBox(height: 14),
+
+          // Assignee dropdown (BOUND TO USER LIST)
           Text('Assign To (Optional)', style: labelStyle),
           const SizedBox(height: 6),
           Obx(() {
-            return DropdownButtonFormField<String>(
-              value: controller.assignee.value.isEmpty
-                  ? null
-                  : controller.assignee.value,
-              decoration: _decor('Assign to'),
-              items: controller.people
-                  .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+            final items = controller.userSummary;
+            return DropdownButtonFormField<UserSummary>(
+              value: controller.selectedAssignee.value,
+              decoration: _decor('Select assignee'),
+              items: items
+                  .map(
+                    (u) => DropdownMenuItem<UserSummary>(
+                      value: u,
+                      child: Text(_userLabel(u)),
+                    ),
+                  )
                   .toList(),
-              onChanged: (v) => controller.assignee.value = v ?? '',
+              onChanged: (v) => controller.selectedAssignee.value = v,
             );
           }),
           const SizedBox(height: 14),
+
+          // Date
           Text('Target Date (Optional)', style: labelStyle),
           const SizedBox(height: 6),
           Obx(() {
@@ -293,26 +275,28 @@ class _FormCard extends StatelessWidget {
                 : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
             return GestureDetector(
               onTap: () => controller.pickDate(context),
-              child: AbsorbPointer(
-                child: TextField(
-                  decoration: _decor(
-                    '__/__/____',
-                  ).copyWith(suffixIcon: const Icon(CupertinoIcons.calendar)),
-                  controller: TextEditingController(text: text),
+              child: InputDecorator(
+                decoration: _decor('__/__/____').copyWith(
+                  suffixIcon: const Icon(CupertinoIcons.calendar),
                 ),
+                child: Text(text.isEmpty ? ' ' : text,
+                    style: const TextStyle(fontSize: 14)),
               ),
             );
           }),
           const SizedBox(height: 14),
+
+          // Note
           Text('Add Note (Optional)', style: labelStyle),
           const SizedBox(height: 6),
           TextField(
-            controller: controller.noteCtrl,
-            minLines: 3,
-            maxLines: 3,
-            decoration: _decor('Write a note'),
-          ),
+              controller: controller.noteCtrl,
+              minLines: 3,
+              maxLines: 3,
+              decoration: _decor('Write a note')),
           const SizedBox(height: 20),
+
+          // Buttons
           Obx(() {
             final saving = controller.isSubmitting.value;
             final editing = controller.isEditing;
@@ -323,14 +307,12 @@ class _FormCard extends StatelessWidget {
                   child: FilledButton(
                     onPressed: saving ? null : controller.submit,
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
+                        padding: const EdgeInsets.symmetric(vertical: 14)),
                     child: saving
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                            child: CircularProgressIndicator(strokeWidth: 2))
                         : Text(editing ? 'Update' : 'Add'),
                   ),
                 ),
@@ -340,8 +322,7 @@ class _FormCard extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: saving ? null : controller.cancelEdit,
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
+                          padding: const EdgeInsets.symmetric(vertical: 14)),
                       child: const Text('Cancel'),
                     ),
                   ),
@@ -355,22 +336,101 @@ class _FormCard extends StatelessWidget {
   }
 }
 
+class _ReasonPickerField
+    extends GetView<MaintenanceEnginnerPendingActivityController> {
+  const _ReasonPickerField({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final sel = controller.selectedReason.value;
+      final isPlaceholder = sel == null ||
+          (sel.id.isEmpty && sel.displayName == 'Select activity type');
+
+      final text = isPlaceholder
+          ? 'Select activity type'
+          : (sel.displayName.isEmpty ? '(Unnamed)' : sel.displayName);
+
+      return InkWell(
+        onTap: () async {
+          final v = await LookupPicker.show(
+            context: context,
+            lookupType: LookupType.activityType.name,
+            selected: controller.selectedReason.value,
+          );
+          if (v != null) {
+            controller.selectedReason.value = v;
+            controller.selectedReasonValue.value = v.displayName;
+          }
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: InputDecorator(
+          decoration: _D
+              .field()
+              .copyWith(suffixIcon: const Icon(CupertinoIcons.chevron_down)),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: isPlaceholder ? _C.muted : _C.text,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _D {
+  static InputDecoration field({String? hint}) {
+    return const InputDecoration(
+      isDense: true,
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFFE1E6EF)),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFFE1E6EF)),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.primary),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ).copyWith(
+      hintText: hint,
+      hintStyle: const TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
+    );
+  }
+}
+
+class _C {
+  static const primary = Color(0xFF2F6BFF);
+  static const bg = Color(0xFFF6F7FB);
+  static const muted = Color(0xFF7C8698);
+  static const text = Color(0xFF2D2F39);
+  static const line = Color(0xFFE6EBF3);
+}
+
 class _GoBackButton
     extends GetView<MaintenanceEnginnerPendingActivityController> {
+  const _GoBackButton({super.key});
+
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-      onPressed: () => {controller.saveAndBack()},
+      onPressed: () => controller.saveAndBack(),
       style: OutlinedButton.styleFrom(
         side: const BorderSide(color: Color(0xFF2F6BFF)),
         foregroundColor: const Color(0xFF2F6BFF),
         minimumSize: const Size(double.infinity, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      child: const Text(
-        'Save & Back',
-        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-      ),
+      child: const Text('Save & Back',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
     );
   }
 }

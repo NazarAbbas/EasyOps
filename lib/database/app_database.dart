@@ -10,12 +10,14 @@ import 'package:easy_ops/database/dao/lookup_dao.dart';
 import 'package:easy_ops/database/dao/offline_work_order_dao.dart';
 import 'package:easy_ops/database/dao/operators_details_dao.dart';
 import 'package:easy_ops/database/dao/shift_dao.dart';
+import 'package:easy_ops/database/dao/user_list_dao.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
 import 'package:easy_ops/database/entity/login_person_details_entity.dart';
 import 'package:easy_ops/database/entity/lookup_entity.dart';
 import 'package:easy_ops/database/entity/offline_work_order_entity.dart';
 import 'package:easy_ops/database/entity/operators_details_entity.dart';
 import 'package:easy_ops/database/entity/shift_entity.dart';
+import 'package:easy_ops/database/entity/user_list_entity.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
@@ -33,7 +35,8 @@ part 'app_database.g.dart';
   LoginPersonContactEntity,
   LoginPersonAssetEntity,
   OperatorsDetailsEntity,
-  LoginPersonHolidayEntity
+  LoginPersonHolidayEntity,
+  UserListEntity
 ])
 abstract class AppDatabase extends FloorDatabase {
   LoginPersonDetailsDao get loginPersonDao;
@@ -46,4 +49,5 @@ abstract class AppDatabase extends FloorDatabase {
   OfflineWorkOrderDao get offlineWorkOrderDao;
   OperatorsDetailsDao get operatorsDetailsDao;
   LoginPersonHolidaysDao get loginPersonHolidaysDao;
+  UserListDao get userListDao;
 }

@@ -1,6 +1,9 @@
 // lib/network/api_service.dart
 import 'dart:convert';
 import 'dart:io';
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_request.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
@@ -147,6 +150,24 @@ class ApiService {
   ) async {
     try {
       return await _api.createRca(rcaRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<PendingActivityResponse> createActivitiesBulk(
+    List<PendingActivityRequest> pendingActivityRequest,
+  ) async {
+    try {
+      return await _api.createActivitiesBulk(pendingActivityRequest);
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<UsersResponse> getUsersList() async {
+    try {
+      return await _api.getUsersList();
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }
