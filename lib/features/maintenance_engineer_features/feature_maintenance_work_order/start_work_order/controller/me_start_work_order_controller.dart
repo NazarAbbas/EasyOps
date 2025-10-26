@@ -15,14 +15,14 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
   // static const String Constant.BASE_URL =
   //     'https://user-dev.eazyops.in:8443/v1/api/uploads/';
   // Demo hero values
-  final subject = ''.obs; // 'Hydraulic Leak in CNC-1'.obs;
-  final priority = ''.obs; // 'High'.obs;
-  final elapsed = ''.obs; //'00:23'.obs;
-  final woCode = ''.obs; // 'WO-2025-00123'.obs;
-  final time = '10:15 AM'.obs;
-  final date = '13 Sep 2025'.obs;
-  final category = 'Breakdown'.obs;
-  final status = ''.obs;
+  // final subject = ''.obs; // 'Hydraulic Leak in CNC-1'.obs;
+  // final priority = ''.obs; // 'High'.obs;
+  // final elapsed = ''.obs; //'00:23'.obs;
+  // final woCode = ''.obs; // 'WO-2025-00123'.obs;
+  // final time = '10:15 AM'.obs;
+  // final date = '13 Sep 2025'.obs;
+  // final category = 'Breakdown'.obs;
+  // final status = ''.obs;
 
   // Phone numbers (bind your real values)
   final reportedByPhone = '+911234567890'.obs;
@@ -68,13 +68,13 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
     } else {
       workOrderInfo = workTabsController.workOrder;
     }
-    subject.value = workOrderInfo!.title;
-    priority.value = workOrderInfo!.priority;
-    elapsed.value = workOrderInfo!.estimatedTimeToFix;
-    woCode.value = workOrderInfo!.issueNo;
-    status.value = workOrderInfo!.status;
-    date.value = formatDate(workOrderInfo!.createdAt);
-    description.value = workOrderInfo!.description;
+    // subject.value = workOrderInfo!.title;
+    // priority.value = workOrderInfo!.priority;
+    // elapsed.value = workOrderInfo!.estimatedTimeToFix;
+    // woCode.value = workOrderInfo!.issueNo;
+    // status.value = workOrderInfo!.status;
+    // date.value = formatDate(workOrderInfo!.createdAt);
+    // description.value = workOrderInfo!.description;
 
     reportedByPhone.value = (workOrderInfo?.reportedBy?.phone).orNA();
     final operatorName = [

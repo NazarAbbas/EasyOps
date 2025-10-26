@@ -459,7 +459,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
     final double pad = isTablet ? 16 : 14;
     final double titleSize = isTablet ? 16 : 14;
     final double metaSize = isTablet ? 13.5 : 12.5;
-    final double labelSize = isTablet ? 14.5 : 13.5;
+    final double labelSize = isTablet ? 14.5 : 12;
 
     // Colors
     const textPrimary = Color(0xFF111827);
@@ -498,55 +498,66 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             final userRole =
                 await SharePreferences.get<String>(SharePreferences.userRole)
                     as String;
-            // final status = (order.status).toUpperCase();
-            // if (userRole == SharePreferences.engineerRole) {
-            //   if (status == "OPEN") {
-            //     Get.toNamed(
-            //       Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
-            //       arguments: {
-            //         Constant.workOrderInfo: order,
-            //         Constant.workOrderStatus: WorkOrderStatus.open,
-            //       },
-            //     );
-            //   }
-            //   if (status == "INPROGRESS") {
-            //     Get.toNamed(
-            //       Routes.maintenanceEngeneerstartWorkOrderScreen,
-            //       arguments: {
-            //         Constant.workOrderInfo: order,
-            //         Constant.workOrderStatus: WorkOrderStatus.open,
-            //       },
-            //     );
-            //   }
-            // } else {
-            //   if (status == "RESOLVED") {
-            //     Get.toNamed(
-            //       Routes.updateWorkOrderTabScreen,
-            //       arguments: {
-            //         Constant.workOrderInfo: order,
-            //         Constant.workOrderStatus: WorkOrderStatus.resolved,
-            //       },
-            //     );
-            //   }
-            //   if (status == "OPEN") {
-            //     Get.toNamed(
-            //       Routes.workOrderTabShellScreen,
-            //       arguments: {
-            //         Constant.workOrderInfo: order,
-            //         Constant.workOrderStatus: WorkOrderStatus.open,
-            //       },
-            //     );
-            //   }
-            // }
+            final status = (order.status).toUpperCase();
 
             Get.toNamed(
-              Routes.maintenanceEngeneerstartWorkOrderScreen,
+              Routes.workOrderTabShellScreen,
               arguments: {
                 Constant.workOrderInfo: order,
                 Constant.workOrderStatus: WorkOrderStatus.open,
               },
             );
+            return;
+            if (userRole == SharePreferences.engineerRole) {
+              if (status == "OPEN" || status == "REOPEN") {
+                Get.toNamed(
+                  Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.open,
+                  },
+                );
+              }
+              if (status == "ACCEPTED") {
+                Get.toNamed(
+                  Routes.maintenanceEngeneerstartWorkOrderScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.open,
+                  },
+                );
+              }
+              if (status == "INPROGRESS") {
+                Get.toNamed(
+                  Routes.maintenanceEngeneerdiagnosticsScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.open,
+                  },
+                );
+              }
+            } else {
+              if (status == "RESOLVED") {
+                Get.toNamed(
+                  Routes.updateWorkOrderTabScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.resolved,
+                  },
+                );
+              }
+              if (status == "OPEN") {
+                Get.toNamed(
+                  Routes.workOrderTabShellScreen,
+                  arguments: {
+                    Constant.workOrderInfo: order,
+                    Constant.workOrderStatus: WorkOrderStatus.open,
+                  },
+                );
+              }
+            }
 
+//===============================================================================
             // Get.toNamed(
             //   Routes.maintenanceEngeneerstartWorkOrderScreen,
             //   arguments: {
@@ -556,6 +567,14 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             // );
 
             // Get.toNamed(
+            //   Routes.maintenanceEngeneerstartWorkOrderScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+//===============================================================================
+            // Get.toNamed(
             //   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
             //   arguments: {
             //     Constant.workOrderInfo: order,
@@ -563,6 +582,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             //   },
             // );
 
+//===============================================================================
             // Get.toNamed(
             //   Routes.updateWorkOrderTabScreen,
             //   arguments: {
@@ -679,7 +699,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                               _MetaChip(
                                   icon: CupertinoIcons.number,
                                   label: order.issueNo),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 2),
                               _MetaChip(
                                   icon: null,
                                   label: _formatDate(order.createdAt)),
@@ -687,7 +707,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                           ),
                         ),
 
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 2),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 6),

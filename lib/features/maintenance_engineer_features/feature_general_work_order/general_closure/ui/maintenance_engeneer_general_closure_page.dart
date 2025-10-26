@@ -1,14 +1,18 @@
+// maintenance_engineer_closure_page.dart
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_pending_activity/controller/general_pending_activity_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_rca_analysis/controller/general_rca_analysis_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure/controller/closure_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/closure_signature/controller/sign_off_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/controller/rca_analysis_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:signature/signature.dart';
 
 class MaintenanceEngineerClosurePage
     extends GetView<MaintenanceEnginnerClosureController> {
@@ -36,25 +40,37 @@ class MaintenanceEngineerClosurePage
         ),
       ),
       body: Obx(() {
+        final boot = controller.isBootstrapping.value;
+        final submit = controller.isSubmitting.value;
+        final wo = controller.workOrderInfo;
+
         return Stack(
           children: [
             SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
               child: Column(
-                children: const [
-                  _SummaryCard(),
-                  SizedBox(height: 12),
-                  _ClosureCommentsCard(),
-                  SizedBox(height: 12),
-                  _SparesConsumedCard(),
-                  SizedBox(height: 12),
-                  _RcaCard(),
-                  SizedBox(height: 12),
-                  _PendingActivityCard(),
+                children: [
+                  if (boot)
+                    const _SkeletonTile()
+                  else if (wo != null)
+                    WorkOrderTile(
+                      workOrderInfo: wo,
+                      onTap: () => debugPrint('Open work order'),
+                    )
+                  else
+                    const _ErrorTile(message: 'No work order found'),
+                  const SizedBox(height: 12),
+                  const _ClosureCommentsCard(),
+                  const SizedBox(height: 12),
+                  const _SparesConsumedCard(),
+                  const SizedBox(height: 12),
+                  const _RcaCard(),
+                  const SizedBox(height: 12),
+                  const _PendingActivityCard(),
                 ],
               ),
             ),
-            if (controller.isLoading.value)
+            if (boot || submit)
               const Align(
                 alignment: Alignment.topCenter,
                 child: LinearProgressIndicator(minHeight: 2),
@@ -83,6 +99,7 @@ class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Row(
           children: [
+            // Popup trigger styled like enabled button
             Expanded(
               child: PopupMenuButton<String>(
                 onSelected: (v) => Get.snackbar('Action', v),
@@ -100,27 +117,23 @@ class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
                     child: Text('Cancel Work Order'),
                   ),
                 ],
-                child: OutlinedButton(
-                  onPressed: null,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: primary),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.white,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: primary),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Other Options',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      SizedBox(width: 6),
-                      Icon(CupertinoIcons.chevron_up, size: 16),
-                    ],
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Other Options',
+                            style: TextStyle(fontWeight: FontWeight.w800)),
+                        SizedBox(width: 6),
+                        Icon(CupertinoIcons.chevron_up, size: 16),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -128,7 +141,7 @@ class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
             const SizedBox(width: 12),
             Expanded(
               child: Obx(() {
-                final loading = controller.isLoading.value;
+                final loading = controller.isSubmitting.value;
                 return FilledButton(
                   onPressed: loading ? null : onResolve,
                   style: FilledButton.styleFrom(
@@ -163,118 +176,35 @@ class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
   }
 }
 
-/* ───────────── Summary (hero-ish top card) ───────────── */
+/* ───────────── Closure Comments (form + signature) ───────────── */
+class _SoftCard extends StatelessWidget {
+  final Widget child;
+  const _SoftCard({required this.child});
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title + priority chip
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Expanded(
-                child: Text(
-                  'Latency Issue in web browser',
-                  style: TextStyle(
-                    fontSize: 16,
-                    height: 1.25,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1F2430),
-                  ),
-                ),
-              ),
-              _PriorityPill(),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              Text(
-                'BD-102   18:08  |  09 Aug',
-                style: TextStyle(
-                  color: Color(0xFF7C8698),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Spacer(),
-              Text(
-                'In Progress',
-                style: TextStyle(
-                  color: Color(0xFF2F6BFF),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              _Tag('Mechanical'),
-              SizedBox(width: 8),
-              Icon(CupertinoIcons.link, size: 18, color: Color(0xFF2F6BFF)),
-              Spacer(),
-              Icon(CupertinoIcons.time, size: 18, color: Color(0xFF7C8698)),
-              SizedBox(width: 4),
-              Text('1h 20m', style: TextStyle(color: Color(0xFF7C8698))),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PriorityPill extends StatelessWidget {
-  const _PriorityPill();
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFE7E7),
-          borderRadius: BorderRadius.circular(18),
+          color: const Color(0xFFF7F9FC),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE9EEF5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        child: const Text(
-          'High',
-          style:
-              TextStyle(color: Color(0xFFED3B40), fontWeight: FontWeight.w800),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          child: child,
         ),
       );
 }
 
-/* ───────────── Closure Comments (form + signature) ───────────── */
-
 class _ClosureCommentsCard
     extends GetView<MaintenanceEnginnerClosureController> {
   const _ClosureCommentsCard();
-
-  String _fmt(DateTime dt) {
-    final hRaw = dt.hour % 12;
-    final h = hRaw == 0 ? 12 : hRaw;
-    final mm = dt.minute.toString().padLeft(2, '0');
-    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '$h:$mm $ampm | ${months[dt.month - 1]} ${dt.day}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -284,24 +214,40 @@ class _ClosureCommentsCard
         children: [
           const _SectionTitle('Closure Comments'),
           const SizedBox(height: 12),
-
           const Text(
             'Resolution Type',
             style: TextStyle(color: _C.muted, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
           Obx(() {
-            return DropdownButtonFormField<String>(
-              value: controller.selectedResolution.value,
-              items: controller.resolutionTypes
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => controller.selectedResolution.value =
-                  v ?? controller.selectedResolution.value,
-              decoration: _borderInputDecoration(),
+            final label = controller.selectedReasonValue.value.trim();
+
+            return InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () async {
+                final v = await LookupPicker.show(
+                  context: context,
+                  lookupType: LookupType.resolution.name,
+                  selected: controller.selectedReason.value,
+                );
+                if (v != null) {
+                  controller.selectedReason.value = v;
+                  controller.selectedReasonValue.value = v.displayName;
+                }
+              },
+              child: InputDecorator(
+                isEmpty: label.isEmpty,
+                decoration: _borderInputDecoration().copyWith(
+                  hintText: 'Select resolution type',
+                  suffixIcon: const Icon(CupertinoIcons.chevron_down, size: 18),
+                ),
+                child: Text(
+                  label.isEmpty ? 'Select resolution type' : label,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
             );
           }),
-
           const SizedBox(height: 14),
           const Text(
             'Add Note (Optional)',
@@ -311,74 +257,137 @@ class _ClosureCommentsCard
           TextField(
             controller: controller.noteController,
             maxLines: 4,
-            decoration: _borderInputDecoration().copyWith(
-              hintText: 'Type here...',
-            ),
+            decoration:
+                _borderInputDecoration().copyWith(hintText: 'Type here...'),
           ),
-
           const SizedBox(height: 16),
-
-          // Signature area (reactive to controller.signatureResult)
-          Obx(() {
-            final sig = controller.signatureResult.value;
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // preview + meta
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          const Text(
+            'Signature',
+            style: TextStyle(color: _C.muted, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          const _SignaturePad(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: controller.clearSignature,
+                icon: const Icon(CupertinoIcons.trash),
+                label: const Text('Clear'),
+              ),
+              const Spacer(),
+              Flexible(
+                child: Obx(() {
+                  final path = controller.savedSignaturePath.value;
+                  if (path.isEmpty || !File(path).existsSync()) {
+                    return const SizedBox.shrink();
+                  }
+                  final fileName = path.split(Platform.pathSeparator).last;
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      _SignatureBox(bytes: sig?.bytes),
-                      const SizedBox(height: 6),
-                      if (sig != null) ...[
-                        Text(
-                          _fmt(sig.time),
-                          style: const TextStyle(color: _C.muted, fontSize: 12),
+                      const Icon(CupertinoIcons.check_mark_circled_solid,
+                          size: 16, color: _C.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Saved • $fileName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            color: _C.muted,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${sig.name} | ${sig.designation}',
-                          style: const TextStyle(color: _C.muted, fontSize: 12),
-                        ),
-                      ] else
-                        const Text(
-                          'Tap the pencil to add a signature',
-                          style: TextStyle(color: _C.muted, fontSize: 12),
-                        ),
+                      ),
                     ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                _IconChip(
-                  icon: CupertinoIcons.pencil_ellipsis_rectangle,
-                  bg: const Color(0xFFEFF4FF),
-                  fg: _C.primary,
-                  dimension: 56,
-                  iconSize: 26,
-                  tooltip: 'Edit signature',
-                  onTap: () async {
-                    final res = await Get.toNamed(
-                      Routes.maintenanceEngeneersignOffScreen,
-                      arguments: controller.signatureResult.value ??
-                          SignatureResult.empty(),
-                    );
-                    if (res is SignatureResult) {
-                      controller.signatureResult.value = res;
-                    }
-                  },
-                  // onTap: () async {
-                  // final res = await Get.toNamed(Routes.signOffScreen);
-                  //controller.signatureResult.value = res;
-                  // },
-                ),
-              ],
-            );
-          }),
+                  );
+                }),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
+}
+
+class _SignaturePad extends GetView<MaintenanceEnginnerClosureController> {
+  const _SignaturePad();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: const Color(0xFFF8FAFF),
+        shape: _DashedBorder(
+          color: const Color(0xFFE0E7F5),
+          radius: 12,
+          dashWidth: 5,
+          dashSpace: 4,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: 150,
+          child: Signature(
+            controller: controller.signatureCtrl,
+            backgroundColor: const Color(0xFFF8FAFF),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorder extends ShapeBorder {
+  final Color color;
+  final double dashWidth;
+  final double dashSpace;
+  final double radius;
+
+  const _DashedBorder({
+    this.color = const Color(0xFFE0E7F5),
+    this.dashWidth = 4,
+    this.dashSpace = 4,
+    this.radius = 12,
+  });
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
+      getOuterPath(rect);
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
+      Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+    final path = Path()..addRRect(rrect);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+
+    final metrics = path.computeMetrics();
+    for (final metric in metrics) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        final next = distance + dashWidth;
+        canvas.drawPath(metric.extractPath(distance, next), paint);
+        distance = next + dashSpace;
+      }
+    }
+  }
+
+  @override
+  ShapeBorder scale(double t) => this;
 }
 
 /* ───────────── Spares Consumed (accordion) ───────────── */
@@ -401,7 +410,7 @@ class _SparesConsumedCard
               title: 'Spares Consumed',
               subtitle: '($totalNos nos | ₹ $totalCost)',
               open: open,
-              onToggle: () => controller.sparesOpen.toggle(),
+              onToggle: controller.sparesOpen.toggle,
             ),
             AnimatedCrossFade(
               crossFadeState:
@@ -444,13 +453,11 @@ class _SparesConsumedCard
                           ),
                         ),
                       ),
-                      // _SparesConsumedCard onTap for return spares
                       _IconChip(
                         icon: CupertinoIcons.wrench_fill,
                         bg: const Color(0xFFEFF4FF),
                         fg: _C.primary,
                         onTap: () async {
-                          // Navigate with current list as initial value
                           final res = await Get.toNamed(
                             Routes.maintenanceEngeneerreturnSpareScreen,
                             arguments: List<SpareReturnItem>.from(
@@ -458,7 +465,6 @@ class _SparesConsumedCard
                             ),
                           );
 
-                          // Expect the next page to return `List<SpareReturnItem>`
                           if (res is List<SpareReturnItem>) {
                             controller.sparesToReturn.assignAll(res);
                           }
@@ -477,60 +483,22 @@ class _SparesConsumedCard
   }
 }
 
-class _IconChip extends StatelessWidget {
-  final IconData icon;
-  final Color bg;
-  final Color fg;
-  final VoidCallback? onTap; // 👈 add this
-  final double dimension;
-  final double iconSize;
-  final String? tooltip;
-
-  const _IconChip({
-    required this.icon,
-    required this.bg,
-    required this.fg,
-    this.onTap, // 👈 and this
-    this.dimension = 48,
-    this.iconSize = 22,
-    this.tooltip,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(12);
-    final content = Container(
-      width: dimension,
-      height: dimension,
-      decoration: BoxDecoration(color: bg, borderRadius: radius),
-      alignment: Alignment.center,
-      child: Icon(icon, size: iconSize, color: fg),
-    );
-    final child =
-        tooltip == null ? content : Tooltip(message: tooltip!, child: content);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap, // 👈 handle tap
-        borderRadius: radius,
-        child: child,
-      ),
-    );
-  }
-}
-
 /* ───────────── RCA Summary (accordion) ───────────── */
 
 class _RcaCard extends GetView<MaintenanceEnginnerClosureController> {
   const _RcaCard();
 
+  String? _safeAt(List<String>? list, int i) =>
+      (list != null && i >= 0 && i < list.length && list[i].trim().isNotEmpty)
+          ? list[i].trim()
+          : null;
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final open = controller.rcaOpen.value;
-      final r = controller.rcaResult.value; // this may be null
+      final r = controller.rcaResult.value; // may be null
+
       return _SoftCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,28 +506,28 @@ class _RcaCard extends GetView<MaintenanceEnginnerClosureController> {
             _AccordionHeader(
               title: 'Root Cause Analysis (Summary)',
               open: open,
-              onToggle: () => controller.rcaOpen.toggle(),
+              onToggle: controller.rcaOpen.toggle,
             ),
             AnimatedCrossFade(
               crossFadeState:
                   open ? CrossFadeState.showFirst : CrossFadeState.showSecond,
               duration: const Duration(milliseconds: 180),
               firstChild: Padding(
-                padding: EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _RcaLine('Problem Identified', r?.problemIdentified),
                     const SizedBox(height: 10),
-                    _RcaLine('Why 1', r?.fiveWhys[0]),
+                    _RcaLine('Why 1', _safeAt(r?.fiveWhys, 0)),
                     const SizedBox(height: 10),
-                    _RcaLine('Why 2', r?.fiveWhys[1]),
+                    _RcaLine('Why 2', _safeAt(r?.fiveWhys, 1)),
                     const SizedBox(height: 10),
-                    _RcaLine('Why 3', r?.fiveWhys[2]),
+                    _RcaLine('Why 3', _safeAt(r?.fiveWhys, 2)),
                     const SizedBox(height: 10),
-                    _RcaLine('Why 4', r?.fiveWhys[3]),
+                    _RcaLine('Why 4', _safeAt(r?.fiveWhys, 3)),
                     const SizedBox(height: 10),
-                    _RcaLine('Why 5', r?.fiveWhys[4]),
+                    _RcaLine('Why 5', _safeAt(r?.fiveWhys, 4)),
                     const SizedBox(height: 10),
                     _RcaLine('Root Cause Identified', r?.rootCause),
                     const SizedBox(height: 10),
@@ -583,13 +551,13 @@ class _RcaCard extends GetView<MaintenanceEnginnerClosureController> {
 
 class _RcaLine extends StatelessWidget {
   final String title;
-  final String? value; // <- nullable
+  final String? value;
   final String placeholder;
 
   const _RcaLine(
     this.title,
     this.value, {
-    this.placeholder = '-', // shown when null/empty
+    this.placeholder = '-',
   });
 
   @override
@@ -644,14 +612,11 @@ class _PendingActivityCard
                 padding: const EdgeInsets.only(top: 8),
                 child: Column(
                   children: [
-                    // “Add activity” row
                     const _PendingActivity(
                       text: 'Add activity',
                       icon: CupertinoIcons.list_bullet_below_rectangle,
                     ),
                     const SizedBox(height: 10),
-
-                    // List of returned activities
                     if (count == 0)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
@@ -676,7 +641,7 @@ class _PendingActivityCard
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Title + status (right)
+                                // Title + status
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -746,10 +711,8 @@ class _PendingActivityCard
 
                                 if ((it.note ?? '').isNotEmpty) ...[
                                   const SizedBox(height: 8),
-                                  Text(
-                                    it.note!,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
+                                  Text(it.note!,
+                                      style: const TextStyle(fontSize: 13)),
                                 ],
                               ],
                             ),
@@ -806,7 +769,7 @@ class _EnterRowRCA extends GetView<MaintenanceEnginnerClosureController> {
             ),
           ),
           _IconChip(
-            icon: icon, //CupertinoIcons.wrench_fill,
+            icon: icon,
             bg: const Color(0xFFEFF4FF),
             fg: _C.primary,
             onTap: () async {
@@ -842,8 +805,6 @@ class _PendingActivity extends GetView<MaintenanceEnginnerClosureController> {
           ),
           _IconChip(
             icon: icon,
-
-            ///CupertinoIcons.wrench_fill,
             bg: const Color(0xFFEFF4FF),
             fg: _C.primary,
             onTap: () async {
@@ -857,7 +818,6 @@ class _PendingActivity extends GetView<MaintenanceEnginnerClosureController> {
 
               if (res is PendingActivityResult &&
                   res.action == PendingActivityAction.back) {
-                // use items directly (models, not maps)
                 controller.pendingActivities.assignAll(res.activities);
               }
             },
@@ -908,71 +868,48 @@ class _KVRow extends StatelessWidget {
   }
 }
 
-class _Card extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  const _Card({required this.child, this.padding = const EdgeInsets.all(12)});
+class _IconChip extends StatelessWidget {
+  final IconData icon;
+  final Color bg;
+  final Color fg;
+  final VoidCallback? onTap;
+  final double dimension;
+  final double iconSize;
+  final String? tooltip;
+
+  const _IconChip({
+    required this.icon,
+    required this.bg,
+    required this.fg,
+    this.onTap,
+    this.dimension = 48,
+    this.iconSize = 22,
+    this.tooltip,
+    super.key,
+  });
 
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFFE9EEF5)),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(padding: padding, child: child),
-      );
-}
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(12);
+    final content = Container(
+      width: dimension,
+      height: dimension,
+      decoration: BoxDecoration(color: bg, borderRadius: radius),
+      alignment: Alignment.center,
+      child: Icon(icon, size: iconSize, color: fg),
+    );
+    final child =
+        tooltip == null ? content : Tooltip(message: tooltip!, child: content);
 
-class _SoftCard extends StatelessWidget {
-  final Widget child;
-  const _SoftCard({required this.child});
-  @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF7F9FC),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE9EEF5)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-          child: child,
-        ),
-      );
-}
-
-class _Tag extends StatelessWidget {
-  final String text;
-  const _Tag(this.text);
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFF4FF),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFF2F6BFF),
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: child,
+      ),
+    );
+  }
 }
 
 class _AccordionHeader extends StatelessWidget {
@@ -990,58 +927,56 @@ class _AccordionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chevron = Tween<double>(
-      begin: 0,
-      end: 0,
-    ).animate(const AlwaysStoppedAnimation(0));
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: _C.text,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              if (subtitle != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    subtitle!,
+    return InkWell(
+      onTap: onToggle,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
                     style: const TextStyle(
-                      color: _C.muted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      color: _C.text,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                ),
-            ],
-          ),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        subtitle!,
+                        style: const TextStyle(
+                          color: _C.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            AnimatedRotation(
+              duration: const Duration(milliseconds: 180),
+              turns: open ? 0.5 : 0.0,
+              child: const Icon(
+                CupertinoIcons.chevron_down,
+                size: 18,
+                color: _C.muted,
+              ),
+            ),
+          ],
         ),
-        TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 180),
-          tween: Tween(begin: open ? 1.0 : 0.0, end: open ? 1.0 : 0.0),
-          builder: (_, __, child) => Icon(
-            open ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
-            size: 18,
-            color: _C.muted,
-          ),
-        ),
-        IconButton(
-          onPressed: onToggle,
-          icon: const SizedBox.shrink(),
-          splashRadius: 1, // icon above handles the visual
-        ),
-      ],
+      ),
     );
   }
 }
 
-/* ───────────── Signature Box (shows bytes from SignOff) ───────────── */
+/* ───────────── Signature Box (optional preview widget) ───────────── */
 
 class _SignatureBox extends StatelessWidget {
   final Uint8List? bytes;
@@ -1080,7 +1015,7 @@ class _SignatureBox extends StatelessWidget {
   }
 }
 
-/* ─────────────────────── THEME CONSTS ─────────────────────── */
+/* ─────────────────────── THEME & INPUT ─────────────────────── */
 
 class _C {
   static const primary = Color(0xFF2F6BFF);
@@ -1105,3 +1040,38 @@ InputDecoration _borderInputDecoration() => InputDecoration(
         borderSide: const BorderSide(color: _C.primary, width: 1.2),
       ),
     );
+
+/* ───────────── Small placeholders ───────────── */
+
+class _SkeletonTile extends StatelessWidget {
+  const _SkeletonTile();
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 88,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE9EEF5)),
+        ),
+        child: const Center(
+          child: Text('Loading work order…', style: TextStyle(color: _C.muted)),
+        ),
+      );
+}
+
+class _ErrorTile extends StatelessWidget {
+  final String message;
+  const _ErrorTile({required this.message});
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 88,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE9EEF5)),
+        ),
+        child: Center(
+          child: Text(message, style: const TextStyle(color: _C.muted)),
+        ),
+      );
+}

@@ -1,15 +1,18 @@
 // work_order_details_controller.dart
 // ignore: file_names
 import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   // ----- Base URL to prefix -----
   //static const String Constant.BASE_URL = 'https://user-dev.eazyops.in:8443/v1/api/';
-
+  final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
   // Header
   final title = 'Work Order Details'.obs;
 
@@ -46,7 +49,8 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   final cnc_1 = ''.obs;
   final issueNo = ''.obs;
   final status = ''.obs;
-
+  final isSubmitting = false.obs;
+  String? workOrderId;
   @override
   void onInit() {
     super.onInit();
@@ -57,7 +61,7 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
     if (workOrderInfo == null) return;
 
     // ----- Operator -----
-
+    workOrderId = workOrderInfo.id;
     status.value = workOrderInfo.status;
     issueNo.value = workOrderInfo.issueNo ?? '-';
     final first = (workOrderInfo.operator?.firstName ?? '').trim();
@@ -88,7 +92,7 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
     // First audio/* -> absolute URL
     final firstAudio = files
         .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
-        .map((f) => _absoluteUrlForAudio(f.filePath))
+        .map((f) => _absoluteUrl(f.filePath))
         .firstWhere(
           (p) => p.isNotEmpty,
           orElse: () => '',
@@ -122,30 +126,30 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
     if (p.isEmpty) return '';
     final lower = p.toLowerCase();
     if (lower.startsWith('http://') || lower.startsWith('https://')) {
-      return 'https://picsum.photos/200/300'; //p;
+      return p;
     }
     // normalize slashes
     final base = Constant.BASE_URL.endsWith('/')
         ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
         : Constant.BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
-    return 'https://picsum.photos/200/300'; //'$base/$path';
+    return '$base/$path';
   }
 
-  String _absoluteUrlForAudio(String? raw) {
-    final p = (raw ?? '').trim();
-    if (p.isEmpty) return '';
-    final lower = p.toLowerCase();
-    if (lower.startsWith('http://') || lower.startsWith('https://')) {
-      return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //p;
-    }
-    // normalize slashes
-    final base = Constant.BASE_URL.endsWith('/')
-        ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
-        : Constant.BASE_URL;
-    final path = p.startsWith('/') ? p.substring(1) : p;
-    return 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'; //'$base/$path';
-  }
+  // String _absoluteUrlForAudio(String? raw) {
+  //   final p = (raw ?? '').trim();
+  //   if (p.isEmpty) return '';
+  //   final lower = p.toLowerCase();
+  //   if (lower.startsWith('http://') || lower.startsWith('https://')) {
+  //     return p;
+  //   }
+  //   // normalize slashes
+  //   final base = Constant.BASE_URL.endsWith('/')
+  //       ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
+  //       : Constant.BASE_URL;
+  //   final path = p.startsWith('/') ? p.substring(1) : p;
+  //   return '$base/$path';
+  // }
 
   String _formatDate(DateTime dt) {
     final hh = dt.hour.toString().padLeft(2, '0');
@@ -171,7 +175,63 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
 
 //   // Your navigation actions:
   Future<void> acceptWorkOrder() async {
-    Get.toNamed(Routes.maintenanceEngeneerstartWorkOrderScreen);
+    try {
+      isSubmitting.value = true;
+
+      // Build request (map the reason as needed: id/code/displayName)
+      //final sel = selectedReason.value!;
+      final req = CancelWorkOrderRequest(
+        status: 'accepted',
+        remark: '',
+        comment: '', // or sel.id / sel.code per API contract
+      );
+
+      final result = await repositoryImpl.cancelOrder(
+        cancelWorkOrderId: workOrderId!,
+        cancelWorkOrderRequest: req,
+      );
+
+      if (result.httpCode == 200 && result.data != null) {
+        isSubmitting.value = false;
+        Get.snackbar(
+          'Accepted',
+          'Work order accepted successfully.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+        Get.toNamed(Routes.maintenanceEngeneerstartWorkOrderScreen);
+        // Get.offAllNamed(
+        //   Routes.maintenanceEngeneerlandingDashboardScreen,
+        //   arguments: {'tab': 3},
+        // );
+      } else {
+        isSubmitting.value = false;
+        Get.snackbar(
+          'Cancel failed',
+          (result.message?.trim().isNotEmpty ?? false)
+              ? result.message!
+              : 'Unexpected response (code ${result.httpCode}).',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade100,
+          colorText: Colors.black87,
+          margin: const EdgeInsets.all(12),
+        );
+      }
+    } catch (e) {
+      isSubmitting.value = false;
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.black87,
+        margin: const EdgeInsets.all(12),
+      );
+    } finally {
+      //isSubmitting.value = false;
+    }
   }
 
   Future<void> reAssignWorkOrder() async {

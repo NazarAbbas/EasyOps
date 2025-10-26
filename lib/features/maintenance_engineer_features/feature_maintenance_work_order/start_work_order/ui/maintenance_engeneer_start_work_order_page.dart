@@ -7,6 +7,7 @@ import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -107,10 +108,14 @@ class MaintenanceEngineerStartWorkOrderPage
         body: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 16),
           child: Column(
-            children: const [
-              _SummaryHeroCard(),
+            children: [
+              WorkOrderTile(
+                workOrderInfo: controller.workOrderInfo!,
+                onTap: () => print('Open work order'),
+              ),
+              // _SummaryHeroCard(),
               _OperatorInfoCard(),
-              _WorkOrderInfoCard(),
+              // _WorkOrderInfoCard(),
               _MediaCard(),
               _SparesCard(), // shows placed items here
             ],
@@ -254,161 +259,162 @@ class _GradientHeader extends StatelessWidget implements PreferredSizeWidget {
 }
 
 /* ───────── Hero Card (beautiful, screenshot-like) ───────── */
-class _SummaryHeroCard extends StatelessWidget {
-  const _SummaryHeroCard();
 
-  String _shortDate(String s) {
-    final p = s.trim().split(RegExp(r'\s+'));
-    return p.length >= 2 ? '${p[0]} ${p[1]}' : s;
-  }
+// class _SummaryHeroCard extends StatelessWidget {
+//   const _SummaryHeroCard();
 
-  @override
-  Widget build(BuildContext context) {
-    final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
-    final blue = Theme.of(context).appBarTheme.backgroundColor ??
-        Theme.of(context).colorScheme.primary;
+//   String _shortDate(String s) {
+//     final p = s.trim().split(RegExp(r'\s+'));
+//     return p.length >= 2 ? '${p[0]} ${p[1]}' : s;
+//   }
 
-    String or(String a, String b) => a.trim().isEmpty ? b : a;
+//   @override
+//   Widget build(BuildContext context) {
+//     final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
+//     final blue = Theme.of(context).appBarTheme.backgroundColor ??
+//         Theme.of(context).colorScheme.primary;
 
-    return Obx(() {
-      final title = or(
-          c.subject.value, 'Conveyor Belt Stopped Abruptly During Operation');
-      final code = or(c.woCode.value, 'BD-102');
-      final time = or(c.time.value, '18:08');
-      final date = or(_shortDate(c.date.value), '09 Aug');
-      final prio = or(c.priority.value, 'High');
-      final status = or(c.status.value, 'In Progress');
-      final cat = or(c.category.value, 'Mechanical');
-      final elapsed = or(c.elapsed.value, '1h 20m');
+//     String or(String a, String b) => a.trim().isEmpty ? b : a;
 
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE9EEF5)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title + red priority pill
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _C.text,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                          height: 1.25,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    _Badge(text: prio, bg: const Color(0xFFED3B40)),
-                  ],
-                ),
+//     return Obx(() {
+//       final title = or(
+//           c.subject.value, 'Conveyor Belt Stopped Abruptly During Operation');
+//       final code = or(c.woCode.value, 'BD-102');
+//       final time = or(c.time.value, '18:08');
+//       final date = or(_shortDate(c.date.value), '09 Aug');
+//       final prio = or(c.priority.value, 'High');
+//       final status = or(c.status.value, 'In Progress');
+//       final cat = or(c.category.value, 'Mechanical');
+//       final elapsed = or(c.elapsed.value, '1h 20m');
 
-                const SizedBox(height: 10),
+//       return Stack(
+//         clipBehavior: Clip.none,
+//         children: [
+//           Container(
+//             width: double.infinity,
+//             decoration: BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(16),
+//               border: Border.all(color: const Color(0xFFE9EEF5)),
+//               boxShadow: [
+//                 BoxShadow(
+//                   color: Colors.black.withOpacity(0.03),
+//                   blurRadius: 12,
+//                   offset: const Offset(0, 4),
+//                 ),
+//               ],
+//             ),
+//             padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 // Title + red priority pill
+//                 Row(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     Expanded(
+//                       child: Text(
+//                         title,
+//                         maxLines: 2,
+//                         overflow: TextOverflow.ellipsis,
+//                         style: const TextStyle(
+//                           color: _C.text,
+//                           fontWeight: FontWeight.w800,
+//                           fontSize: 18,
+//                           height: 1.25,
+//                         ),
+//                       ),
+//                     ),
+//                     const SizedBox(width: 12),
+//                     _Badge(text: prio, bg: const Color(0xFFED3B40)),
+//                   ],
+//                 ),
 
-                // Code + time | date  …  status
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        '$code   $time | $date',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _C.muted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      status,
-                      style: TextStyle(
-                        color: blue,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
+//                 const SizedBox(height: 10),
 
-                const SizedBox(height: 12),
+//                 // Code + time | date  …  status
+//                 Row(
+//                   children: [
+//                     Flexible(
+//                       child: Text(
+//                         '$code   $time | $date',
+//                         maxLines: 1,
+//                         overflow: TextOverflow.ellipsis,
+//                         style: const TextStyle(
+//                           color: _C.muted,
+//                           fontWeight: FontWeight.w700,
+//                         ),
+//                       ),
+//                     ),
+//                     const Spacer(),
+//                     Text(
+//                       status,
+//                       style: TextStyle(
+//                         color: blue,
+//                         fontWeight: FontWeight.w700,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
 
-                // Bottom row: category + small blue tile … clock + elapsed
-                Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              cat,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: _C.text,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF3FF),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.sync_alt_rounded,
-                              size: 14,
-                              color: blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Icon(CupertinoIcons.time, size: 16, color: _C.muted),
-                    const SizedBox(width: 6),
-                    Text(
-                      elapsed,
-                      style: const TextStyle(
-                        color: _C.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+//                 const SizedBox(height: 12),
 
-          // Small notch decoration (optional, nice touch)
-          const Positioned(top: -8, left: 24, right: 24, child: _Notch()),
-        ],
-      );
-    });
-  }
-}
+//                 // Bottom row: category + small blue tile … clock + elapsed
+//                 Row(
+//                   children: [
+//                     Expanded(
+//                       child: Row(
+//                         children: [
+//                           Flexible(
+//                             child: Text(
+//                               cat,
+//                               maxLines: 1,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: const TextStyle(
+//                                 color: _C.text,
+//                                 fontWeight: FontWeight.w700,
+//                               ),
+//                             ),
+//                           ),
+//                           const SizedBox(width: 8),
+//                           Container(
+//                             padding: const EdgeInsets.all(6),
+//                             decoration: BoxDecoration(
+//                               color: const Color(0xFFEFF3FF),
+//                               borderRadius: BorderRadius.circular(8),
+//                             ),
+//                             child: Icon(
+//                               Icons.sync_alt_rounded,
+//                               size: 14,
+//                               color: blue,
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     const SizedBox(width: 10),
+//                     const Icon(CupertinoIcons.time, size: 16, color: _C.muted),
+//                     const SizedBox(width: 6),
+//                     Text(
+//                       elapsed,
+//                       style: const TextStyle(
+//                         color: _C.muted,
+//                         fontWeight: FontWeight.w700,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+
+//           // Small notch decoration (optional, nice touch)
+//           const Positioned(top: -8, left: 24, right: 24, child: _Notch()),
+//         ],
+//       );
+//     });
+//   }
+// }
 
 /* ───────── Operator Info (with call buttons) ───────── */
 class _OperatorInfoCard extends StatelessWidget {

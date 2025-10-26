@@ -1,4 +1,6 @@
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/core/utils/utils.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/WorkTabsController.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
@@ -8,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spares_models.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MaintenanceEnginnerSpareCartController extends GetxController {
   final RxList<CartLine> cart = <CartLine>[].obs;
@@ -19,20 +22,26 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
   static WorkOrders? workOrderInfo;
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
     _loadCart(); // load persisted cart
     ever<List<CartLine>>(cart, (_) => _saveCart()); // save on any change
 
-    final workTabsController =
-        Get.find<MaintenanceEngineerWorkTabsController>();
-    if (workOrderInfo == null) {
-      if (workTabsController.workOrder == null) {
-        workOrderInfo = getWorkOrderFromArgs(Get.arguments);
-      } else {
-        workOrderInfo = workTabsController.workOrder;
-      }
-    }
+    // final workTabsController =
+    //     Get.find<MaintenanceEngineerWorkTabsController>();
+    // if (workOrderInfo == null) {
+    //   if (workTabsController.workOrder == null) {
+    //     workOrderInfo = getWorkOrderFromArgs(Get.arguments);
+    //   } else {
+    //     workOrderInfo = workTabsController.workOrder;
+    //   }
+    // }
+
+    // workOrderInfo =SharedPreference
+    workOrderInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
   }
 
   /* ---------- public API (unchanged signatures) ---------- */

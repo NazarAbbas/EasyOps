@@ -54,7 +54,7 @@ class ClosurePage extends GetView<MaintenanceEnginnerClosureController> {
                 ],
               ),
             ),
-            if (controller.isLoading.value)
+            if (controller.isSubmitting.value)
               const Align(
                 alignment: Alignment.topCenter,
                 child: LinearProgressIndicator(minHeight: 2),
@@ -128,7 +128,7 @@ class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
             const SizedBox(width: 12),
             Expanded(
               child: Obx(() {
-                final loading = controller.isLoading.value;
+                final loading = controller.isSubmitting.value;
                 return FilledButton(
                   onPressed: loading ? null : onResolve,
                   style: FilledButton.styleFrom(
@@ -290,17 +290,17 @@ class _ClosureCommentsCard
             style: TextStyle(color: _C.muted, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          Obx(() {
-            return DropdownButtonFormField<String>(
-              value: controller.selectedResolution.value,
-              items: controller.resolutionTypes
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => controller.selectedResolution.value =
-                  v ?? controller.selectedResolution.value,
-              decoration: _borderInputDecoration(),
-            );
-          }),
+          // Obx(() {
+          //   return DropdownButtonFormField<String>(
+          //     value: controller.selectedResolution.value,
+          //     items: controller.resolutionTypes
+          //         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          //         .toList(),
+          //     onChanged: (v) => controller.selectedResolution.value =
+          //         v ?? controller.selectedResolution.value,
+          //     decoration: _borderInputDecoration(),
+          //   );
+          // }),
 
           const SizedBox(height: 14),
           const Text(

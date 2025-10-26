@@ -2,6 +2,7 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
@@ -15,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 class WorkorderInfoController extends GetxController {
-  // Optional "Reason" selector kept from your snippet (unused here)
+  // Optional "Reason" selector (unused here, kept for compatibility)
   final RxList<LookupValues> reason = <LookupValues>[].obs;
   final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
   final selectedReasonValue = 'Select Reason'.obs;
@@ -23,11 +24,9 @@ class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // Dependencies & config
   // ─────────────────────────────────────────────────────────────────────────
-  // final lookupRepository = Get.find<LookupRepository>();
-  // final assetRepository = Get.find<AssetRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
-//  final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   final repository = Get.find<DBRepository>();
+
   // ─────────────────────────────────────────────────────────────────────────
   // UI state: operator footer (editable)
   // ─────────────────────────────────────────────────────────────────────────
@@ -50,8 +49,8 @@ class WorkorderInfoController extends GetxController {
   final titleCtrl = TextEditingController();
 
   // Derived from selected asset
-  final typeText = '—'.obs; // asset.criticality
-  final descriptionText = '—'.obs; // asset.description
+  final typeText = '—'.obs; // e.g., asset.criticality
+  final descriptionText = '—'.obs; // e.g., asset.description
 
   // ─────────────────────────────────────────────────────────────────────────
   // Dropdowns: options + selected
@@ -63,7 +62,7 @@ class WorkorderInfoController extends GetxController {
   final selectedImpactId = ''.obs;
   final assetsId = ''.obs;
 
-  // legacy labels (kept for compatibility with existing bag keys & UI mirrors)
+  // legacy mirrors (for existing UI/bag compatibility)
   final issueType = ''.obs;
   final impact = ''.obs;
 
@@ -83,19 +82,18 @@ class WorkorderInfoController extends GetxController {
   void onInit() async {
     super.onInit();
 
-    // load current work order context if present
-    final workTabsController = Get.find<WorkTabsController>();
-    workOrderInfo = workTabsController.workOrder;
-    workOrderStatus = workTabsController.workOrderStatus;
+    // Load current work order context if present
+    // final workTabsController = Get.find<WorkTabsController>();
+    // workOrderInfo = workTabsController.workOrder;
+    workOrderInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
 
-    // Initialize UI state & async data
     _initDefaults();
-    await _initAsync(); // ensure lookups/assets are available before reactions
+    await _initAsync(); // ensure lookups/assets available before reactions
+    _setupReactions(); // set up reactive label syncing
 
-    // Keep label Rx in sync with selected IDs (without blanking)
-    _setupReactions();
-
-    // Asset text field listener → auto-apply meta when serial matches
     _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
   }
@@ -116,11 +114,11 @@ class WorkorderInfoController extends GetxController {
   void _setupReactions() {
     ever<String>(selectedIssueTypeId, (id) {
       final next = _labelFor(issueTypeOptions, id);
-      if (next.isNotEmpty) issueType.value = next; // don't overwrite with ''
+      if (next.isNotEmpty) issueType.value = next; // never blank the label
     });
     ever<String>(selectedImpactId, (id) {
       final next = _labelFor(impactOptions, id);
-      if (next.isNotEmpty) impact.value = next; // don't overwrite with ''
+      if (next.isNotEmpty) impact.value = next; // never blank the label
     });
   }
 
@@ -150,43 +148,35 @@ class WorkorderInfoController extends GetxController {
     typeText.value = '—';
     descriptionText.value = '—';
 
-    // selected dropdown defaults -> placeholders (empty id)
+    // dropdown placeholder sentinel (empty id)
     selectedIssueTypeId.value = '';
     selectedImpactId.value = '';
   }
 
   /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
   String formatTimeDateLocal(DateTime dt) {
-    final d = dt.isUtc ? dt.toLocal() : dt; // convert if it's UTC (ends with Z)
-    final time = DateFormat('HH:mm').format(d); // 24h
+    final d = dt.isUtc ? dt.toLocal() : dt;
+    final time = DateFormat('HH:mm').format(d);
     final day = DateFormat('dd').format(d);
     final mon = DateFormat('MMM').format(d).toLowerCase();
     return '$time | $day $mon';
   }
 
   Future<void> _initAsync() async {
-    // Load lookups first so label derivation never blanks out
     await _loadLookups();
     await _loadAssets();
     _rebuildAssetSerialIndex();
 
-    // Hydrate from bag (ids first; labels will sync safely)
+    // 1) Hydrate from bag first (preserve user-entered data)
     _hydrateFromBag();
 
-    // optional: prefill from currently selected work order
+    // 2) If a work order is present, auto-fill from it (ids, fields, media)
     if (workOrderInfo != null) {
-      if ((workOrderInfo!.issueTypeId ?? '').isNotEmpty) {
-        selectedIssueTypeId.value = workOrderInfo!.issueTypeId!;
-      }
-      if ((workOrderInfo!.impactId ?? '').isNotEmpty) {
-        selectedImpactId.value = workOrderInfo!.impactId!;
-      }
-      if ((workOrderInfo!.asset.id ?? '').isNotEmpty) {
-        assetsId.value = workOrderInfo!.asset.id!;
-      }
+      _hydrateFromWorkOrderInfo();
     }
 
-    _syncLabelsFromSelection(); // ensure labels mirror ids (non-blank)
+    // 3) Ensure labels mirror ids
+    _syncLabelsFromSelection();
   }
 
   Future<void> _loadLookups() async {
@@ -207,7 +197,6 @@ class WorkorderInfoController extends GetxController {
   }
 
   Future<void> _loadAssets() async {
-    // pulls once; if you want reactive, expose a stream in repository
     final list = await repository.getAllAssets();
     _storeAssets
       ..clear()
@@ -227,14 +216,13 @@ class WorkorderInfoController extends GetxController {
       tenantId: '',
       clientId: '',
     );
-    // note: we use empty id ("") as placeholder sentinel
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Bag hydration & saving
   // ─────────────────────────────────────────────────────────────────────────
   void _hydrateFromBag() {
-    // preferred ids (MUST use same keys as saveToBag)
+    // preferred IDs
     final bagIssueTypeId = _bag.get<String>(WOKeys.issueTypeId, '');
     final bagImpactId = _bag.get<String>(WOKeys.impactId, '');
 
@@ -245,7 +233,7 @@ class WorkorderInfoController extends GetxController {
     final issueTypeLabel = _bag.get<String>(WOKeys.issueType, issueType.value);
     final impactLabel = _bag.get<String>(WOKeys.impact, impact.value);
 
-    // try label->id when id missing (for old bag entries)
+    // try label->id when id missing (old bag entries)
     _maybeFixSelectedIdFromLabel(
       selectedIssueTypeId,
       issueTypeOptions,
@@ -257,45 +245,108 @@ class WorkorderInfoController extends GetxController {
       impactLabel,
     );
 
-    // keep legacy mirrors (will be refined by _syncLabelsFromSelection later)
     issueType.value = issueTypeLabel;
     impact.value = impactLabel;
 
-    // other fields (use constants)
-    assetsCtrl.text = _bag.get<String>(WOKeys.assetsNumber, assetsCtrl.text);
-    problemCtrl.text = _bag.get<String>(
-      WOKeys.problemDescription,
-      problemCtrl.text,
-    );
-    titleCtrl.text = _bag.get<String>(
-      WOKeys.title,
-      titleCtrl.text,
-    );
+    // other fields
+    assetsCtrl.text =
+        _bag.get<String>(WOKeys.assetsNumber, assetsCtrl.text).trim();
+    problemCtrl.text =
+        _bag.get<String>(WOKeys.problemDescription, problemCtrl.text).trim();
+    titleCtrl.text = _bag.get<String>(WOKeys.title, titleCtrl.text).trim();
 
     typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
-    descriptionText.value = _bag.get<String>(
-      WOKeys.descriptionText,
-      descriptionText.value,
-    );
+    descriptionText.value =
+        _bag.get<String>(WOKeys.descriptionText, descriptionText.value);
 
     final ph = _bag.get<List?>(WOKeys.photos, const []) ?? const [];
     photos.assignAll(ph.map((e) => e.toString()));
 
-    voiceNotePath.value = _bag.get<String>(
-      WOKeys.voiceNotePath,
-      voiceNotePath.value,
-    );
+    voiceNotePath.value =
+        _bag.get<String>(WOKeys.voiceNotePath, voiceNotePath.value);
 
-    operatorName.value = _bag.get<String>(
-      WOKeys.operatorName,
-      operatorName.value,
-    );
+    operatorName.value =
+        _bag.get<String>(WOKeys.operatorName, operatorName.value);
 
     // bind asset-derived fields if serial present
     _applyMetaIfSerialMatch(assetsCtrl.text);
 
-    // ensure labels reflect selected IDs *now* (won't blank)
     _syncLabelsFromSelection();
+  }
+
+  /// Convert relative -> absolute using BASE_URL
+  String _absoluteUrl(String? raw) {
+    final p = (raw ?? '').trim();
+    if (p.isEmpty) return '';
+    final lower = p.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) return p;
+
+    final base = Constant.BASE_URL.endsWith('/')
+        ? Constant.BASE_URL.substring(0, Constant.BASE_URL.length - 1)
+        : Constant.BASE_URL;
+    final path = p.startsWith('/') ? p.substring(1) : p;
+    return '$base/$path';
+  }
+
+  /// Auto-bind from the current workOrderInfo (if present)
+  void _hydrateFromWorkOrderInfo() {
+    final wo = workOrderInfo;
+    if (wo == null) return;
+
+    // IDs
+    final issueId = (wo.issueTypeId ?? '').trim();
+    final impactId = (wo.impactId ?? '').trim();
+    if (issueId.isNotEmpty) selectedIssueTypeId.value = issueId;
+    if (impactId.isNotEmpty) selectedImpactId.value = impactId;
+
+    // Asset
+    final assetIdV = (wo.asset.id ?? '').trim();
+    final assetSerial = (wo.asset.assetNo ?? '').trim();
+    assetsId.value = assetIdV;
+    if (assetSerial.isNotEmpty) assetsCtrl.text = assetSerial;
+    // Optionally derive meta from serial (if AssetItem exists in store)
+    _applyMetaIfSerialMatch(assetSerial);
+
+    // Title / Description
+    titleCtrl.text = (wo.title ?? '').trim();
+    problemCtrl.text = (wo.remark ?? '').trim();
+
+    // Operator footer
+    final first = (wo.operator?.firstName ?? '').trim();
+    final last = (wo.operator?.lastName ?? '').trim();
+    final name = ('$first $last').trim();
+    final phone = (wo.operator?.phone ?? '').trim();
+    if (name.isNotEmpty) operatorName.value = name;
+    if (phone.isNotEmpty) operatorMobileNumber.value = phone;
+
+    final assetName = (wo.asset.name ?? '').trim();
+    final infoParts = <String>[
+      if (assetName.isNotEmpty) assetName,
+      if (assetSerial.isNotEmpty) assetSerial,
+    ];
+    if (infoParts.isNotEmpty) operatorInfo.value = infoParts.join(' • ');
+
+    // Media (images + first audio)
+    final files = wo.mediaFiles ?? const <MediaFile>[];
+
+    final imgs = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (imgs.isNotEmpty) photos.assignAll(imgs);
+
+    final firstAudio = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .firstWhere((p) => p.isNotEmpty, orElse: () => '');
+    if (firstAudio.isNotEmpty) voiceNotePath.value = firstAudio;
+
+    // Reflect label mirrors
+    _syncLabelsFromSelection();
+
+    // Persist so other tabs/pages stay in sync
+    saveToBag();
   }
 
   String _labelFor(List<LookupValues> options, String id) {
@@ -311,7 +362,6 @@ class WorkorderInfoController extends GetxController {
   }) {
     final computed = _labelFor(options, id);
     if (computed.isNotEmpty) return computed;
-    // if lookups aren't loaded yet or id not found, keep what user sees
     return current;
   }
 
@@ -327,16 +377,14 @@ class WorkorderInfoController extends GetxController {
     final issueTypeLabel = _labelForSafe(
       options: issueTypeOptions,
       id: selectedIssueTypeId.value,
-      current: issueType.value, // keep current if options missing
+      current: issueType.value,
     );
-
     final impactLabel = _labelForSafe(
       options: impactOptions,
       id: selectedImpactId.value,
       current: impact.value,
     );
 
-    // keep the reactive mirrors in sync (and never blank them)
     issueType.value = issueTypeLabel;
     impact.value = impactLabel;
 
@@ -390,8 +438,8 @@ class WorkorderInfoController extends GetxController {
   }
 
   void _setAssetMeta({required String type, required String description}) {
-    typeText.value = type;
-    descriptionText.value = description;
+    typeText.value = type.isNotEmpty ? type : '—';
+    descriptionText.value = description.isNotEmpty ? description : '—';
   }
 
   // ─────────────────────────────────────────────────────────────────────────

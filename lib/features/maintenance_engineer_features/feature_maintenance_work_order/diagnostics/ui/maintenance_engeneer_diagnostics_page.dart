@@ -153,27 +153,27 @@ class _WorkOrderContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        _Accordion(
-          title: 'Work Order Info',
-          initiallyOpen: false,
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              _InfoRow(
-                'Attachment',
-                'Tap to view / add',
-                trailingIcon: Icons.refresh,
-              ),
-              SizedBox(height: 12),
-              Divider(height: 1),
-              SizedBox(height: 12),
-              Text(
-                'Spindle speed issues in XYZ – check belt alignment and tension.',
-                style: TextStyle(color: Color(0xFF1F2430)),
-              ),
-            ],
-          ),
-        ),
+        // _Accordion(
+        //   title: 'Work Order Info',
+        //   initiallyOpen: false,
+        //   content: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: const [
+        //       _InfoRow(
+        //         'Attachment',
+        //         'Tap to view / add',
+        //         trailingIcon: Icons.refresh,
+        //       ),
+        //       SizedBox(height: 12),
+        //       Divider(height: 1),
+        //       SizedBox(height: 12),
+        //       Text(
+        //         'Spindle speed issues in XYZ – check belt alignment and tension.',
+        //         style: TextStyle(color: Color(0xFF1F2430)),
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }

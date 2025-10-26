@@ -98,6 +98,10 @@ class WorkOrderTile extends StatelessWidget {
               Row(
                 children: [
                   if (_hasDept) _MutedText(workOrderInfo.type!),
+                  Icon(
+                    Icons.sync_alt_rounded,
+                    size: 14,
+                  ),
                   const Spacer(),
                   if (_hasEta) ...[
                     const Icon(CupertinoIcons.time,
@@ -218,28 +222,3 @@ _PillColors _priorityColors(String raw) {
   }
   return const _PillColors(_Colors.pillBg, _Colors.primary);
 }
-
-// /// Returns "HH:mm | dd Mon"
-// String _formatDate(DateTime dt) {
-//   final hh = dt.hour.toString().padLeft(2, '0');
-//   final mm = dt.minute.toString().padLeft(2, '0');
-
-//   const months = [
-//     'Jan',
-//     'Feb',
-//     'Mar',
-//     'Apr',
-//     'May',
-//     'Jun',
-//     'Jul',
-//     'Aug',
-//     'Sep',
-//     'Oct',
-//     'Nov',
-//     'Dec'
-//   ];
-//   final day = dt.day.toString().padLeft(2, '0');
-//   final month = months[dt.month - 1];
-
-//   return '$hh:$mm | $day $month';
-// }

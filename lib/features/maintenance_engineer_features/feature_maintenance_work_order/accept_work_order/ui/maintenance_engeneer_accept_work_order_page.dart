@@ -1,13 +1,17 @@
+// maintenance_engineer_accept_work_order_page.dart
+
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/accept_work_order/controller/accept_work_order_controller.dart';
+import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-// ⬇️ Use the controller you provided (adjust the import path if needed)
+// ⬇️ Use your actual controller import path
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/accept_work_order/controller/accept_work_order_controller.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 /* ───────────────────────── Page ───────────────────────── */
 
@@ -29,237 +33,257 @@ class MaintenanceEngineerAcceptWorkOrderPage
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+    return Obx(
+      () {
+        final busy = controller.isSubmitting.value;
 
-      // Bottom actions
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: Size.fromHeight(btnH),
-                    side: BorderSide(color: primary, width: 1.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    foregroundColor: primary,
-                  ),
-                  onPressed: controller.reAssignWorkOrder,
-                  child: const Text(
-                    'Reassign',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    minimumSize: Size.fromHeight(btnH),
-                    backgroundColor: primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 1.5,
-                  ),
-                  onPressed: controller.acceptWorkOrder,
-                  child: const Text(
-                    'Accept',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
-        child: Column(
+        return Stack(
           children: [
-            // Main details card
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE9EEF5)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
-                child: Obx(() {
-                  final pillColor = _priorityColor(controller.priority.value);
+            Scaffold(
+              backgroundColor: const Color(0xFFF6F7FB),
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              // Bottom actions
+              bottomNavigationBar: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
+                  child: Row(
                     children: [
-                      // Reporter
-                      _KVBlock(
-                        rows: [
-                          _KV(
-                            label: 'Reported By :',
-                            value: controller.reportedBy.value.isEmpty
-                                ? '—'
-                                : controller.reportedBy.value,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Operator section
-                      _OperatorSection(
-                        name: controller.operatorName.value,
-                        phone: controller.operatorPhoneNumber.value,
-                        info: controller.operatorInfo.value,
-                      ),
-
-                      const _DividerPad(),
-
-                      // Work order title + priority pill
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              controller.workOrderTitle.value.isEmpty
-                                  ? '—'
-                                  : controller.workOrderTitle.value,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: _C.text,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15.5,
-                                height: 1.25,
-                              ),
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: Size.fromHeight(btnH),
+                            side: BorderSide(
+                              color: busy ? Colors.grey : primary,
+                              width: 1.4,
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          _Pill(
-                            text: controller.priority.value.isEmpty
-                                ? '—'
-                                : controller.priority.value,
-                            color: pillColor,
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Date (already formatted hh:mm | dd Mon)
-                      Row(
-                        children: [
-                          Text(
-                            controller.issueNo.value.isEmpty
-                                ? '—'
-                                : controller.issueNo.value,
-                            style: const TextStyle(
-                              color: _C.muted,
-                              fontWeight: FontWeight.w700,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            foregroundColor: busy ? Colors.grey : primary,
                           ),
-                          SizedBox(width: 8),
-                          Text(
-                            controller.date.value.isEmpty
-                                ? '—'
-                                : controller.date.value,
-                            style: const TextStyle(
-                              color: _C.muted,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          onPressed: busy ? null : controller.reAssignWorkOrder,
+                          child: const Text(
+                            'Reassign',
+                            style: TextStyle(fontWeight: FontWeight.w700),
                           ),
-                          Spacer(),
-                          Text(
-                            controller.status.value.isEmpty
-                                ? '—'
-                                : controller.status.value,
-                            style: const TextStyle(
-                              color: _C.muted,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          // (No status/orderId in controller you shared)
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Issue type + machine/line
-                      Text(
-                        controller.issueType.value.isEmpty
-                            ? '—'
-                            : controller.issueType.value,
-                        style: const TextStyle(
-                          color: _C.muted,
-                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Icon(
-                            CupertinoIcons.exclamationmark_triangle_fill,
-                            size: 14,
-                            color: Color(0xFFE25555),
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              controller.cnc_1.value.isEmpty
-                                  ? '—'
-                                  : controller.cnc_1.value,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            minimumSize: Size.fromHeight(btnH),
+                            backgroundColor:
+                                busy ? primary.withOpacity(0.6) : primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            elevation: 1.5,
                           ),
-                        ],
-                      ),
-
-                      const _DividerPad(),
-
-                      // Description
-                      Text(
-                        controller.description.value.isEmpty
-                            ? '—'
-                            : controller.description.value,
-                        style: const TextStyle(
-                          color: _C.text,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15.5,
+                          onPressed: busy ? null : controller.acceptWorkOrder,
+                          child: busy
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  'Accept',
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
                         ),
                       ),
-                      if (controller.remark.value.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          controller.remark.value,
-                          style: const TextStyle(color: _C.text, height: 1.35),
-                        ),
-                      ],
                     ],
-                  );
-                }),
+                  ),
+                ),
+              ),
+
+              body: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
+                child: Column(
+                  children: const [
+                    _MainDetailsCard(),
+                    _MediaCard(),
+                  ],
+                ),
               ),
             ),
 
-            // Media card (images + audio stacked)
-            const _MediaCard(),
+            // ── Busy overlay (blocks UI while submitting) ──────────────────────
+            if (busy) const LoadingOverlay(message: 'Accepting...')
           ],
-        ),
+        );
+      },
+    );
+  }
+}
+
+/* ───────────────────────── Extracted main details card ───────────────────────── */
+
+class _MainDetailsCard extends StatelessWidget {
+  const _MainDetailsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<MaintenanceEnginnerAcceptWorkOrderController>();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE9EEF5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+        child: Obx(() {
+          final pillColor = _priorityColor(controller.priority.value);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _KVBlock(
+                rows: [
+                  _KV(
+                    label: 'Reported By :',
+                    value: controller.reportedBy.value.isEmpty
+                        ? '—'
+                        : controller.reportedBy.value,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _OperatorSection(
+                name: controller.operatorName.value,
+                phone: controller.operatorPhoneNumber.value,
+                info: controller.operatorInfo.value,
+              ),
+              const _DividerPad(),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      controller.workOrderTitle.value.isEmpty
+                          ? '—'
+                          : controller.workOrderTitle.value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _C.text,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15.5,
+                        height: 1.25,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _Pill(
+                    text: controller.priority.value.isEmpty
+                        ? '—'
+                        : controller.priority.value,
+                    color: pillColor,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    controller.issueNo.value.isEmpty
+                        ? '—'
+                        : controller.issueNo.value,
+                    style: const TextStyle(
+                      color: _C.muted,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    controller.date.value.isEmpty ? '—' : controller.date.value,
+                    style: const TextStyle(
+                      color: _C.muted,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    controller.status.value.isEmpty
+                        ? '—'
+                        : controller.status.value,
+                    style: const TextStyle(
+                      color: _C.muted,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                controller.issueType.value.isEmpty
+                    ? '—'
+                    : controller.issueType.value,
+                style: const TextStyle(
+                  color: _C.muted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Row(
+                children: [
+                  const Icon(
+                    CupertinoIcons.exclamationmark_triangle_fill,
+                    size: 14,
+                    color: Color(0xFFE25555),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      controller.cnc_1.value.isEmpty
+                          ? '—'
+                          : controller.cnc_1.value,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const _DividerPad(),
+              Text(
+                controller.description.value.isEmpty
+                    ? '—'
+                    : controller.description.value,
+                style: const TextStyle(
+                  color: _C.text,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15.5,
+                ),
+              ),
+              if (controller.remark.value.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  controller.remark.value,
+                  style: const TextStyle(color: _C.text, height: 1.35),
+                ),
+              ],
+            ],
+          );
+        }),
       ),
     );
   }
