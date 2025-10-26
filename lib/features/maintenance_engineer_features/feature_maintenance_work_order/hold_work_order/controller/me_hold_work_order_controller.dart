@@ -1,25 +1,32 @@
-// hold_work_order_page.dart;
+// lib/.../hold_work_order/controller/me_hold_work_order_controller.dart
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
+import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
-
-/// ───────────────────────── Controller ─────────────────────────
 class MEHoldWorkOrderController extends GetxController {
-  // Work order info (normally injected)
-
+  // Network + DB
   final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
-  final RxList<LookupValues> reason = <LookupValues>[].obs;
+  final DBRepository db = Get.find<DBRepository>();
+
+  // Ready state for the screen (prevents reading nulls in build)
+  final ready = false.obs;
+
+  // Lookup: Hold Reason
+  final RxList<LookupValues> reasons = <LookupValues>[].obs;
+  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
+  final selectedReasonValue = 'Select Reason'.obs;
 
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
-  // Context (top middle card)
+  // Context (top card)
   final RxString holdContextTitle = 'Need Hydra'.obs;
   final RxString holdContextCategory = 'Assets Availability'.obs;
   final RxString holdContextDesc =
@@ -29,32 +36,27 @@ class MEHoldWorkOrderController extends GetxController {
   final TextEditingController reasonTitleCtrl = TextEditingController();
   final TextEditingController remarksCtrl = TextEditingController();
   final RxString reasonTitle = ''.obs;
-
-  final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
-  final selectedReasonValue = 'Select Reason'.obs;
-
-  final RxList<String> reasonTypes = <String>[
-    'Assets Availability/ Manpower/spare/skill',
-    'Safety/Permit Pending',
-    'Process Dependency',
-    'Awaiting Vendor',
-    'Other',
-  ].obs;
-  final RxString selectedReasonType = ''.obs;
-
   final RxString remarks = ''.obs;
 
-  // submit state
+  // Submit state
   final RxBool isSubmitting = false.obs;
 
+  // Current Work Order
   WorkOrders? workOrderInfo;
 
   @override
   void onInit() {
     super.onInit();
-    final tabs = Get.find<UpdateWorkTabsController>();
-    workOrderInfo = tabs.workOrder;
-    selectedReasonType.value = reasonTypes.first;
+    // no async work here that the UI depends on
+  }
+
+  @override
+  Future<void> onReady() async {
+    // Called after first frame — safe place to do async + then mark ready
+    await _loadWorkOrder();
+    await _loadHoldReasons();
+    ready.value = true;
+    super.onReady();
   }
 
   @override
@@ -64,8 +66,37 @@ class MEHoldWorkOrderController extends GetxController {
     super.onClose();
   }
 
+  Future<void> _loadWorkOrder() async {
+    workOrderInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+  }
+
+  Future<void> _loadHoldReasons() async {
+    // Use your local DB lookups; fallback to a placeholder row
+    final list = await db.getLookupByType(LookupType.resolution) ??
+        const <LookupValues>[];
+
+    final placeholder = LookupValues(
+      id: '',
+      code: '',
+      displayName: 'Select reason',
+      description: '',
+      lookupType: LookupType.resolution,
+      sortOrder: -1,
+      recordStatus: 1,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      tenantId: '',
+      clientId: '',
+    );
+
+    reasons.assignAll([placeholder, ...list]);
+    selectedReason.value = placeholder;
+    selectedReasonValue.value = placeholder.displayName;
+  }
+
   Future<void> onEditContext(BuildContext context) async {
-    // tiny inline editor (title + desc)
     final titleTemp = TextEditingController(text: holdContextTitle.value);
     final descTemp = TextEditingController(text: holdContextDesc.value);
     await showDialog(
@@ -92,10 +123,10 @@ class MEHoldWorkOrderController extends GetxController {
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           FilledButton(
             onPressed: () {
-              holdContextTitle.value = titleTemp.text.trim().isEmpty
-                  ? holdContextTitle.value
-                  : titleTemp.text.trim();
-              holdContextDesc.value = descTemp.text.trim();
+              final t = titleTemp.text.trim();
+              final d = descTemp.text.trim();
+              if (t.isNotEmpty) holdContextTitle.value = t;
+              holdContextDesc.value = d;
               Get.back();
             },
             child: const Text('Save'),
@@ -136,12 +167,11 @@ class MEHoldWorkOrderController extends GetxController {
     try {
       isSubmitting.value = true;
 
-      // Build request (map the reason as needed: id/code/displayName)
       final sel = selectedReason.value!;
       final req = CancelWorkOrderRequest(
         status: 'Hold',
         remark: remarksCtrl.text.trim(),
-        comment: sel.displayName, // or sel.id / sel.code per API contract
+        comment: sel.displayName, // or sel.id / sel.code as per API
       );
 
       final result = await repositoryImpl.cancelOrder(
@@ -151,8 +181,8 @@ class MEHoldWorkOrderController extends GetxController {
 
       if (result.httpCode == 200 && result.data != null) {
         Get.snackbar(
-          'Cancelled',
-          'Work order cancelled successfully.',
+          'On hold',
+          'Work order placed on hold successfully.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green.shade100,
           colorText: Colors.black87,
@@ -164,7 +194,7 @@ class MEHoldWorkOrderController extends GetxController {
         );
       } else {
         Get.snackbar(
-          'Cancel failed',
+          'Failed',
           (result.message?.trim().isNotEmpty ?? false)
               ? result.message!
               : 'Unexpected response (code ${result.httpCode}).',
@@ -184,48 +214,7 @@ class MEHoldWorkOrderController extends GetxController {
         margin: const EdgeInsets.all(12),
       );
     } finally {
-      // isSubmitting.value = false;
+      isSubmitting.value = false;
     }
   }
-
-  // /// Fake API call
-  // Future<void> onHold() async {
-  //   if (!canSubmit) {
-  //     Get.snackbar(
-  //       'Missing details',
-  //       'Please add Hold Reason Title',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       margin: const EdgeInsets.all(12),
-  //     );
-  //     return;
-  //   }
-
-  //   isSubmitting.value = true;
-  //   try {
-  //     await Future.delayed(const Duration(seconds: 2)); // simulate network
-  //     Get.snackbar(
-  //       'Work Order On Hold',
-  //       'Title: ${reasonTitle.value}\nType: ${selectedReasonType.value}'
-  //           '${remarks.value.isNotEmpty ? '\nRemarks: ${remarks.value}' : ''}',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       margin: const EdgeInsets.all(12),
-  //     );
-  //     // Get.back(); // close page
-  //     Get.offAllNamed(
-  //       Routes.maintenanceEngeneerlandingDashboardScreen,
-  //       arguments: {'tab': 3}, // open Work Orders
-  //     );
-  //   } catch (_) {
-  //     Get.snackbar(
-  //       'Failed',
-  //       'Could not put on hold. Try again.',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       margin: const EdgeInsets.all(12),
-  //       backgroundColor: Colors.red.shade50,
-  //       colorText: Colors.red.shade700,
-  //     );
-  //   } finally {
-  //     isSubmitting.value = false;
-  //   }
-  // }
 }

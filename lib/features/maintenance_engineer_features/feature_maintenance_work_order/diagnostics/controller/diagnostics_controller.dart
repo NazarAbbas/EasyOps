@@ -70,7 +70,9 @@ class MaintenanceEnginnerDiagnosticsController extends GetxController {
   }
 
   Future<void> cancel() async {
-    Get.toNamed(Routes.maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen);
+    Get.toNamed(Routes.maintenanceEngeneergeneralCancelWorkOrderScreen);
+
+    //Get.toNamed(Routes.maintenanceEngeneercancelWorkOrderFromDiagnosticsScreen);
   }
 
   /* ----------------------------- Helpers ----------------------------- */

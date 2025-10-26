@@ -1,3 +1,4 @@
+// lib/.../hold_work_order/ui/hold_work_order_page.dart
 import 'package:easy_ops/core/utils/loading_overlay.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/hold_work_order/controller/me_hold_work_order_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
@@ -8,22 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-/// ───────────────────────── Palette ─────────────────────────
 class _C {
   static const bg = Color(0xFFF7F8FA);
   static const surface = Colors.white;
-  static const soft = Color(0xFFF6F7FB);
   static const border = Color(0xFFE9EEF5);
   static const text = Color(0xFF1F2430);
   static const muted = Color(0xFF7C8698);
   static const primary = Color(0xFF2F6BFF);
-  static const pillBlue = Color(0xFFEFF4FF);
-  static const dangerText = Color(0xFFED3B40);
-  static const dangerBg = Color(0xFFFFE7E7);
   static const line = Color(0xFFE6EBF3);
 }
 
-/// ───────────────────────── Page ─────────────────────────
 class MaintenanceEngineerHoldWorkOrderPage
     extends GetView<MEHoldWorkOrderController> {
   const MaintenanceEngineerHoldWorkOrderPage({super.key});
@@ -33,8 +28,21 @@ class MaintenanceEngineerHoldWorkOrderPage
     final c = controller;
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
-    return Obx(
-      () => Stack(
+
+    return Obx(() {
+      // Show shell while controller warms up
+      if (!c.ready.value) {
+        return Scaffold(
+          appBar: AppBar(
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+            backgroundColor: primary,
+            title: const Text('Hold Work Order'),
+          ),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      return Stack(
         children: [
           Scaffold(
             backgroundColor: _C.bg,
@@ -45,10 +53,8 @@ class MaintenanceEngineerHoldWorkOrderPage
               centerTitle: true,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white),
                 onPressed: c.isSubmitting.value ? null : () => Get.back(),
               ),
               title: const Text(
@@ -64,12 +70,13 @@ class MaintenanceEngineerHoldWorkOrderPage
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
                 children: [
-                  // _WoInfoCard(c),
-                  WorkOrderTile(
-                    workOrderInfo: controller.workOrderInfo!,
-                    onTap: () => print('Open work order'),
-                  ),
-                  const SizedBox(height: 12),
+                  if (c.workOrderInfo != null) ...[
+                    WorkOrderTile(
+                      workOrderInfo: c.workOrderInfo!,
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   _HoldContextCard(c),
                   const SizedBox(height: 12),
                   _FormCard(c),
@@ -81,12 +88,12 @@ class MaintenanceEngineerHoldWorkOrderPage
           if (c.isSubmitting.value)
             const LoadingOverlay(message: 'Placing on hold…'),
         ],
-      ),
-    );
+      );
+    });
   }
 }
 
-/// ───────────────────────── Widgets ─────────────────────────
+/* ───────────────────────── Cards / Form ───────────────────────── */
 
 class _HoldContextCard extends StatelessWidget {
   const _HoldContextCard(this.c);
@@ -95,7 +102,7 @@ class _HoldContextCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: _cardDecoration.copyWith(color: const Color(0xFFF9FAFC)),
+      decoration: _cardDecoration,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,16 +122,14 @@ class _HoldContextCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(
-                  Icons.edit_rounded,
-                  color: _C.primary,
-                  size: 20,
-                ),
+                icon:
+                    const Icon(Icons.edit_rounded, color: _C.primary, size: 20),
                 onPressed: () => c.onEditContext(context),
                 tooltip: 'Edit',
               ),
             ],
           ),
+          const SizedBox(height: 4),
           Obx(
             () => Text(
               c.holdContextCategory.value,
@@ -171,7 +176,7 @@ class _FormCard extends StatelessWidget {
         );
 
     return Container(
-      decoration: _cardDecoration.copyWith(color: const Color(0xFFF5F7FB)),
+      decoration: _cardDecoration,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,13 +198,13 @@ class _FormCard extends StatelessWidget {
               controller: c.reasonTitleCtrl,
               onChanged: (v) => c.reasonTitle.value = v,
               enabled: !c.isSubmitting.value,
-              decoration: _inputDecoration(hint: 'Placeholder'),
+              decoration: _inputDecoration(hint: 'Enter title'),
             ),
           ),
           const SizedBox(height: 14),
 
-          // Hold Reason Type (dropdown)
-          label('Hold Reason Type'),
+          // Hold Reason (Lookup)
+          label('Hold Reason'),
           _TapField(
             textObs: c.selectedReasonValue,
             placeholder: 'Select',
@@ -210,23 +215,12 @@ class _FormCard extends StatelessWidget {
                 selected: c.selectedReason.value,
               );
               if (v != null) {
-                c.selectedReason.value = v; // keep selected model
-                c.selectedReasonValue.value =
-                    v.displayName; // <-- update the text
+                c.selectedReason.value = v;
+                c.selectedReasonValue.value = v.displayName;
               }
             },
           ),
-          // Obx(
-          //   () => _CupertinoLikeDropdown<String>(
-          //     value: c.selectedReasonType.value,
-          //     items: c.reasonTypes.toList(),
-          //     onChanged: (v) {
-          //       if (c.isSubmitting.value) return;
-          //       HapticFeedback.selectionClick();
-          //       c.selectedReasonType.value = v ?? c.reasonTypes.first;
-          //     },
-          //   ),
-          // ),
+
           const SizedBox(height: 14),
 
           // Remarks
@@ -240,9 +234,8 @@ class _FormCard extends StatelessWidget {
               onChanged: (v) => c.remarks.value = v,
               enabled: !c.isSubmitting.value,
               textInputAction: TextInputAction.newline,
-              decoration: _inputDecoration(
-                hint: 'Type remarks…',
-              ).copyWith(counterText: ''),
+              decoration: _inputDecoration(hint: 'Type remarks…')
+                  .copyWith(counterText: ''),
             ),
           ),
         ],
@@ -250,6 +243,25 @@ class _FormCard extends StatelessWidget {
     );
   }
 }
+
+InputDecoration _inputDecoration({required String hint}) => InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: _C.surface,
+      contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _C.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _C.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFBFD0FF)),
+      ),
+    );
 
 class _TapField extends StatelessWidget {
   final RxString textObs;
@@ -285,33 +297,6 @@ class _TapField extends StatelessWidget {
         ),
       );
     });
-  }
-}
-
-class _D {
-  static InputDecoration field({String? hint, Widget? prefix, Widget? suffix}) {
-    return const InputDecoration(
-      isDense: true,
-      hintText: null,
-      hintStyle: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      prefixIcon: null,
-      suffixIcon: null,
-      border: OutlineInputBorder(
-        borderSide: BorderSide(color: _C.line),
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: _C.line),
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: _C.primary),
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-    ).copyWith(hintText: hint, prefixIcon: prefix, suffixIcon: suffix);
   }
 }
 
@@ -358,13 +343,11 @@ class _BottomBar extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 final submitting = c.isSubmitting.value;
-
                 return FilledButton(
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
-                    backgroundColor: submitting
-                        ? primary.withOpacity(0.5) // dim while submitting
-                        : primary,
+                    backgroundColor:
+                        submitting ? primary.withOpacity(0.5) : primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -399,77 +382,40 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-/// ───────────────────────── Reusable UI helpers ─────────────────────────
-InputDecoration _inputDecoration({required String hint}) => InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: _C.surface,
-      contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _C.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _C.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFBFD0FF)),
-      ),
-    );
+/* ───────────────────────── Styles ───────────────────────── */
 
 final _cardDecoration = BoxDecoration(
   color: _C.surface,
   borderRadius: BorderRadius.circular(16),
   border: Border.all(color: _C.border),
   boxShadow: const [
-    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4)),
+    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4))
   ],
 );
 
-class _CupertinoLikeDropdown<T> extends StatelessWidget {
-  const _CupertinoLikeDropdown({
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final T value;
-  final List<T> items;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: _C.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _C.border),
+class _D {
+  static InputDecoration field({String? hint, Widget? prefix, Widget? suffix}) {
+    return const InputDecoration(
+      isDense: true,
+      hintText: null,
+      hintStyle: TextStyle(color: _C.muted, fontWeight: FontWeight.w600),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      prefixIcon: null,
+      suffixIcon: null,
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.line),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isExpanded: true,
-          borderRadius: BorderRadius.circular(12),
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
-          items: items
-              .map(
-                (e) => DropdownMenuItem<T>(
-                  value: e,
-                  child: Text(
-                    e.toString(),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14.5, color: _C.text),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: onChanged,
-        ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.line),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-    );
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: _C.primary),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ).copyWith(hintText: hint, prefixIcon: prefix, suffixIcon: suffix);
   }
 }

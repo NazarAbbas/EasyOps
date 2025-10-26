@@ -500,14 +500,22 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                     as String;
             final status = (order.status).toUpperCase();
 
-            Get.toNamed(
-              Routes.workOrderTabShellScreen,
-              arguments: {
-                Constant.workOrderInfo: order,
-                Constant.workOrderStatus: WorkOrderStatus.open,
-              },
-            );
-            return;
+            // Get.toNamed(
+            //   Routes.maintenanceEngeneerdiagnosticsScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+
+            // Get.toNamed(
+            //   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+            // return;
             if (userRole == SharePreferences.engineerRole) {
               if (status == "OPEN" || status == "REOPEN") {
                 Get.toNamed(

@@ -185,25 +185,26 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
       workOrderInfo!.id,
       sparePartsRequest,
     );
+    if (result.httpCode == 200 && result.data != null) {
+      final start =
+          Get.isRegistered<MaintenanceEnginnerStartWorkOrderController>()
+              ? Get.find<MaintenanceEnginnerStartWorkOrderController>()
+              : Get.put(MaintenanceEnginnerStartWorkOrderController(),
+                  permanent: true);
 
-    final start =
-        Get.isRegistered<MaintenanceEnginnerStartWorkOrderController>()
-            ? Get.find<MaintenanceEnginnerStartWorkOrderController>()
-            : Get.put(MaintenanceEnginnerStartWorkOrderController(),
-                permanent: true);
+      // hand over to WO
+      start.addSparesFromCart(cart.toList());
 
-    // hand over to WO
-    start.addSparesFromCart(cart.toList());
+      // clear & close
+      cart.clear();
+      editingKeys.clear();
 
-    // clear & close
-    cart.clear();
-    editingKeys.clear();
+      if (Get.key.currentState?.canPop() ?? false) Get.back();
+      if (Get.key.currentState?.canPop() ?? false) Get.back();
 
-    if (Get.key.currentState?.canPop() ?? false) Get.back();
-    if (Get.key.currentState?.canPop() ?? false) Get.back();
-
-    Get.snackbar('Order Placed', 'Spares added to Work Order.',
-        snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Order Placed', 'Spares added to Work Order.',
+          snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   /* ---------- private ---------- */
