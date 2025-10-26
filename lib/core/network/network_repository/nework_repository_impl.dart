@@ -11,6 +11,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_request.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/models/rca_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/add_spare_parts_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
@@ -438,13 +439,13 @@ class NetworkRepositoryImpl implements NetworkRepository {
   }
 
   @override
-  Future<ApiResult<SparePartsResponse>> sendBulkSpareRequest(
+  Future<ApiResult<List<AddSparePartsResponse>>> sendBulkSpareRequest(
       String workOrderId, List<SparePartsRequest> sparePartsRequest) async {
     try {
       final result = await _apiService.sendBulkSpareRequest(
           workOrderId, sparePartsRequest);
 
-      return ApiResult<SparePartsResponse>(
+      return ApiResult<List<AddSparePartsResponse>>(
         httpCode: 200,
         data: result,
         message: 'Success',
@@ -452,13 +453,13 @@ class NetworkRepositoryImpl implements NetworkRepository {
     } on DioException catch (e) {
       final code = e.response?.statusCode ?? 0;
       final msg = NetworkExceptions.getMessage(e);
-      return ApiResult<SparePartsResponse>(
+      return ApiResult<List<AddSparePartsResponse>>(
         httpCode: code,
         data: null,
         message: msg,
       );
     } catch (e) {
-      return ApiResult<SparePartsResponse>(
+      return ApiResult<List<AddSparePartsResponse>>(
         httpCode: 0,
         data: null,
         message: e.toString(),

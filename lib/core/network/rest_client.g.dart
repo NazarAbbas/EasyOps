@@ -559,7 +559,7 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<SparePartsResponse> bulkSparePartRequest(
+  Future<List<AddSparePartsResponse>> bulkSparePartRequest(
     String workOrderId,
     List<SparePartsRequest> lines,
   ) async {
@@ -567,7 +567,7 @@ class _RestClient implements RestClient {
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = lines.map((e) => e.toJson()).toList();
-    final _options = _setStreamType<SparePartsResponse>(Options(
+    final _options = _setStreamType<List<AddSparePartsResponse>>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -583,10 +583,13 @@ class _RestClient implements RestClient {
           _dio.options.baseUrl,
           baseUrl,
         )));
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late SparePartsResponse _value;
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<AddSparePartsResponse> _value;
     try {
-      _value = SparePartsResponse.fromJson(_result.data!);
+      _value = _result.data!
+          .map((dynamic i) =>
+              AddSparePartsResponse.fromJson(i as Map<String, dynamic>))
+          .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

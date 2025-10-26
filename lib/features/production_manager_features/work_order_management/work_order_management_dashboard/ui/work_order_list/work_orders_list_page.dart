@@ -517,7 +517,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             // );
             // return;
             if (userRole == SharePreferences.engineerRole) {
-              if (status == "OPEN" || status == "REOPEN") {
+              if (status == "OPEN" || status == "REOPEN" || status == "HOLD") {
                 Get.toNamed(
                   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
                   arguments: {

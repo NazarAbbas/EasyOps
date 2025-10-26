@@ -1,11 +1,11 @@
+// work_order_details_controller.dart
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
-
 import 'package:easy_ops/database/db_repository/offline_work_order_repository.dart';
-
 import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
@@ -17,12 +17,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 class WorkOrderDetailsController extends GetxController {
-
-  // final loginPersonDetailsRepository = Get.find<LoginPersonDetailsRepository>();
   final repository = Get.find<DBRepository>();
-
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
-
   final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
   // Header / UI labels
@@ -31,20 +27,20 @@ class WorkOrderDetailsController extends GetxController {
   final successSub = 'Work Order ID - BD265'.obs;
 
   // Misc shown on UI
-  final line = ''.obs; // e.g., "Line-1"
-  final cnc_1 = ''.obs; // e.g., "CNC-1 (AST-123)"
+  final line = ''.obs;
+  final cnc_1 = ''.obs;
 
   // People
   final operatorName = ''.obs;
-  final operatorInfo = ''.obs; // optional remark area if needed
+  final operatorInfo = ''.obs;
   final operatorPhoneNumber = ''.obs;
   final reportedName = ''.obs;
 
   // Details
   final descriptionText = ''.obs;
-  final priority = ''.obs; // raw priority text (API → PriorityX.fromApi)
-  final issueType = ''.obs; // display name for title fallback
-  final problemTitle = ''.obs; // display name for title fallback
+  final priority = ''.obs;
+  final issueType = ''.obs;
+  final problemTitle = ''.obs;
   final problemDescription = ''.obs;
 
   // When/Where
@@ -53,47 +49,11 @@ class WorkOrderDetailsController extends GetxController {
   final location = ''.obs; // "Dept | Plant"
 
   // Media
-  final photoPaths = <String>[].obs;
-  final voiceNotePath = ''.obs;
+  final photoPaths = <String>[].obs; // file paths OR URLs
+  final voiceNotePath = ''.obs; // file path OR URL
 
   // State
   final isLoading = false.obs;
-
-  void _initDefaults() async {
-    final prefs = await SharedPreferences.getInstance();
-    final loginPerson = prefs.getString(Constant.loginPersonId);
-
-    if (loginPerson != null) {
- 
-      final details = await repository.getPersonById(
-        loginPerson,
-      );
-      if (details != null) {
-        operatorName.value = '${details.name}(${details.id})';
-        if (details.contacts.isNotEmpty &&
-            details.contacts.first.phone != null) {
-          operatorPhoneNumber.value = details.contacts.first.phone!;
-        }
-        // example timestamp → format into local
-        final dt = (details.updatedAt ?? DateTime.now()).toUtc();
-        final s = formatTimeDateLocal(dt);
-
-        if (details.assets.isNotEmpty) {
-          operatorInfo.value =
-              '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
-        }
-      }
-    }
-  }
-
-  /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
-  String formatTimeDateLocal(DateTime dt) {
-    final d = dt.isUtc ? dt.toLocal() : dt; // convert if it's UTC (ends with Z)
-    final time = DateFormat('HH:mm').format(d); // 24h: 02:30
-    final day = DateFormat('dd').format(d); // 02
-    final mon = DateFormat('MMM').format(d).toLowerCase(); // oct
-    return '$time | $day $mon';
-  }
 
   @override
   void onInit() {
@@ -105,20 +65,13 @@ class WorkOrderDetailsController extends GetxController {
 
     // Reporter / Operator basics
     reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
-
     final isSameAsOperator = _bag.get<String>(WOKeys.sameAsOperator, 'false');
-
     if (isSameAsOperator == 'true') {
       _initDefaults();
     } else {
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
       operatorPhoneNumber.value =
           _bag.get<String>(WOKeys.operatorPhoneNumber, '');
-
-      // if (details.assets.isNotEmpty) {
-      //   operatorInfo.value =
-      //       '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
-      // }
     }
 
     // Types / Priority / Descriptions
@@ -128,18 +81,24 @@ class WorkOrderDetailsController extends GetxController {
     problemTitle.value = _bag.get<String>(WOKeys.title, '');
     problemDescription.value = _bag.get<String>(WOKeys.problemDescription, '');
 
-    // Media: images (dedupe + validate) and voice note (single)
+    // Media: accept file paths & URLs
     final cleanedPhotos = <String>[];
     final seen = <String>{};
     for (final raw in _bag.get<List<String>>(WOKeys.photos, const <String>[])) {
       final p = raw.trim();
-      if (p.isEmpty || !seen.add(p) || !_isImagePath(p)) continue;
-      cleanedPhotos.add(p);
+      if (p.isEmpty || !seen.add(p)) continue;
+      if (_isUrl(p) || _isLocalImagePath(p)) {
+        cleanedPhotos.add(p);
+      }
     }
     photoPaths.assignAll(cleanedPhotos);
 
     final voice = _bag.get<String>(WOKeys.voiceNotePath, '').trim();
-    voiceNotePath.value = _isAudioPath(voice) ? voice : '';
+    if (voice.isNotEmpty && (_isUrl(voice) || _isLocalAudioPath(voice))) {
+      voiceNotePath.value = voice;
+    } else {
+      voiceNotePath.value = '';
+    }
 
     // Time / Date
     final tStr = _bag.get<String?>(WOKeys.reportedTime, null);
@@ -155,54 +114,54 @@ class WorkOrderDetailsController extends GetxController {
     location.value = _joinNonEmpty([loc, plant], ' | ');
   }
 
-  String _joinNonEmpty(List<String> parts, String sep) =>
-      parts.where((p) => p.trim().isNotEmpty).join(sep);
+  // Load operator defaults from DB
+  void _initDefaults() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loginPerson = prefs.getString(Constant.loginPersonId);
+    if (loginPerson == null) return;
 
-  MediaFile _mediaFromPath(String path) {
-    final p = path.trim();
-    final lower = p.toLowerCase();
-    String mime = 'application/octet-stream';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
-      mime = 'image/jpeg';
-    } else if (lower.endsWith('.png')) {
-      mime = 'image/png';
-    } else if (lower.endsWith('.webp')) {
-      mime = 'image/webp';
-    } else if (lower.endsWith('.heic')) {
-      mime = 'image/heic';
-    } else if (lower.endsWith('.mp4')) {
-      mime = 'video/mp4';
-    } else if (lower.endsWith('.mov')) {
-      mime = 'video/quicktime';
-    } else if (lower.endsWith('.m4a')) {
-      mime = 'audio/m4a';
-    } else if (lower.endsWith('.aac')) {
-      mime = 'audio/aac';
-    } else if (lower.endsWith('.mp3')) {
-      mime = 'audio/mpeg';
-    } else if (lower.endsWith('.wav')) {
-      mime = 'audio/wav';
+    final details = await repository.getPersonById(loginPerson);
+    if (details == null) return;
+
+    operatorName.value = '${details.name}(${details.id})';
+    if (details.contacts.isNotEmpty && details.contacts.first.phone != null) {
+      operatorPhoneNumber.value = details.contacts.first.phone!;
     }
-    return MediaFile(filePath: p, fileType: mime);
+
+    final dt = (details.updatedAt ?? DateTime.now()).toUtc();
+    final s = formatTimeDateLocal(dt);
+
+    if (details.assets.isNotEmpty) {
+      operatorInfo.value =
+          '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+    }
   }
 
+  /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
+  String formatTimeDateLocal(DateTime dt) {
+    final d = dt.isUtc ? dt.toLocal() : dt;
+    final time = DateFormat('HH:mm').format(d);
+    final day = DateFormat('dd').format(d);
+    final mon = DateFormat('MMM').format(d).toLowerCase();
+    return '$time | $day $mon';
+  }
+
+  // Create Work Order (builds media from both local + URL entries)
   Future<void> create() async {
     if (isLoading.value) return;
     isLoading.value = true;
 
     try {
-      // Re-read latest values from the bag (user might have changed tabs)
+      // Re-read latest bag
       reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
       final reporterId = _bag.get<String>(WOKeys.reporterId, '');
       final reporterPhoneNumber =
           _bag.get<String>(WOKeys.reporterPhoneNumber, '');
-
       final isSameAsOperator = _bag.get<String>(WOKeys.sameAsOperator, 'false');
 
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
       operatorPhoneNumber.value =
           _bag.get<String>(WOKeys.operatorPhoneNumber, '');
-    
       var operatorId = _bag.get<String>(WOKeys.operatorId, '');
 
       issueType.value = _bag.get<String>(WOKeys.issueType, '');
@@ -227,7 +186,7 @@ class WorkOrderDetailsController extends GetxController {
       time.value = t == null ? '' : _formatTime(t);
       date.value = d == null ? '' : _formatDate(d);
 
-      // Build media list (images + optional voice note)
+      // Build media list
       final mediaFiles = <MediaFile>[];
       final cleanedPhotos = <String>[];
       final seen = <String>{};
@@ -235,12 +194,14 @@ class WorkOrderDetailsController extends GetxController {
       for (final raw
           in _bag.get<List<String>>(WOKeys.photos, const <String>[])) {
         final p = raw.trim();
-        if (p.isEmpty || !seen.add(p) || !_isImagePath(p)) continue;
-        cleanedPhotos.add(p);
-        mediaFiles.add(_mediaFromPath(p));
+        if (p.isEmpty || !seen.add(p)) continue;
+        if (_isUrl(p) || _isLocalImagePath(p)) {
+          cleanedPhotos.add(p);
+          mediaFiles.add(_mediaFromPath(p));
+        }
       }
       final voice = _bag.get<String>(WOKeys.voiceNotePath, '').trim();
-      if (voice.isNotEmpty && _isAudioPath(voice)) {
+      if (voice.isNotEmpty && (_isUrl(voice) || _isLocalAudioPath(voice))) {
         voiceNotePath.value = voice;
         mediaFiles.add(_mediaFromPath(voice));
       }
@@ -295,7 +256,7 @@ class WorkOrderDetailsController extends GetxController {
         issueTypeId: issueTypeId,
         impactId: impactId,
         shiftId: shiftId,
-        mediaFiles: mediaFiles,
+        mediaFiles: mediaFiles, // <- mix of URL and local file references
       );
 
       await createWorkOrder(req);
@@ -308,14 +269,11 @@ class WorkOrderDetailsController extends GetxController {
     final offlineRepo = Get.find<OfflineWorkOrderRepository>();
 
     try {
-      // Check connectivity
       final connectivity = await Connectivity().checkConnectivity();
 
       if (connectivity == ConnectivityResult.none) {
-        // No network → save offline
         await _saveOffline(req, offlineRepo);
       } else {
-        // Try API
         final res = await repositoryImpl.createWorkOrderRequest(req);
 
         if (res.httpCode == 201 && res.data != null) {
@@ -327,19 +285,16 @@ class WorkOrderDetailsController extends GetxController {
             colorText: AppColors.white,
           );
         } else {
-          // Server error → fallback offline
           await _saveOffline(req, offlineRepo);
         }
       }
     } catch (e) {
-      // Any exception → fallback offline
       await _saveOffline(req, offlineRepo);
       if (kDebugMode) {
         print('❌ Error creating Work Order online: $e');
       }
     }
 
-    // Navigate to Work Orders tab
     Get.offAllNamed(
       Routes.landingDashboardScreen,
       arguments: {'tab': 3},
@@ -389,6 +344,62 @@ class WorkOrderDetailsController extends GetxController {
   void goBack() => Get.back();
 
   // ───────────── Helpers ─────────────
+  String _joinNonEmpty(List<String> parts, String sep) =>
+      parts.where((p) => p.trim().isNotEmpty).join(sep);
+
+  MediaFile _mediaFromPath(String path) {
+    final p = path.trim();
+    final lower = p.toLowerCase();
+
+    // Guess MIME from extension (works for both URL & local)
+    String mime = 'application/octet-stream';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      mime = 'image/jpeg';
+    } else if (lower.endsWith('.png')) {
+      mime = 'image/png';
+    } else if (lower.endsWith('.webp')) {
+      mime = 'image/webp';
+    } else if (lower.endsWith('.heic')) {
+      mime = 'image/heic';
+    } else if (lower.endsWith('.mp4')) {
+      mime = 'video/mp4';
+    } else if (lower.endsWith('.mov')) {
+      mime = 'video/quicktime';
+    } else if (lower.endsWith('.m4a')) {
+      mime = 'audio/m4a';
+    } else if (lower.endsWith('.aac')) {
+      mime = 'audio/aac';
+    } else if (lower.endsWith('.mp3')) {
+      mime = 'audio/mpeg';
+    } else if (lower.endsWith('.wav')) {
+      mime = 'audio/wav';
+    } else if (_isUrl(lower)) {
+      // If URL without extension, you can keep generic or add heuristics
+      // (server may accept URL as-is)
+      mime = 'application/octet-stream';
+    }
+    return MediaFile(filePath: p, fileType: mime);
+  }
+
+  bool _isUrl(String p) => p.toLowerCase().startsWith('http');
+
+  bool _isLocalImagePath(String p) {
+    final x = p.toLowerCase().trim();
+    return x.endsWith('.jpg') ||
+        x.endsWith('.jpeg') ||
+        x.endsWith('.png') ||
+        x.endsWith('.webp') ||
+        x.endsWith('.heic');
+  }
+
+  bool _isLocalAudioPath(String p) {
+    final x = p.toLowerCase().trim();
+    return x.endsWith('.m4a') ||
+        x.endsWith('.aac') ||
+        x.endsWith('.mp3') ||
+        x.endsWith('.wav');
+  }
+
   TimeOfDay? _decodeTime(String? s) {
     if (s == null || s.isEmpty) return null;
     final parts = s.split(':');
@@ -423,22 +434,5 @@ class WorkOrderDetailsController extends GetxController {
     final dd = d.day.toString().padLeft(2, '0');
     final mon = months[d.month - 1];
     return '$dd $mon';
-  }
-
-  bool _isImagePath(String p) {
-    final x = p.toLowerCase().trim();
-    return x.endsWith('.jpg') ||
-        x.endsWith('.jpeg') ||
-        x.endsWith('.png') ||
-        x.endsWith('.webp') ||
-        x.endsWith('.heic');
-  }
-
-  bool _isAudioPath(String p) {
-    final x = p.toLowerCase().trim();
-    return x.endsWith('.m4a') ||
-        x.endsWith('.aac') ||
-        x.endsWith('.mp3') ||
-        x.endsWith('.wav');
   }
 }

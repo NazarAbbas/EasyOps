@@ -150,11 +150,11 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
       if (res.httpCode == 200 && res.data != null) {
         final items = res.data!
             .map((p) => SpareItem(
-                  id: p.id,
-                  name: p.partName,
-                  code: p.partNumber,
-                  stock: p.quantity!,
-                ))
+                id: p.id,
+                name: p.partName,
+                code: p.partNumber,
+                stock: p.quantity!,
+                cost: p.cost!))
             .toList();
 
         results

@@ -258,6 +258,7 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
             name: (m['item']?['name'] ?? '') as String,
             code: (m['item']?['code'] ?? '') as String,
             stock: ((m['item']?['stock']) as num?)?.toInt() ?? 0,
+            cost: ((m['cost']?['cost']) as num?)?.toDouble() ?? 0,
           ),
         ),
       );

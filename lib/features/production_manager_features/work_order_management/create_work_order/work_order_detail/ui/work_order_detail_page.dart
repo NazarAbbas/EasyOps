@@ -60,7 +60,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Reporter (your original content)
                           _KVBlock(
                             rows: [
                               _KV(
@@ -73,7 +72,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                           ),
                           const SizedBox(height: 8),
 
-                          // Operator (your original content)
                           _OperatorSection(
                             name: controller.operatorName.value,
                             phone: controller.operatorPhoneNumber.value,
@@ -82,7 +80,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
 
                           const _DividerPad(),
 
-                          // Issue summary + priority (your original content)
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -90,8 +87,8 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Title
-                                    if (controller.problemTitle.value.isNotEmpty) ...[
+                                    if (controller
+                                        .problemTitle.value.isNotEmpty) ...[
                                       Text(
                                         controller.problemTitle.value,
                                         maxLines: 1,
@@ -105,10 +102,9 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                                       ),
                                       const SizedBox(height: 4),
                                     ],
-
-                                    // Problem Description
                                     Text(
-                                      controller.problemDescription.value.isEmpty
+                                      controller
+                                              .problemDescription.value.isEmpty
                                           ? '—'
                                           : controller.problemDescription.value,
                                       maxLines: 2,
@@ -135,7 +131,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
 
                           const SizedBox(height: 8),
 
-                          // Time | Date | Issue type (your original content)
                           Row(
                             children: [
                               Text(
@@ -188,7 +183,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                           ),
                           const SizedBox(height: 6),
 
-                          // Line (your original optional block)
                           if (controller.line.value.isNotEmpty) ...[
                             Row(
                               children: [
@@ -212,7 +206,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                             const SizedBox(height: 6),
                           ],
 
-                          // Location (your original)
                           if (controller.location.value.isNotEmpty)
                             Text(
                               controller.location.value,
@@ -224,7 +217,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
 
                           const _DividerPad(),
 
-                          // Headline & Description (your original)
                           Text(
                             controller.descriptionText.value.isEmpty
                                 ? '—'
@@ -241,7 +233,7 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                                 ? '—'
                                 : controller.problemTitle.value,
                             style:
-                            const TextStyle(color: _C.text, height: 1.35),
+                                const TextStyle(color: _C.text, height: 1.35),
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -253,32 +245,26 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                           ),
                           const SizedBox(height: 12),
 
-                          // ───────────────── MEDIA (new polished UI ONLY) ─────────────────
+                          // MEDIA
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Photos
                               if (controller.photoPaths.isEmpty)
                                 const _EmptyHint(text: 'No photos attached')
                               else
                                 _PhotoGrid(paths: controller.photoPaths),
-
                               const SizedBox(height: 12),
-
-                              // Audio
                               if (controller.voiceNotePath.value.isEmpty)
                                 const _EmptyHint(text: 'No audio attached')
                               else
                                 ConstrainedBox(
                                   constraints:
-                                      const BoxConstraints(maxWidth: 320),
+                                      const BoxConstraints(maxWidth: 360),
                                   child: _AudioCard(
                                       path: controller.voiceNotePath.value),
                                 ),
                             ],
                           )
-
-                          // ────────────────────────────────────────────────────────────────
                         ],
                       );
                     }),
@@ -298,7 +284,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
             width: double.infinity,
             child: Row(
               children: [
-                // Left button (Go Back)
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
@@ -319,7 +304,6 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Right button (Create)
                 Expanded(
                   child: FilledButton(
                     style: FilledButton.styleFrom(
@@ -348,7 +332,7 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
   }
 }
 
-/* ───────────────────────── Original helpers you already had ───────────────────────── */
+/* ───────────────────────── Original helpers ───────────────────────── */
 
 Color _priorityColor(String s) {
   switch (s.toLowerCase()) {
@@ -551,16 +535,34 @@ class _LineWithIcon extends StatelessWidget {
   }
 }
 
-/* ───────────────────────── Media (polished only) ───────────────────────── */
+/* ───────────────────────── Media (file or URL) ───────────────────────── */
 
 class _PhotoGrid extends StatelessWidget {
   final List<String> paths;
   const _PhotoGrid({required this.paths});
 
+  bool _isUrl(String p) => p.toLowerCase().startsWith('http');
+
+  bool _localExists(String p) {
+    try {
+      return File(p).existsSync();
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final valid =
-        paths.where((p) => p.isNotEmpty && File(p).existsSync()).toList();
+    // accept:
+    //  - http/https URLs
+    //  - local files that exist
+    final valid = paths.where((p) {
+      final t = p.trim();
+      if (t.isEmpty) return false;
+      if (_isUrl(t)) return true;
+      return _localExists(t);
+    }).toList();
+
     if (valid.isEmpty) return const _EmptyHint(text: 'No photos attached');
 
     return LayoutBuilder(
@@ -587,16 +589,39 @@ class _PhotoGrid extends StatelessWidget {
 class _Thumb extends StatelessWidget {
   final String path;
   const _Thumb({required this.path});
+
+  bool _isUrl(String p) => p.toLowerCase().startsWith('http');
+
   @override
   Widget build(BuildContext context) {
-    final f = File(path);
-    if (!f.existsSync()) return const SizedBox();
+    final isUrl = _isUrl(path);
+    final border = BorderRadius.circular(12);
+
+    Widget img;
+    if (isUrl) {
+      img = Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: const Color(0xFFF1F5F9),
+          child: const Center(
+            child:
+                Icon(CupertinoIcons.exclamationmark_triangle, color: _C.muted),
+          ),
+        ),
+      );
+    } else {
+      final f = File(path);
+      if (!f.existsSync()) return const SizedBox();
+      img = Image.file(f, fit: BoxFit.cover);
+    }
+
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: border,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.file(f, fit: BoxFit.cover),
+          img,
           Positioned(
             right: 8,
             bottom: 8,
@@ -623,7 +648,7 @@ class _Thumb extends StatelessWidget {
 }
 
 class _AudioCard extends StatefulWidget {
-  final String path;
+  final String path; // file path or URL
   const _AudioCard({required this.path});
 
   @override
@@ -635,6 +660,8 @@ class _AudioCardState extends State<_AudioCard> {
   bool _isPlaying = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+
+  bool get _isUrl => widget.path.toLowerCase().startsWith('http');
 
   @override
   void initState() {
@@ -660,9 +687,14 @@ class _AudioCardState extends State<_AudioCard> {
   }
 
   Future<void> _preload() async {
-    if (widget.path.isEmpty || !File(widget.path).existsSync()) return;
+    if (widget.path.isEmpty) return;
     try {
-      await _player.setSource(DeviceFileSource(widget.path));
+      if (_isUrl) {
+        await _player.setSource(UrlSource(widget.path));
+      } else {
+        if (!File(widget.path).existsSync()) return;
+        await _player.setSource(DeviceFileSource(widget.path));
+      }
       final d = await _player.getDuration();
       if (mounted && d != null) setState(() => _duration = d);
     } catch (_) {}
@@ -675,7 +707,9 @@ class _AudioCardState extends State<_AudioCard> {
   }
 
   Future<void> _toggle() async {
-    if (widget.path.isEmpty || !File(widget.path).existsSync()) return;
+    if (widget.path.isEmpty) return;
+    if (!_isUrl && !File(widget.path).existsSync()) return;
+
     if (_isPlaying) {
       await _player.pause();
       setState(() => _isPlaying = false);
@@ -684,7 +718,11 @@ class _AudioCardState extends State<_AudioCard> {
         await _player.resume();
       } else {
         await _player.stop();
-        await _player.play(DeviceFileSource(widget.path));
+        if (_isUrl) {
+          await _player.play(UrlSource(widget.path));
+        } else {
+          await _player.play(DeviceFileSource(widget.path));
+        }
       }
       setState(() => _isPlaying = true);
     }
@@ -698,7 +736,7 @@ class _AudioCardState extends State<_AudioCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.path.isEmpty || !File(widget.path).existsSync()) {
+    if (widget.path.isEmpty) {
       return const _EmptyHint(text: 'No voice note');
     }
 
@@ -788,13 +826,11 @@ class _EmptyHint extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE3EAFB)),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min, // <- shrink wrap
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(CupertinoIcons.info, color: _C.muted, size: 18),
           const SizedBox(width: 8),
           Flexible(
-            // <- instead of Expanded
-            fit: FlexFit.loose,
             child: Text(
               text,
               overflow: TextOverflow.ellipsis,

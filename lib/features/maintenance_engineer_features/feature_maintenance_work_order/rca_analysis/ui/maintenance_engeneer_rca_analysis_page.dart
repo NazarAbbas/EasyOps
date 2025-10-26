@@ -1,4 +1,5 @@
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/controller/rca_analysis_controller.dart';
+import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,10 +23,13 @@ class MaintenanceEngineerRcaAnalysisPage
         title: const Text('Root Cause Analysis'),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
-          onPressed: Get.back,
+          onPressed: () => Get.back(),
         ),
       ),
       body: Obx(() {
+        final loading = controller.isLoading.value;
+        final wo = controller.workOrderInfo.value;
+
         return Stack(
           children: [
             SingleChildScrollView(
@@ -33,18 +37,67 @@ class MaintenanceEngineerRcaAnalysisPage
               child: Form(
                 key: controller.formKey,
                 child: Column(
-                  children: const [
-                    _SummaryCard(),
-                    SizedBox(height: 12),
-                    _ProblemCard(),
-                    SizedBox(height: 12),
-                    _FiveWhyCard(),
-                    SizedBox(height: 12),
-                    _CauseActionCard(),
+                  children: [
+                    // Top tile area
+                    if (loading)
+                      // lightweight placeholder while WO loads
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFFE9EEF5)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Loading work order…',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 16,
+                              width: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (wo == null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFFE9EEF5)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'No work order found.',
+                          style: TextStyle(
+                            color: Color(0xFF7C8698),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    else
+                      WorkOrderTile(
+                        workOrderInfo: wo,
+                        onTap: () => debugPrint('Open work order'),
+                      ),
+
+                    const SizedBox(height: 12),
+                    const _ProblemCard(),
+                    const SizedBox(height: 12),
+                    const _FiveWhyCard(),
+                    const SizedBox(height: 12),
+                    const _CauseActionCard(),
                   ],
                 ),
               ),
             ),
+
+            // Top progress when saving
             if (controller.isSaving.value)
               const Align(
                 alignment: Alignment.topCenter,
@@ -61,7 +114,7 @@ class MaintenanceEngineerRcaAnalysisPage
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: Get.back,
+                  onPressed: () => Get.back(),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                     side: const BorderSide(color: _C.primary, width: 1.2),
@@ -80,8 +133,13 @@ class MaintenanceEngineerRcaAnalysisPage
               Expanded(
                 child: Obx(() {
                   final saving = controller.isSaving.value;
+                  final loading = controller.isLoading.value;
+                  final woReady = controller.workOrderInfo.value != null;
+
                   return FilledButton(
-                    onPressed: saving ? null : controller.save,
+                    onPressed: (saving || loading || !woReady)
+                        ? null
+                        : controller.save,
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(50),
                       backgroundColor: _C.primary,
@@ -109,91 +167,6 @@ class MaintenanceEngineerRcaAnalysisPage
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/* ───────────────── Summary (top card) ──────────────── */
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title + priority chip
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Expanded(
-                child: Text(
-                  'Latency Issue in web browser',
-                  style: TextStyle(
-                    fontSize: 16,
-                    height: 1.25,
-                    fontWeight: FontWeight.w800,
-                    color: _C.text,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE7E7),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Text(
-                  'High',
-                  style: TextStyle(
-                    color: Color(0xFFED3B40),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              Text(
-                'BD-102   18:08  |  09 Aug',
-                style: TextStyle(color: _C.muted),
-              ),
-              Spacer(),
-              Text(
-                'Closed',
-                style: TextStyle(color: _C.muted, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              _Tag('Mechanical'),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'CNC - 1 | ₹ 2000/hr',
-                  style: TextStyle(
-                    color: _C.muted,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Icon(CupertinoIcons.time, size: 18, color: _C.muted),
-              SizedBox(width: 4),
-              Text('3h 41m', style: TextStyle(color: _C.muted)),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -250,9 +223,7 @@ class _FiveWhyCard extends GetView<MaintenanceEnginnerRcaAnalysisController> {
                     child: Text(
                       '5 Why Analysis',
                       style: TextStyle(
-                        color: _C.text,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          color: _C.text, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),

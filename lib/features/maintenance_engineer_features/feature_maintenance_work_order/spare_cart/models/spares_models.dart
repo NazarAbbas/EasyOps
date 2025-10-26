@@ -5,6 +5,7 @@ class SpareItem {
   final String id;
   final String name;
   final String code;
+  final double cost;
   final int stock;
 
   const SpareItem({
@@ -12,6 +13,7 @@ class SpareItem {
     required this.name,
     required this.code,
     required this.stock,
+    required this.cost,
   });
 }
 

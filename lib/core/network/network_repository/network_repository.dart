@@ -5,6 +5,7 @@ import 'package:easy_ops/features/common_features/login/models/operators_details
 import 'package:easy_ops/features/common_features/login/models/user_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_request.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/models/pending_activity_response.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/add_spare_parts_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/models/spare_parts_response.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/models/spare_parts_request.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
@@ -63,7 +64,7 @@ abstract class NetworkRepository {
     required CloseWorkOrderRequest closeWorkOrderRequest,
   });
 
-  Future<ApiResult<SparePartsResponse>> sendBulkSpareRequest(
+  Future<ApiResult<List<AddSparePartsResponse>>> sendBulkSpareRequest(
       String workOrderId, List<SparePartsRequest> sparePartsRequest);
 
   Future<ApiResult<PendingActivityResponse>> createActivitiesBulk(
