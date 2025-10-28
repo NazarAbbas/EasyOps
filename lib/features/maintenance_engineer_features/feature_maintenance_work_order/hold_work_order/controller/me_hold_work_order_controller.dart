@@ -83,7 +83,7 @@ class MEHoldWorkOrderController extends GetxController {
       code: '',
       displayName: 'Select reason',
       description: '',
-      lookupType: LookupType.resolution,
+      lookupType: LookupType.resolution.name,
       sortOrder: -1,
       recordStatus: 1,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),

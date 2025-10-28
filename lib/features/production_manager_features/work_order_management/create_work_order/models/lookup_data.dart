@@ -36,7 +36,7 @@ class LookupValues {
   final String code;
   final String displayName;
   final String description;
-  final LookupType lookupType;
+  final String lookupType;
   final int sortOrder;
   final int recordStatus;
   final DateTime updatedAt;
@@ -62,7 +62,7 @@ class LookupValues {
       code: json['code'] as String,
       displayName: json['displayName'] as String,
       description: json['description'] as String,
-      lookupType: LookupTypeX.fromString(json['lookupType'] as String?),
+      lookupType: json['lookupType'] as String,
       sortOrder: (json['sortOrder'] as num).toInt(),
       recordStatus: (json['recordStatus'] as num).toInt(),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
@@ -76,7 +76,7 @@ class LookupValues {
         'code': code,
         'displayName': displayName,
         'description': description,
-        'lookupType': lookupType.name.toUpperCase(),
+        'lookupType': lookupType,
         'sortOrder': sortOrder,
         'recordStatus': recordStatus,
         'updatedAt': updatedAt.toUtc().toIso8601String(),
@@ -89,7 +89,7 @@ class LookupValues {
     String? code,
     String? displayName,
     String? description,
-    LookupType? lookupType,
+    String? lookupType,
     int? sortOrder,
     int? recordStatus,
     DateTime? updatedAt,

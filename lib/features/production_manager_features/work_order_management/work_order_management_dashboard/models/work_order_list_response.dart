@@ -286,6 +286,8 @@ class Asset {
   final String assetNo;
   final String serialNumber;
   final String status;
+  final String criticality;
+  final String description;
 
   Asset({
     required this.id,
@@ -293,6 +295,8 @@ class Asset {
     required this.assetNo,
     required this.serialNumber,
     required this.status,
+    required this.criticality,
+    required this.description,
   });
 
   factory Asset.fromJson(Map<String, dynamic> json) => Asset(
@@ -301,6 +305,8 @@ class Asset {
         assetNo: _string(json['assetNo'])!,
         serialNumber: _string(json['serialNumber'])!,
         status: _string(json['status'])!,
+        criticality: _string(json['criticality'])!,
+        description: _string(json['description'])!,
       );
 
   Map<String, dynamic> toJson() => {
@@ -309,6 +315,8 @@ class Asset {
         'assetNo': assetNo,
         'serialNumber': serialNumber,
         'status': status,
+        'criticality': criticality,
+        'description': description,
       };
 }
 

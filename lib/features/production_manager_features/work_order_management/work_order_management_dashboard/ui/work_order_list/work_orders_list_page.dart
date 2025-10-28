@@ -4,6 +4,7 @@ import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/utils/share_preference.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/controller/work_order_list_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart'
     show WorkOrders, Status, Priority;
@@ -15,6 +16,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 class WorkOrdersListPage extends GetView<WorkOrdersController> {
   const WorkOrdersListPage({super.key});
+
+  WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -137,8 +140,11 @@ class WorkOrdersListPage extends GetView<WorkOrdersController> {
                                 borderRadius: BorderRadius.circular(14),
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(14),
-                                  onTap: () => Get.toNamed(
-                                      Routes.workOrderTabShellScreen),
+                                  onTap: () {
+                                    SharePreferences.remove(Constant.workOrder);
+                                    _bag.clear();
+                                    Get.toNamed(Routes.workOrderTabShellScreen);
+                                  },
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -508,14 +514,16 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             //   },
             // );
 
-            // Get.toNamed(
-            //   Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
-            //   arguments: {
-            //     Constant.workOrderInfo: order,
-            //     Constant.workOrderStatus: WorkOrderStatus.open,
-            //   },
-            // );
-            // return;
+            //return;
+
+            Get.toNamed(
+              Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+              arguments: {
+                Constant.workOrderInfo: order,
+                Constant.workOrderStatus: WorkOrderStatus.open,
+              },
+            );
+            return;
             if (userRole == SharePreferences.engineerRole) {
               if (status == "OPEN" || status == "REOPEN" || status == "HOLD") {
                 Get.toNamed(
@@ -772,7 +780,8 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                               // Asset
                               Row(
                                 children: [
-                                  if ((order.criticality ?? '').toLowerCase() ==
+                                  if ((order.asset.criticality ?? '')
+                                          .toLowerCase() ==
                                       'high')
                                     const Icon(
                                       CupertinoIcons

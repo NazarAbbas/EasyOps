@@ -101,6 +101,7 @@ abstract class WOKeys {
   // ---------- Operator Info tab (OperatorInfoController)
   static const String operatorName = 'operatorName';
   static const String operatorPhoneNumber = 'operatorPhoneNumber';
+  static const String operatorInfo = 'operatorInfo';
   static const String operatorId = 'operatorId';
 
   static const String location = 'location';

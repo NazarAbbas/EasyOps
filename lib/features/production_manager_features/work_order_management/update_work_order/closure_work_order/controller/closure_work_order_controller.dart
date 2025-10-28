@@ -67,7 +67,7 @@ class ClosureWorkOrderController extends GetxController {
       code: '',
       displayName: 'Select reason',
       description: '',
-      lookupType: LookupType.department,
+      lookupType: LookupType.department.name,
       sortOrder: -1,
       recordStatus: 1,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),

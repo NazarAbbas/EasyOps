@@ -7,7 +7,7 @@ import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
@@ -30,9 +30,9 @@ class WorkorderInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // UI state: operator footer (editable)
   // ─────────────────────────────────────────────────────────────────────────
-  final operatorName = '-'.obs;
-  final operatorMobileNumber = '-'.obs;
-  final operatorInfo = '-'.obs;
+  final operatorName = ''.obs;
+  final operatorMobileNumber = ''.obs;
+  final operatorInfo = ''.obs;
 
   // ─────────────────────────────────────────────────────────────────────────
   // UI state: media
@@ -60,11 +60,11 @@ class WorkorderInfoController extends GetxController {
 
   final selectedIssueTypeId = ''.obs;
   final selectedImpactId = ''.obs;
-  final assetsId = ''.obs;
+  final selectedAssetsId = ''.obs;
 
   // legacy mirrors (for existing UI/bag compatibility)
-  final issueType = ''.obs;
-  final impact = ''.obs;
+  final selectedIssueType = ''.obs;
+  final selectedImpact = ''.obs;
 
   // assets cache + serial index
   final List<AssetItem> _storeAssets = <AssetItem>[];
@@ -72,27 +72,37 @@ class WorkorderInfoController extends GetxController {
 
   late final VoidCallback _assetListener;
 
-  WorkOrders? workOrderInfo;
+  //WorkOrders? workOrderInfo;
   WorkOrderStatus? workOrderStatus;
 
   // ─────────────────────────────────────────────────────────────────────────
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
-  @override
-  void onInit() async {
-    super.onInit();
+  final Rxn<WorkOrders> workOrderInfo = Rxn<WorkOrders>();
 
-    // Load current work order context if present
-    // final workTabsController = Get.find<WorkTabsController>();
-    // workOrderInfo = workTabsController.workOrder;
-    workOrderInfo = await SharePreferences.getObject(
+  @override
+  void onReady() async {
+    super.onReady();
+    workOrderInfo.value = await SharePreferences.getObject(
       Constant.workOrder,
       WorkOrders.fromJson,
     );
+  }
 
-    _initDefaults();
-    await _initAsync(); // ensure lookups/assets available before reactions
-    _setupReactions(); // set up reactive label syncing
+  @override
+  void onInit() async {
+    super.onInit();
+    await _loadLookups();
+    await _loadAssets();
+    if (workOrderInfo != null) {
+      await _putWorkOrderIntoBag(workOrderInfo.value!);
+    } else {
+      await _initOperatorInfo();
+    }
+    _loadFromBag();
+
+    // await _initAsync(); // ensure lookups/assets available before reactions
+    // _setupReactions(); // set up reactive label syncing
 
     _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
@@ -100,29 +110,15 @@ class WorkorderInfoController extends GetxController {
 
   @override
   void onClose() {
-    assetsCtrl
-      ..removeListener(_assetListener)
-      ..dispose();
-    problemCtrl.dispose();
-    titleCtrl.dispose();
+    // assetsCtrl
+    //   ..removeListener(_assetListener)
+    //   ..dispose();
+    // problemCtrl.dispose();
+    // titleCtrl.dispose();
     super.onClose();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Init helpers
-  // ─────────────────────────────────────────────────────────────────────────
-  void _setupReactions() {
-    ever<String>(selectedIssueTypeId, (id) {
-      final next = _labelFor(issueTypeOptions, id);
-      if (next.isNotEmpty) issueType.value = next; // never blank the label
-    });
-    ever<String>(selectedImpactId, (id) {
-      final next = _labelFor(impactOptions, id);
-      if (next.isNotEmpty) impact.value = next; // never blank the label
-    });
-  }
-
-  void _initDefaults() async {
+  Future<void> _initOperatorInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final loginPerson = prefs.getString(Constant.loginPersonId);
 
@@ -144,16 +140,8 @@ class WorkorderInfoController extends GetxController {
         }
       }
     }
-
-    typeText.value = '—';
-    descriptionText.value = '—';
-
-    // dropdown placeholder sentinel (empty id)
-    selectedIssueTypeId.value = '';
-    selectedImpactId.value = '';
   }
 
-  /// e.g. DateTime(2025,10,13,05,34,36,926,277).toUtc()
   String formatTimeDateLocal(DateTime dt) {
     final d = dt.isUtc ? dt.toLocal() : dt;
     final time = DateFormat('HH:mm').format(d);
@@ -162,28 +150,9 @@ class WorkorderInfoController extends GetxController {
     return '$time | $day $mon';
   }
 
-  Future<void> _initAsync() async {
-    await _loadLookups();
-    await _loadAssets();
-    _rebuildAssetSerialIndex();
-
-    // 1) Hydrate from bag first (preserve user-entered data)
-    _hydrateFromBag();
-
-    // 2) If a work order is present, auto-fill from it (ids, fields, media)
-    if (workOrderInfo != null) {
-      _hydrateFromWorkOrderInfo();
-    }
-
-    // 3) Ensure labels mirror ids
-    _syncLabelsFromSelection();
-  }
-
   Future<void> _loadLookups() async {
-    final impact =
-        await repository.getLookupByType(LookupType.impact) ?? <LookupValues>[];
-    final issue = await repository.getLookupByType(LookupType.issuetype) ??
-        <LookupValues>[];
+    final impact = await repository.getLookupByType(LookupType.impact);
+    final issue = await repository.getLookupByType(LookupType.issuetype);
 
     issueTypeOptions.assignAll([
       _placeholderOption('Select Issue Type', LookupType.issuetype),
@@ -209,7 +178,7 @@ class WorkorderInfoController extends GetxController {
       code: '',
       displayName: label,
       description: '',
-      lookupType: t,
+      lookupType: t.name,
       sortOrder: -1,
       recordStatus: 1,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
@@ -218,63 +187,6 @@ class WorkorderInfoController extends GetxController {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Bag hydration & saving
-  // ─────────────────────────────────────────────────────────────────────────
-  void _hydrateFromBag() {
-    // preferred IDs
-    final bagIssueTypeId = _bag.get<String>(WOKeys.issueTypeId, '');
-    final bagImpactId = _bag.get<String>(WOKeys.impactId, '');
-
-    if (bagIssueTypeId.isNotEmpty) selectedIssueTypeId.value = bagIssueTypeId;
-    if (bagImpactId.isNotEmpty) selectedImpactId.value = bagImpactId;
-
-    // legacy labels
-    final issueTypeLabel = _bag.get<String>(WOKeys.issueType, issueType.value);
-    final impactLabel = _bag.get<String>(WOKeys.impact, impact.value);
-
-    // try label->id when id missing (old bag entries)
-    _maybeFixSelectedIdFromLabel(
-      selectedIssueTypeId,
-      issueTypeOptions,
-      issueTypeLabel,
-    );
-    _maybeFixSelectedIdFromLabel(
-      selectedImpactId,
-      impactOptions,
-      impactLabel,
-    );
-
-    issueType.value = issueTypeLabel;
-    impact.value = impactLabel;
-
-    // other fields
-    assetsCtrl.text =
-        _bag.get<String>(WOKeys.assetsNumber, assetsCtrl.text).trim();
-    problemCtrl.text =
-        _bag.get<String>(WOKeys.problemDescription, problemCtrl.text).trim();
-    titleCtrl.text = _bag.get<String>(WOKeys.title, titleCtrl.text).trim();
-
-    typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
-    descriptionText.value =
-        _bag.get<String>(WOKeys.descriptionText, descriptionText.value);
-
-    final ph = _bag.get<List?>(WOKeys.photos, const []) ?? const [];
-    photos.assignAll(ph.map((e) => e.toString()));
-
-    voiceNotePath.value =
-        _bag.get<String>(WOKeys.voiceNotePath, voiceNotePath.value);
-
-    operatorName.value =
-        _bag.get<String>(WOKeys.operatorName, operatorName.value);
-
-    // bind asset-derived fields if serial present
-    _applyMetaIfSerialMatch(assetsCtrl.text);
-
-    _syncLabelsFromSelection();
-  }
-
-  /// Convert relative -> absolute using BASE_URL
   String _absoluteUrl(String? raw) {
     final p = (raw ?? '').trim();
     if (p.isEmpty) return '';
@@ -286,123 +198,6 @@ class WorkorderInfoController extends GetxController {
         : Constant.BASE_URL;
     final path = p.startsWith('/') ? p.substring(1) : p;
     return '$base/$path';
-  }
-
-  /// Auto-bind from the current workOrderInfo (if present)
-  void _hydrateFromWorkOrderInfo() {
-    final wo = workOrderInfo;
-    if (wo == null) return;
-
-    // IDs
-    final issueId = (wo.issueTypeId ?? '').trim();
-    final impactId = (wo.impactId ?? '').trim();
-    if (issueId.isNotEmpty) selectedIssueTypeId.value = issueId;
-    if (impactId.isNotEmpty) selectedImpactId.value = impactId;
-
-    // Asset
-    final assetIdV = (wo.asset.id ?? '').trim();
-    final assetSerial = (wo.asset.assetNo ?? '').trim();
-    assetsId.value = assetIdV;
-    if (assetSerial.isNotEmpty) assetsCtrl.text = assetSerial;
-    // Optionally derive meta from serial (if AssetItem exists in store)
-    _applyMetaIfSerialMatch(assetSerial);
-
-    // Title / Description
-    titleCtrl.text = (wo.title ?? '').trim();
-    problemCtrl.text = (wo.remark ?? '').trim();
-
-    // Operator footer
-    final first = (wo.operator?.firstName ?? '').trim();
-    final last = (wo.operator?.lastName ?? '').trim();
-    final name = ('$first $last').trim();
-    final phone = (wo.operator?.phone ?? '').trim();
-    if (name.isNotEmpty) operatorName.value = name;
-    if (phone.isNotEmpty) operatorMobileNumber.value = phone;
-
-    final assetName = (wo.asset.name ?? '').trim();
-    final infoParts = <String>[
-      if (assetName.isNotEmpty) assetName,
-      if (assetSerial.isNotEmpty) assetSerial,
-    ];
-    if (infoParts.isNotEmpty) operatorInfo.value = infoParts.join(' • ');
-
-    // Media (images + first audio)
-    final files = wo.mediaFiles ?? const <MediaFile>[];
-
-    final imgs = files
-        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
-        .map((f) => _absoluteUrl(f.filePath))
-        .where((p) => p.isNotEmpty)
-        .toList();
-    if (imgs.isNotEmpty) photos.assignAll(imgs);
-
-    final firstAudio = files
-        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
-        .map((f) => _absoluteUrl(f.filePath))
-        .firstWhere((p) => p.isNotEmpty, orElse: () => '');
-    if (firstAudio.isNotEmpty) voiceNotePath.value = firstAudio;
-
-    // Reflect label mirrors
-    _syncLabelsFromSelection();
-
-    // Persist so other tabs/pages stay in sync
-    saveToBag();
-  }
-
-  String _labelFor(List<LookupValues> options, String id) {
-    if (id.isEmpty) return '';
-    final hit = _firstWhereOrNull<LookupValues>(options, (e) => e.id == id);
-    return hit?.displayName ?? '';
-  }
-
-  String _labelForSafe({
-    required List<LookupValues> options,
-    required String id,
-    required String current,
-  }) {
-    final computed = _labelFor(options, id);
-    if (computed.isNotEmpty) return computed;
-    return current;
-  }
-
-  void _syncLabelsFromSelection() {
-    final it = _labelFor(issueTypeOptions, selectedIssueTypeId.value);
-    if (it.isNotEmpty) issueType.value = it;
-
-    final im = _labelFor(impactOptions, selectedImpactId.value);
-    if (im.isNotEmpty) impact.value = im;
-  }
-
-  void saveToBag() {
-    final issueTypeLabel = _labelForSafe(
-      options: issueTypeOptions,
-      id: selectedIssueTypeId.value,
-      current: issueType.value,
-    );
-    final impactLabel = _labelForSafe(
-      options: impactOptions,
-      id: selectedImpactId.value,
-      current: impact.value,
-    );
-
-    issueType.value = issueTypeLabel;
-    impact.value = impactLabel;
-
-    _bag.merge({
-      WOKeys.issueTypeId: selectedIssueTypeId.value,
-      WOKeys.impactId: selectedImpactId.value,
-      WOKeys.assetsId: assetsId.value,
-      WOKeys.issueType: issueTypeLabel, // label
-      WOKeys.impact: impactLabel, // label
-      WOKeys.assetsNumber: assetsCtrl.text.trim(),
-      WOKeys.problemDescription: problemCtrl.text.trim(),
-      WOKeys.title: titleCtrl.text.trim(),
-      WOKeys.typeText: typeText.value,
-      WOKeys.descriptionText: descriptionText.value,
-      WOKeys.photos: photos.toList(),
-      WOKeys.voiceNotePath: voiceNotePath.value,
-      WOKeys.operatorName: operatorName.value,
-    });
   }
 
   void beforeNavigate(VoidCallback navigate) {
@@ -432,7 +227,7 @@ class WorkorderInfoController extends GetxController {
     final sn = (item.serialNumber ?? '').trim();
     if (sn.isNotEmpty && assetsCtrl.text.trim() != sn) {
       assetsCtrl.text = sn;
-      assetsId.value = id;
+      selectedAssetsId.value = id;
     }
     _setAssetMeta(type: item.criticality, description: item.description ?? '');
   }
@@ -440,15 +235,6 @@ class WorkorderInfoController extends GetxController {
   void _setAssetMeta({required String type, required String description}) {
     typeText.value = type.isNotEmpty ? type : '—';
     descriptionText.value = description.isNotEmpty ? description : '—';
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // UI event helpers
-  // ─────────────────────────────────────────────────────────────────────────
-  void updateOperatorFooter({String? name, String? mobile, String? info}) {
-    if (name != null) operatorName.value = name;
-    if (mobile != null) operatorMobileNumber.value = mobile;
-    if (info != null) operatorInfo.value = info;
   }
 
   void addPhoto(String path) => photos.add(path);
@@ -505,29 +291,6 @@ class WorkorderInfoController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Small utilities
-  // ─────────────────────────────────────────────────────────────────────────
-  void _maybeFixSelectedIdFromLabel(
-    RxString selectedId,
-    List<LookupValues> options,
-    String label,
-  ) {
-    if (selectedId.value.isNotEmpty || label.isEmpty) return;
-    final hit = _firstWhereOrNull<LookupValues>(
-      options,
-      (e) => e.displayName.trim().toLowerCase() == label.trim().toLowerCase(),
-    );
-    if (hit != null) selectedId.value = hit.id;
-  }
-
-  T? _firstWhereOrNull<T>(Iterable<T> it, bool Function(T) test) {
-    for (final e in it) {
-      if (test(e)) return e;
-    }
-    return null;
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
   // Asset picker
   // ─────────────────────────────────────────────────────────────────────────
   Future<void> openAssetPickerFromStore(BuildContext context) async {
@@ -543,5 +306,153 @@ class WorkorderInfoController extends GetxController {
     );
 
     if (picked != null) _applyAssetFromItem(picked);
+  }
+
+  // ── Core: write WO → bag, then read bag → UI ────────────────────────────
+  Future<void> _putWorkOrderIntoBag(WorkOrders wo) async {
+    // IDs
+    final issueId = (wo.issueTypeId ?? '').trim();
+    final impactId = (wo.impactId ?? '').trim();
+
+    // // Asset basics
+    final assetIdV = (wo.asset.id ?? '').trim();
+    final assetSerial = (wo.asset.serialNumber ?? '').trim();
+    final asset = await repository.getAsset(assetSerial);
+
+    // // Title / Description
+    final title = (wo.title ?? '').trim();
+    final remark = (wo.remark ?? '').trim();
+
+    // // Operator
+    final first = (wo.operator?.firstName ?? '').trim();
+    final last = (wo.operator?.lastName ?? '').trim();
+    final opName = ('$first $last').trim();
+    final opPhone = (wo.operator?.phone ?? '').trim();
+
+    // // Media (convert relative paths to absolute URLs when needed)
+    final files = wo.mediaFiles;
+    final imgs = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    final firstAudio = files
+        .where((f) => (f.fileType ?? '').toLowerCase().startsWith('audio/'))
+        .map((f) => _absoluteUrl(f.filePath))
+        .firstWhere((p) => p.isNotEmpty, orElse: () => '');
+
+    final dt = (wo.updatedAt ?? DateTime.now()).toUtc();
+    final s = formatTimeDateLocal(dt);
+
+    if (wo.asset.name.isNotEmpty) {
+      operatorInfo.value = '${wo.asset.name} | $s | ${wo.asset.serialNumber}';
+    }
+
+    // Store everything in the bag
+    _bag.merge({
+      // IDs & labels (labels optional; use if you have them on the WO)
+      WOKeys.issueTypeId: issueId,
+      WOKeys.impactId: impactId,
+      WOKeys.issueType: (wo.issueTypeName ?? '').trim(),
+      WOKeys.impact: (wo.impactName ?? '').trim(),
+
+      // // Asset
+      WOKeys.assetsId: assetIdV,
+      WOKeys.assetsNumber: assetSerial,
+
+      // // Texts
+      WOKeys.title: title,
+      WOKeys.problemDescription: remark,
+      WOKeys.typeText: asset?.criticality,
+      WOKeys.descriptionText: asset?.description,
+
+      // // Media
+      WOKeys.photos: imgs,
+      WOKeys.voiceNotePath: firstAudio,
+
+      // // Operator
+      WOKeys.operatorName: pickOrNA(opName, operatorName.value),
+      WOKeys.operatorPhoneNumber: pickOrNA(opPhone, operatorMobileNumber.value),
+      WOKeys.operatorInfo: operatorInfo.value,
+    });
+  }
+
+  String joinNonEmpty(Iterable<Object?> parts, {String sep = ' | '}) => parts
+      .map((e) => (e?.toString().trim() ?? ''))
+      .where((t) => t.isNotEmpty)
+      .join(sep);
+
+  String pickOrNA(String? primary, String? secondary,
+      {String na = 'Not available'}) {
+    final p = primary?.trim();
+    if (p != null && p.isNotEmpty) return p;
+
+    final s = secondary?.trim();
+    if (s != null && s.isNotEmpty) return s;
+
+    return na;
+  }
+
+  void _loadFromBag() {
+    // IDs + labels
+    selectedIssueTypeId.value = _bag.get<String>(WOKeys.issueTypeId, '');
+    selectedIssueType.value = _bag.get<String>(WOKeys.issueType, '');
+//  ───────────────────────────────────────────────
+    selectedImpactId.value = _bag.get<String>(WOKeys.impactId, '');
+    selectedImpact.value = _bag.get<String>(WOKeys.impact, '');
+//  ───────────────────────────────────────────────
+    selectedAssetsId.value = _bag.get<String>(WOKeys.assetsId, '');
+    assetsCtrl.text = _bag.get<String>(WOKeys.assetsNumber, '');
+//  ───────────────────────────────────────────────
+    typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
+    descriptionText.value =
+        _bag.get<String>(WOKeys.descriptionText, descriptionText.value);
+//  ───────────────────────────────────────────────
+    typeText.value = _bag.get<String>(WOKeys.typeText, typeText.value);
+    descriptionText.value =
+        _bag.get<String>(WOKeys.descriptionText, descriptionText.value);
+//  ───────────────────────────────────────────────
+    titleCtrl.text = _bag.get<String>(WOKeys.title, '');
+    problemCtrl.text = _bag.get<String>(WOKeys.problemDescription, '');
+//  ───────────────────────────────────────────────
+    // Media
+    final ph = _bag.get<List?>(WOKeys.photos, const []) ?? const [];
+    photos.assignAll(ph.map((e) => e.toString()));
+    voiceNotePath.value = _bag.get<String>(WOKeys.voiceNotePath, '');
+//  ───────────────────────────────────────────────
+    // Operator
+    operatorName.value =
+        _bag.get<String>(WOKeys.operatorName, operatorName.value);
+    operatorMobileNumber.value = _bag.get<String>(
+        WOKeys.operatorPhoneNumber, operatorMobileNumber.value);
+    operatorInfo.value ==
+        _bag.get<String>(WOKeys.operatorInfo, operatorInfo.value);
+  }
+
+  // ── Save current UI → bag ───────────────────────────────────────────────
+  void saveToBag() {
+    _bag.merge({
+      WOKeys.issueTypeId: selectedIssueTypeId.value,
+      WOKeys.issueType: selectedIssueType.value,
+//  ───────────────────────────────────────────────
+      WOKeys.impactId: selectedImpactId.value,
+      WOKeys.impact: selectedImpact.value,
+      //  ───────────────────────────────────────────────
+      WOKeys.assetsId: selectedAssetsId.value,
+      WOKeys.typeText: typeText.value,
+      WOKeys.descriptionText: descriptionText.value,
+      WOKeys.assetsNumber: assetsCtrl.text.trim(),
+//  ───────────────────────────────────────────────
+      WOKeys.title: titleCtrl.text.trim(),
+      WOKeys.problemDescription: problemCtrl.text.trim(),
+//  ───────────────────────────────────────────────
+      WOKeys.photos: photos.toList(),
+      WOKeys.voiceNotePath: voiceNotePath.value,
+      //  ───────────────────────────────────────────────
+      WOKeys.operatorName: operatorName.value,
+      WOKeys.operatorPhoneNumber: operatorMobileNumber.value,
+      WOKeys.operatorInfo: operatorInfo
+    });
   }
 }

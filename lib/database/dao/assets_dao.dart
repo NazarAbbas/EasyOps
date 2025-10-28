@@ -14,4 +14,7 @@ abstract class AssetDao {
     ORDER BY name
   ''')
   Future<List<AssetEntity>> getAllAssets();
+
+  @Query('SELECT * FROM assets WHERE serialNumber = :serialNo LIMIT 1')
+  Future<AssetEntity?> getAsset(String serialNo);
 }

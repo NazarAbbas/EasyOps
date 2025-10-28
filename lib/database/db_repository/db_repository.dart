@@ -1,7 +1,10 @@
 // lib/database/db_repository/asset_repository.dart
+import 'dart:convert';
+
 import 'package:easy_ops/database/entity/user_list_entity.dart';
 import 'package:easy_ops/database/mappers/mappers.dart';
 import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
@@ -22,6 +25,11 @@ class DBRepository {
   Future<List<AssetItem>> getAllAssets() async {
     final List<AssetEntity> rows = await db.assetDao.getAllAssets();
     return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<AssetItem?> getAsset(String serialNo) async {
+    final AssetEntity? row = await db.assetDao.getAsset(serialNo);
+    return row?.toDomain();
   }
 
   Future<void> upsertAssetData(AssetsData apiPage) async {
@@ -175,9 +183,79 @@ class DBRepository {
     return rows.map((e) => e.toDomain()).toList();
   }
 
-  Future<List<LookupValues>> getLookupByCode(String type) async {
-    final List<LookupEntity> rows = await db.lookupDao.getActiveByCode(type);
-    return rows.map((e) => e.toDomain()).toList();
+  // Future<List<LookupValues>> getLookupByCode(String type) async {
+  //   final List<LookupEntity> rows = await db.lookupDao.getActiveByCode(type);
+  //   return rows.map((e) => e.toDomain()).toList();
+  // }
+
+  // --- Helpers ---------------------------------------------------------------
+
+  Map<String, dynamic> _entityToMap(LookupEntity e) {
+    // Prefer a real toJson() if present
+    try {
+      final dynamic json = (e as dynamic).toJson();
+      if (json is Map<String, dynamic>) return json;
+    } catch (_) {/* ignore */}
+    // Fallback: build a minimal map with common fields
+    final typeName = () {
+      try {
+        return (e.lookupType as dynamic).name ?? e.lookupType.toString();
+      } catch (_) {
+        return e.lookupType.toString();
+      }
+    }();
+    return <String, dynamic>{
+      'id': _safe(() => e.id),
+      'lookupType': typeName,
+      'recordStatus': _safe(() => e.recordStatus),
+      'sortOrder': _safe(() => e.sortOrder),
+      // add other known fields here if you want them in logs:
+      // 'code': e.code,
+      // 'displayName': e.displayName,
+    };
+  }
+
+  T? _safe<T>(T Function() f) {
+    try {
+      return f();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Pretty-encode then print in chunks so logs aren't truncated.
+  void _debugPrintJson(Object obj, {String label = 'rows'}) {
+    final pretty = const JsonEncoder.withIndent('  ').convert(obj);
+    if (!kDebugMode) return;
+
+    const chunk = 800;
+    debugPrint('[$label JSON]');
+    for (var i = 0; i < pretty.length; i += chunk) {
+      debugPrint(pretty.substring(i, (i + chunk).clamp(0, pretty.length)));
+    }
+  }
+
+// --- Your function ---------------------------------------------------------
+
+  Future<List<LookupValues>> getLookupByCode(String code) async {
+    final rows = await db.lookupDao.getAll();
+
+    // 🔎 Print ALL rows once, as JSON
+    _debugPrintJson(rows.map(_entityToMap).toList(), label: 'lookup_rows');
+
+    // Filter (case-insensitive)
+    final codeUpper = code.toUpperCase();
+    final filtered = rows.where((e) {
+      final typeName = e.lookupType; // or e.lookupType if it's already String
+      return typeName.toUpperCase() == codeUpper &&
+          _safe(() => e.recordStatus) == 1;
+    }).toList();
+
+    // (Optional) also print filtered as JSON
+    _debugPrintJson(filtered.map(_entityToMap).toList(),
+        label: 'filtered_rows');
+
+    return filtered.map((e) => e.toDomain()).toList();
   }
 
   Future<void> upsertLookupData(LookupData apiPage) async {

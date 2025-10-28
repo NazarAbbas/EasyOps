@@ -351,10 +351,11 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                             final options = controller.issueTypeOptions
                                 .where((e) => e.id.trim().isNotEmpty)
                                 .toList();
-                            final label =
-                                controller.issueType.value.trim().isEmpty
-                                    ? 'Select Issue Type'
-                                    : controller.issueType.value;
+                            final label = controller.selectedIssueType.value
+                                    .trim()
+                                    .isEmpty
+                                ? 'Select Issue Type'
+                                : controller.selectedIssueType.value;
                             final String selId =
                                 controller.selectedIssueTypeId.value.trim();
                             final LookupValues? currentSel = options
@@ -372,7 +373,7 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                                 if (picked != null) {
                                   controller.selectedIssueTypeId.value =
                                       picked.id;
-                                  controller.issueType.value =
+                                  controller.selectedIssueType.value =
                                       picked.displayName;
                                 }
                               },
@@ -385,8 +386,8 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                             final options = controller.impactOptions
                                 .where((e) => e.id.trim().isNotEmpty)
                                 .toList();
-                            final impactText =
-                                controller.impact.value.trim(); // mirror label
+                            final impactText = controller.selectedImpact.value
+                                .trim(); // mirror label
                             final label = impactText.isEmpty
                                 ? 'Select Impact Type'
                                 : impactText;
@@ -406,7 +407,8 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                                 );
                                 if (picked != null) {
                                   controller.selectedImpactId.value = picked.id;
-                                  controller.impact.value = picked.displayName;
+                                  controller.selectedImpact.value =
+                                      picked.displayName;
                                 }
                               },
                             );
@@ -735,15 +737,18 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
           final isTablet = _isTablet(context);
           final hPad = isTablet ? 20.0 : 14.0;
 
-          return SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 6, hPad, 10),
-              child: status == controller.workOrderInfo
-                  ? _buildTwoButtons(isTablet, controller)
-                  : _buildSingleButton(isTablet, controller),
-            ),
-          );
+          return Obx(() {
+            final hasInfo = controller.workOrderInfo.value != null;
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(hPad, 6, hPad, 10),
+                child: hasInfo
+                    ? _buildTwoButtons(isTablet, controller)
+                    : _buildSingleButton(isTablet, controller),
+              ),
+            );
+          });
         },
       ),
     );

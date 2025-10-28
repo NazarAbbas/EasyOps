@@ -549,7 +549,7 @@ class _$LookupDao extends LookupDao {
                   'code': item.code,
                   'displayName': item.displayName,
                   'description': item.description,
-                  'lookupType': _lookupTypeConverter.encode(item.lookupType),
+                  'lookupType': item.lookupType,
                   'sortOrder': item.sortOrder,
                   'recordStatus': item.recordStatus,
                   'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt),
@@ -569,7 +569,7 @@ class _$LookupDao extends LookupDao {
   Future<List<LookupEntity>> getActiveByType(LookupType lookupType) async {
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: _lookupTypeConverter.decode(row['lookupType'] as String), sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
         arguments: [_lookupTypeConverter.encode(lookupType)]);
   }
 
@@ -577,8 +577,24 @@ class _$LookupDao extends LookupDao {
   Future<List<LookupEntity>> getActiveByCode(String lookupCode) async {
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: _lookupTypeConverter.decode(row['lookupType'] as String), sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
         arguments: [lookupCode]);
+  }
+
+  @override
+  Future<List<LookupEntity>> getAll() async {
+    return _queryAdapter.queryList('SELECT * FROM lookup ORDER BY sortOrder',
+        mapper: (Map<String, Object?> row) => LookupEntity(
+            id: row['id'] as String,
+            code: row['code'] as String,
+            displayName: row['displayName'] as String,
+            description: row['description'] as String,
+            lookupType: row['lookupType'] as String,
+            sortOrder: row['sortOrder'] as int,
+            recordStatus: row['recordStatus'] as int,
+            updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
+            tenantId: row['tenantId'] as String,
+            clientId: row['clientId'] as String));
   }
 
   @override
@@ -649,6 +665,33 @@ class _$AssetDao extends AssetDao {
             departmentId: row['departmentId'] as String,
             plantName: row['plantName'] as String?,
             departmentName: row['departmentName'] as String?));
+  }
+
+  @override
+  Future<AssetEntity?> getAsset(String serialNo) async {
+    return _queryAdapter.query(
+        'SELECT * FROM assets WHERE serialNumber = ?1 LIMIT 1',
+        mapper: (Map<String, Object?> row) => AssetEntity(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            criticality:
+                _criticalityConverter.decode(row['criticality'] as String),
+            description: row['description'] as String?,
+            serialNumber: row['serialNumber'] as String,
+            manufacturer: row['manufacturer'] as String?,
+            manufacturerPhone: row['manufacturerPhone'] as String?,
+            manufacturerEmail: row['manufacturerEmail'] as String?,
+            manufacturerAddress: row['manufacturerAddress'] as String?,
+            status: _assetStatusConverter.decode(row['status'] as String),
+            recordStatus: row['recordStatus'] as int,
+            updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
+            tenantId: row['tenantId'] as String,
+            clientId: row['clientId'] as String,
+            plantId: row['plantId'] as String,
+            departmentId: row['departmentId'] as String,
+            plantName: row['plantName'] as String?,
+            departmentName: row['departmentName'] as String?),
+        arguments: [serialNo]);
   }
 
   @override

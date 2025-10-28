@@ -75,7 +75,7 @@ extension OfflineWorkOrderApiMapper on OfflineWorkOrder {
       operatorId: operatorId,
       operatorName: operatorName,
       operatorPhoneNumber: operatorPhoneNumber,
-      reporterId: reporterId,
+      reporterById: reporterId,
       reporterName: reporterName,
       reporterPhoneNumber: reporterPhoneNumber,
 

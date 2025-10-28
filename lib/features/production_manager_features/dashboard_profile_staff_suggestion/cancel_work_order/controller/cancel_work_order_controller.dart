@@ -103,7 +103,8 @@ class CancelWorkOrderController extends GetxController {
       code: '',
       displayName: 'Select reason',
       description: '',
-      lookupType: LookupType.department, // keep as-is if your model requires
+      lookupType:
+          LookupType.department.name, // keep as-is if your model requires
       sortOrder: -1,
       recordStatus: 1,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),

@@ -28,4 +28,8 @@ abstract class LookupDao {
   Future<List<LookupEntity>> getActiveByCode(
     String lookupCode,
   );
+
+  // 1) All rows (optionally keep ORDER BY)
+  @Query('SELECT * FROM lookup ORDER BY sortOrder')
+  Future<List<LookupEntity>> getAll();
 }

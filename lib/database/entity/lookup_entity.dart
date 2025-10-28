@@ -20,7 +20,7 @@ class LookupEntity {
   final String description;
 
   // Stored via TypeConverter as TEXT (e.g., 'DEPARTMENT')
-  final LookupType lookupType;
+  final String lookupType;
 
   final int sortOrder;
 

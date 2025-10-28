@@ -5,7 +5,7 @@ class CreateWorkOrderRequest {
   final String operatorId;
   final String operatorPhoneNumber;
 
-  final String reporterId;
+  final String reporterById;
   final String reporterName;
   final String reporterPhoneNumber;
 
@@ -29,7 +29,7 @@ class CreateWorkOrderRequest {
     required this.operatorId,
     required this.operatorName,
     required this.operatorPhoneNumber,
-    required this.reporterId,
+    required this.reporterById,
     required this.reporterName,
     required this.reporterPhoneNumber,
     required this.type,
@@ -70,7 +70,7 @@ class CreateWorkOrderRequest {
       operatorId: operatorId ?? this.operatorId,
       operatorName: operatorName ?? this.operatorName,
       operatorPhoneNumber: operatorPhoneNumber ?? this.operatorPhoneNumber,
-      reporterId: reporterId ?? this.reporterId,
+      reporterById: reporterById ?? this.reporterById,
       reporterName: reporterName ?? this.reporterName,
       reporterPhoneNumber: reporterPhoneNumber ?? this.reporterPhoneNumber,
       type: type ?? this.type,
@@ -96,7 +96,7 @@ class CreateWorkOrderRequest {
       operatorId: json['operatorId'] as String,
       operatorName: json['operatorName'] as String,
       operatorPhoneNumber: json['operatorPhoneNumber'] as String,
-      reporterId: json['reporterId'] as String,
+      reporterById: json['reporterId'] as String,
       reporterName: json['reporterName'] as String,
       reporterPhoneNumber: json['reporterPhoneNumber'] as String,
       type: WorkTypeX.fromApi(json['type'] as String?),

@@ -230,48 +230,53 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                   final dateText = _dateText();
                   return Column(
                     children: [
-                      _Row2(
-                        spacing: 12,
-                        left: _Label(
-                          'Location',
-                          child: _TapField(
-                            text: controller.location.value.isEmpty
-                                ? 'Select'
-                                : controller.location.value,
-                            leading: const Icon(CupertinoIcons.placemark,
-                                size: 18, color: AppColors.muted),
-                            trailing: const Icon(CupertinoIcons.chevron_down,
-                                color: AppColors.muted),
-                            onTap: () => _pickFromList(
-                              context,
-                              title: 'Select Location',
-                              // ⬇️ use placeholder-free list
-                              options: controller.locationsForPicker,
-                              onSelected: (v) =>
-                                  controller.onLocationChanged(v),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _Label(
+                            'Location',
+                            child: _TapField(
+                              text: controller.location.value.isEmpty
+                                  ? 'Select'
+                                  : controller.location.value,
+                              leading: const Icon(CupertinoIcons.placemark,
+                                  size: 18, color: AppColors.muted),
+                              trailing: const Icon(CupertinoIcons.chevron_down,
+                                  color: AppColors.muted),
+                              onTap: () => _pickFromList(
+                                context,
+                                title: 'Select Location',
+                                options: controller
+                                    .locationsForPicker, // no placeholder
+                                onSelected: controller.onLocationChanged,
+                              ),
                             ),
                           ),
-                        ),
-                        right: _Label(
-                          'Plant',
-                          child: _TapField(
-                            text: controller.plant.value.isEmpty
-                                ? 'Select'
-                                : controller.plant.value,
-                            leading: const Icon(CupertinoIcons.building_2_fill,
-                                size: 18, color: AppColors.muted),
-                            trailing: const Icon(CupertinoIcons.chevron_down,
-                                color: AppColors.muted),
-                            onTap: () => _pickFromList(
-                              context,
-                              title: 'Select Plant',
-                              // plantsOpt already excludes placeholder
-                              options: controller.plantsOpt,
-                              onSelected: (v) => controller.onPlantChanged(v),
+                          const SizedBox(height: 12),
+                          _Label(
+                            'Plant',
+                            child: _TapField(
+                              text: controller.plant.value.isEmpty
+                                  ? 'Select'
+                                  : controller.plant.value,
+                              leading: const Icon(
+                                  CupertinoIcons.building_2_fill,
+                                  size: 18,
+                                  color: AppColors.muted),
+                              trailing: const Icon(CupertinoIcons.chevron_down,
+                                  color: AppColors.muted),
+                              onTap: () => _pickFromList(
+                                context,
+                                title: 'Select Plant',
+                                options:
+                                    controller.plantsForPicker, // filtered list
+                                onSelected: controller.onPlantChanged,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
+
                       SizedBox(height: vGap - 4),
                       _Row2(
                         spacing: 12,

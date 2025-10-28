@@ -142,10 +142,17 @@ class MaintenanceEnginnerSparesRequestController extends GetxController {
 
       final ApiResult<List<SparePartsResponse>> res =
           await repositoryImpl.spareParts(
-        'AST-30Sep2025030526669006', //assetId
-        'CLU-23Oct2025103143874011', //c1.id
-        'CLU-23Oct2025103519159013', //c2.id
+        'AST-30Sep2025030526669006',
+        'CLU-23Oct2025103143874011',
+        'CLU-23Oct2025103519159013',
       );
+
+      // final ApiResult<List<SparePartsResponse>> res1 =
+      //     await repositoryImpl.spareParts(
+      //   assetId,
+      //   c1.id,
+      //   c2.id,
+      // );
 
       if (res.httpCode == 200 && res.data != null) {
         final items = res.data!

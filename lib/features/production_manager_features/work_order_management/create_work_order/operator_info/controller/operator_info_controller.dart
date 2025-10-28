@@ -1,9 +1,11 @@
+import 'package:easy_ops/core/constants/constant.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,12 +13,7 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // DI
   // ─────────────────────────────────────────────────────────────────────────
-  // final OperatorDetailsRepository operatorDetailsRepository =
-  //     Get.find<OperatorDetailsRepository>();
-  // final LookupRepository lookupRepository = Get.find<LookupRepository>();
-  // final ShiftRepository shiftRepository = Get.find<ShiftRepository>();
-
-  final repository = Get.find<DBRepository>();
+  final DBRepository repository = Get.find<DBRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -30,16 +27,16 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   final sameAsOperator = false.obs;
 
-  final RxString reporterId = '-'.obs;
-  final RxString reporterPhoneNumber = '-'.obs;
+  final RxString reporterId = ''.obs;
+  final RxString reporterPhoneNumber = ''.obs;
 
-  final RxString operatorId = '-'.obs;
-  final RxString operatorPhoneNumber = '-'.obs;
+  final RxString operatorId = ''.obs;
+  final RxString operatorPhoneNumber = ''.obs;
 
   // Display names currently selected in UI
-  final RxString plant = '-'.obs; // PLANT name
-  final RxString location = '-'.obs; // DEPARTMENT name
-  final RxString shift = '-'.obs; // SHIFT name
+  final RxString plant = 'Select'.obs; // PLANT name
+  final RxString location = 'Select'.obs; // DEPARTMENT name
+  final RxString shift = 'Select'.obs; // SHIFT name
 
   final reportedTime = Rxn<TimeOfDay>();
   final reportedDate = Rxn<DateTime>();
@@ -61,12 +58,15 @@ class OperatorInfoController extends GetxController {
   final RxList<String> plantOptions = <String>[].obs;
   final RxList<String> shiftOptions = <String>[].obs;
 
-  // Shorthand getters for UI
+  // Convenience getters
   List<String> get locations => locationOptions;
   List<String> get plantsOpt => plantOptions;
   List<String> get shiftsOpt => shiftOptions;
 
   // Filtered (exclude placeholder)
+  static const String _placeholder = 'Select';
+  bool _isPlaceholder(String v) => v.trim().isEmpty || v.trim() == _placeholder;
+
   List<String> get locationsForPicker =>
       locationOptions.where((e) => e != _placeholder).toList();
   List<String> get plantsForPicker =>
@@ -99,12 +99,6 @@ class OperatorInfoController extends GetxController {
   OperatosDetails? _selectedReporter; // for reporterCtrl
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Placeholder helpers
-  // ─────────────────────────────────────────────────────────────────────────
-  static const String _placeholder = 'Select';
-  bool _isPlaceholder(String v) => v.trim().isEmpty || v.trim() == _placeholder;
-
-  // ─────────────────────────────────────────────────────────────────────────
   // UI helpers
   // ─────────────────────────────────────────────────────────────────────────
   String get timeText {
@@ -125,43 +119,16 @@ class OperatorInfoController extends GetxController {
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
 
-    // sensible defaults
-    sameAsOperator.value = true;
-    reportedTime.value = _decodeTime('12:20');
-    reportedDate.value = _decodeDate('2025-09-23');
-
-    // Warm the bag with present (possibly empty) values
-    final workTabsController = Get.find<WorkTabsController>();
-    final workOrderInfo = workTabsController.workOrder;
-    final workOrderStatus = workTabsController.workOrderStatus;
-    if (workOrderInfo != null && workOrderStatus != null) {
-      _bag.merge({
-        WOKeys.departmentId: locationId.value,
-        WOKeys.plantId: plantId.value,
-        WOKeys.shiftId: shiftId.value,
-        WOKeys.location: location.value,
-        WOKeys.plant: plant.value,
-        WOKeys.shift: shift.value,
-
-        WOKeys.operatorName: operatorCtrl.text,
-        WOKeys.operatorId: operatorId,
-        WOKeys.operatorPhoneNumber: operatorPhoneNumber,
-
-        WOKeys.reporterName: reporterCtrl.text,
-        WOKeys.reporterId: reporterId,
-        WOKeys.reporterPhoneNumber: reporterPhoneNumber,
-
-        // WOKeys.employeeId: reporterId.value,
-        //WOKeys.phoneNumber: reporterPhoneNumber.value,
-        WOKeys.sameAsOperator: sameAsOperator.value,
-        WOKeys.reportedTime: _encodeTime(reportedTime.value),
-        WOKeys.reportedDate: _encodeDate(reportedDate.value),
-      });
+    final workOrderInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+    if (workOrderInfo != null) {
+      await _putWorkOrderIntoBag(workOrderInfo);
     }
-
     _initAsync();
   }
 
@@ -172,28 +139,64 @@ class OperatorInfoController extends GetxController {
     super.onClose();
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────────────────────────────────
+  String _s(String? v) => v?.trim() ?? '';
+  String _fullName(String? first, String? last) =>
+      [_s(first), _s(last)].where((e) => e.isNotEmpty).join(' ');
+
+  // Build bag from an existing WorkOrder (null-safe, empty string if null)
+  Future<void> _putWorkOrderIntoBag(WorkOrders wo) async {
+    _bag.merge({
+      WOKeys.reporterName:
+          _fullName(wo.reportedBy?.firstName, wo.reportedBy?.lastName),
+      WOKeys.reporterId: _s(wo.reportedBy?.id),
+      WOKeys.reporterPhoneNumber: _s(wo.reportedBy?.phone),
+
+      WOKeys.departmentId: _s(wo.departmentId),
+      WOKeys.plantId: _s(wo.plantId),
+
+      // names visible in UI
+      WOKeys.location: _s(wo.plantName),
+      WOKeys.plant: _s(plant.value),
+      WOKeys.shift: _s(shift.value),
+
+      // people
+      WOKeys.operatorName:
+          _fullName(wo.operator?.firstName, wo.operator?.lastName),
+      WOKeys.operatorId: _s(wo.operator?.id),
+      WOKeys.operatorPhoneNumber: _s(wo.operator?.phone),
+
+      // flags/time
+      WOKeys.sameAsOperator: sameAsOperator.value, // bool
+      WOKeys.reportedTime: _s(_encodeTime(reportedTime.value)),
+      WOKeys.reportedDate: _s(_encodeDate(reportedDate.value)),
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Init async: load lookups/operators; hydrate from bag
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> _initAsync() async {
     // Fetch lists
-    final List<OperatosDetails> operatorsList =
-        await repository.getAllOperator();
-    final List<Shift> shiftList = await repository.getAllShift();
-    final List<LookupValues> deptList =
-        await repository.getLookupByType(LookupType.department);
-    final List<LookupValues> plantsList =
-        await repository.getLookupByType(LookupType.plant);
+    final operatorsList = await repository.getAllOperator();
+    final shiftList = await repository.getAllShift();
+    final deptList = await repository.getLookupByType(LookupType.department);
+    final plantsList = await repository.getLookupByType(LookupType.plant);
 
     // Keep operators for picker
     _operators.assignAll(operatorsList);
     _filteredOperators.assignAll(operatorsList);
 
-    // Build typed option lists (with placeholders)
+    // Typed option lists (with placeholder rows)
     locationTypeOptions.assignAll([
       LookupValues(
         id: '',
         code: '',
         displayName: 'Select location',
         description: '',
-        lookupType: LookupType.department,
+        lookupType: LookupType.department.name,
         sortOrder: -1,
         recordStatus: 1,
         updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
@@ -209,7 +212,7 @@ class OperatorInfoController extends GetxController {
         code: '',
         displayName: 'Select plant',
         description: '',
-        lookupType: LookupType.plant,
+        lookupType: LookupType.plant.name,
         sortOrder: -1,
         recordStatus: 1,
         updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
@@ -230,7 +233,7 @@ class OperatorInfoController extends GetxController {
       ..clear()
       ..addAll([_placeholder, ...shiftList.map((e) => e.name)]);
 
-    // Build name → id maps
+    // name → id maps
     _plantNameToId
       ..clear()
       ..addEntries(plantsList.map((e) => MapEntry(e.displayName, e.id)));
@@ -258,9 +261,9 @@ class OperatorInfoController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // People binding & picker (Get.bottomSheet)
+  // People binding & picker
   // ─────────────────────────────────────────────────────────────────────────
-  // Only name in UI
+  // Only name for UI display
   String _displayFor(OperatosDetails p) => p.name;
 
   void _applySelectedPerson({
@@ -364,11 +367,10 @@ class OperatorInfoController extends GetxController {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final person = _filteredOperators[i];
+                        final email = person.userEmail ?? '';
                         return ListTile(
                           title: Text(_displayFor(person)),
-                          subtitle: (person.userEmail ?? '').isNotEmpty
-                              ? Text(person.userEmail!)
-                              : null,
+                          subtitle: email.isNotEmpty ? Text(email) : null,
                           onTap: () {
                             _applySelectedPerson(
                               person: person,
@@ -419,9 +421,9 @@ class OperatorInfoController extends GetxController {
   void _hydrateFromBag() {
     operatorCtrl.text =
         _bag.get<String>(WOKeys.operatorName, operatorCtrl.text);
-    operatorId.value = _bag.get<String>(WOKeys.operatorId, reporterId.value);
+    operatorId.value = _bag.get<String>(WOKeys.operatorId, operatorId.value);
     operatorPhoneNumber.value =
-        _bag.get<String>(WOKeys.operatorPhoneNumber, reporterPhoneNumber.value);
+        _bag.get<String>(WOKeys.operatorPhoneNumber, operatorPhoneNumber.value);
 
     reporterCtrl.text =
         _bag.get<String>(WOKeys.reporterName, reporterCtrl.text);
@@ -429,18 +431,14 @@ class OperatorInfoController extends GetxController {
     reporterPhoneNumber.value =
         _bag.get<String>(WOKeys.reporterPhoneNumber, reporterPhoneNumber.value);
 
-    // reporterId.value = _bag.get<String>('reporterId', reporterId.value);
-    // reporterPhoneNumber.value =
-    //     _bag.get<String>('phoneNumber', reporterPhoneNumber.value);
-
     // Prefer IDs from bag; fallback to names
-    final bagLocationId = _bag.get<String>('locationId', '');
-    final bagPlantId = _bag.get<String>('plantId', '');
-    final bagShiftId = _bag.get<String>('shiftId', '');
+    final bagLocationId = _bag.get<String>(WOKeys.departmentId, '');
+    final bagPlantId = _bag.get<String>(WOKeys.plantId, '');
+    final bagShiftId = _bag.get<String>(WOKeys.shiftId, '');
 
-    final bagLocationName = _bag.get<String>('location', '');
-    final bagPlantName = _bag.get<String>('plant', '');
-    final bagShiftName = _bag.get<String>('shift', '');
+    final bagLocationName = _bag.get<String>(WOKeys.location, '');
+    final bagPlantName = _bag.get<String>(WOKeys.plant, '');
+    final bagShiftName = _bag.get<String>(WOKeys.shift, '');
 
     // LOCATION (Department)
     if (bagLocationId.isNotEmpty) {
@@ -497,43 +495,38 @@ class OperatorInfoController extends GetxController {
     }
 
     sameAsOperator.value =
-        _bag.get<bool>('sameAsOperator', sameAsOperator.value);
+        _bag.get<bool>(WOKeys.sameAsOperator, sameAsOperator.value);
 
     reportedTime.value = _decodeTime(
-      _bag.get<String?>('reportedTime', _encodeTime(reportedTime.value)),
+      _bag.get<String?>(WOKeys.reportedTime, _encodeTime(reportedTime.value)),
     );
     reportedDate.value = _decodeDate(
-      _bag.get<String?>('reportedDate', _encodeDate(reportedDate.value)),
+      _bag.get<String?>(WOKeys.reportedDate, _encodeDate(reportedDate.value)),
     );
   }
 
   void saveToBag() {
-    // final reporterFinal =
-    //   sameAsOperator.value ? operatorCtrl.text : reporterCtrl.text;
-
     _bag.merge({
       // IDs for API
       WOKeys.departmentId: locationId.value,
       WOKeys.plantId: plantId.value,
       WOKeys.shiftId: shiftId.value,
+
       // Names
       WOKeys.location: location.value,
       WOKeys.plant: plant.value,
       WOKeys.shift: shift.value,
+
       // People (strings)
       WOKeys.operatorName: operatorCtrl.text,
-      WOKeys.operatorId: operatorId,
-      WOKeys.operatorPhoneNumber: operatorPhoneNumber,
+      WOKeys.operatorId: operatorId.value,
+      WOKeys.operatorPhoneNumber: operatorPhoneNumber.value,
 
       WOKeys.reporterName: reporterCtrl.text,
-      WOKeys.reporterPhoneNumber: reporterPhoneNumber,
-      WOKeys.reporterId: reporterId,
-      // Optional: persist IDs if your API needs them
-      // 'operatorId': _selectedOperator?.id,
-      //'reporterId': _selectedReporter?.id,
-      // Other scalars
-      //WOKeys.employeeId: reporterId.value,
-      //WOKeys.phoneNumber: reporterPhoneNumber.value,
+      WOKeys.reporterPhoneNumber: reporterPhoneNumber.value,
+      WOKeys.reporterId: reporterId.value,
+
+      // Others
       WOKeys.sameAsOperator: sameAsOperator.value,
       WOKeys.reportedTime: _encodeTime(reportedTime.value),
       WOKeys.reportedDate: _encodeDate(reportedDate.value),
@@ -641,21 +634,21 @@ class OperatorInfoController extends GetxController {
     _selectedReporter = null;
 
     _bag.merge({
-      'operatorName': '',
-      'reporter': '',
-      'operatorId': null,
-      'reporterId': null,
+      WOKeys.operatorName: '',
+      WOKeys.reporterName: '',
+      WOKeys.operatorId: '',
+      WOKeys.reporterId: '',
       'employeeId': '',
       'phoneNumber': '',
-      'location': '',
-      'plant': '',
-      'shift': '',
-      'locationId': '',
-      'plantId': '',
-      'shiftId': '',
-      'sameAsOperator': false,
-      'reportedTime': null,
-      'reportedDate': null,
+      WOKeys.location: '',
+      WOKeys.plant: '',
+      WOKeys.shift: '',
+      WOKeys.departmentId: '',
+      WOKeys.plantId: '',
+      WOKeys.shiftId: '',
+      WOKeys.sameAsOperator: false,
+      WOKeys.reportedTime: null,
+      WOKeys.reportedDate: null,
     });
   }
 
