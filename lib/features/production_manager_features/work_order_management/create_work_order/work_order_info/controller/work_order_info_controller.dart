@@ -99,6 +99,7 @@ class WorkorderInfoController extends GetxController {
     } else {
       await _initOperatorInfo();
     }
+    // await _initOperatorInfo();
     _loadFromBag();
 
     // await _initAsync(); // ensure lookups/assets available before reactions
