@@ -2,6 +2,7 @@
 import 'package:easy_ops/database/converter/converters.dart';
 import 'package:easy_ops/database/converter/criticality_converter.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
+import 'package:easy_ops/database/entity/organizations_entity.dart';
 import 'package:easy_ops/database/entity/user_list_entity.dart';
 import 'package:easy_ops/features/common_features/login/models/user_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
@@ -16,6 +17,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/database/entity/operators_details_entity.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/database/entity/shift_entity.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 
 extension AssetEntityDomainX on AssetEntity {
@@ -448,5 +450,71 @@ extension UserEntityToSummary on UserListEntity {
         clientName: clientName,
         orgId: orgId,
         orgName: orgName,
+      );
+}
+
+extension OrganizationToEntity on Organization {
+  OrganizationEntity toEntity() => OrganizationEntity(
+        id: id,
+        displayName: displayName,
+        orgTypeId: orgTypeId,
+        orgTypeName: orgTypeName,
+        addressLine1: addressLine1,
+        addressLine2: addressLine2,
+        zip: zip,
+        recordStatus: recordStatus,
+        tenantId: tenantId,
+        tenantName: tenantName,
+        clientId: clientId,
+        clientName: clientName,
+        parentOrgId: parentOrgId,
+        parentOrgName: parentOrgName,
+        countryId: countryId,
+        countryName: countryName,
+        stateId: stateId,
+        stateName: stateName,
+        districtId: districtId,
+        districtName: districtName,
+        timezoneId: timezoneId,
+        timezoneName: timezoneName,
+        dateFormatId: dateFormatId,
+        languageId: languageId,
+        languageName: languageName,
+        currencyId: currencyId,
+        currencyName: currencyName,
+        taxProfileId: taxProfileId,
+      );
+}
+
+extension OrganizationEntityToDomain on OrganizationEntity {
+  Organization toDomain() => Organization(
+        id: id,
+        displayName: displayName,
+        orgTypeId: orgTypeId,
+        orgTypeName: orgTypeName,
+        addressLine1: addressLine1,
+        addressLine2: addressLine2,
+        zip: zip,
+        recordStatus: recordStatus,
+        tenantId: tenantId,
+        tenantName: tenantName,
+        clientId: clientId,
+        clientName: clientName,
+        parentOrgId: parentOrgId,
+        parentOrgName: parentOrgName,
+        countryId: countryId,
+        countryName: countryName,
+        stateId: stateId,
+        stateName: stateName,
+        districtId: districtId,
+        districtName: districtName,
+        timezoneId: timezoneId,
+        timezoneName: timezoneName,
+        dateFormatId: dateFormatId,
+        languageId: languageId,
+        languageName: languageName,
+        currencyId: currencyId,
+        currencyName: currencyName,
+        taxProfileId: taxProfileId,
       );
 }

@@ -45,8 +45,11 @@ class WorkOrderListResponse {
 
 class WorkOrders {
   final String id;
-  final String type;
+  final String reportedTime;
+  // final String type;
   final String issueNo;
+  final String shiftId;
+  final String shiftName;
 
   // Nullable in API -> nullable in model
   final String? plantId;
@@ -55,9 +58,8 @@ class WorkOrders {
   final String? issueTypeId;
   final String? issueTypeName;
 
-  final String departmentId;
-  final String departmentName;
-  final String? criticality;
+  final String locationId;
+  final String locationName;
 
   final String? impactId;
   final String? impactName;
@@ -93,15 +95,17 @@ class WorkOrders {
 
   WorkOrders({
     required this.id,
+    required this.reportedTime,
     required this.issueNo,
-    required this.type,
+    //required this.type,
+    required this.shiftId,
+    required this.shiftName,
     required this.issueTypeId,
     required this.issueTypeName,
     required this.plantId,
     required this.plantName,
-    required this.departmentId,
-    required this.departmentName,
-    required this.criticality,
+    required this.locationId,
+    required this.locationName,
     required this.impactId,
     required this.impactName,
     required this.priority,
@@ -134,28 +138,34 @@ class WorkOrders {
 
     return WorkOrders(
       id: _string(json['id'])!, // non-nullable: throw if truly missing
-      issueNo: _string(json['issueNo'])!, // no
-      criticality: _string(json['criticality']) ?? '', // no
-      type: _string(json['type'])!,
+      reportedTime: _string(json['reportedTime']) ?? '', // no
+      issueNo: _string(json['issueNo']) ?? '', // no
+      shiftId: _string(json['shiftId']) ?? '', // could be null
+      shiftName: _string(json['shiftName']) ?? '',
+      // type: _string(json['type'])!,
       plantId: _string(json['plantId']), // could be null
       plantName: _string(json['plantName']),
       issueTypeId: _string(json['issueTypeId']), // could be null
       issueTypeName: _string(json['issueTypeName']),
-      departmentId: _string(json['departmentId'])!,
-      departmentName: _string(json['departmentName'])!,
+      locationId: _string(json['locationId']) ?? '',
+      locationName: _string(json['locationName']) ?? '',
       impactId: _string(json['impactId']),
       impactName: _string(json['impactName']),
-      priority: _string(json['priority'])!,
-      status: _string(json['status'])!,
-      title: _string(json['title'])!,
+      priority: _string(json['priority']) ?? '',
+      status: _string(json['status']) ?? '',
+      title: _string(json['title']) ?? '',
       description: _string(json['description'])!,
       remark: _string(json['remark']),
       comment: _string(json['comment']),
-      scheduledStart: _date(json['scheduledStart'])!,
-      scheduledEnd: _date(json['scheduledEnd'])!,
+      scheduledStart: _date(json['scheduledStart'] as String?) ??
+          DateTime(1970, 1, 1).toUtc(),
+      scheduledEnd: _date(json['scheduledEnd'] as String?) ??
+          DateTime(1970, 1, 1).toUtc(),
       recordStatus: _int(json['recordStatus']) ?? 0,
-      createdAt: _date(json['createdAt'])!,
-      updatedAt: _date(json['updatedAt'])!,
+      createdAt:
+          _date(json['createdAt'] as String?) ?? DateTime(1970, 1, 1).toUtc(),
+      updatedAt:
+          _date(json['updatedAt'] as String?) ?? DateTime(1970, 1, 1).toUtc(),
       escalated: _int(json['escalated']) ?? 0,
       estimatedTimeToFix:
           _string(json['estimatedTimeToFix']) ?? '', // <-- default to "0"
@@ -177,15 +187,17 @@ class WorkOrders {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'reportedTime': reportedTime,
         'issueNo': issueNo,
-        'type': type,
+        // 'type': type,
+        'shiftId': shiftId,
+        'shiftName': shiftName,
         'plantId': plantId,
         'plantName': plantName,
         'issueTypeId': issueTypeId,
         'issueTypeName': issueTypeName,
-        'departmentId': departmentId,
-        'departmentName': departmentName,
-        'criticality': criticality,
+        'locationId': locationId,
+        'locationName': locationName,
         'impactId': impactId,
         'impactName': impactName,
         'priority': priority,
@@ -300,13 +312,13 @@ class Asset {
   });
 
   factory Asset.fromJson(Map<String, dynamic> json) => Asset(
-        id: _string(json['id'])!,
-        name: _string(json['name'])!,
-        assetNo: _string(json['assetNo'])!,
-        serialNumber: _string(json['serialNumber'])!,
-        status: _string(json['status'])!,
-        criticality: _string(json['criticality'])!,
-        description: _string(json['description'])!,
+        id: _string(json['id']) ?? '',
+        name: _string(json['name']) ?? '',
+        assetNo: _string(json['assetNo']) ?? '',
+        serialNumber: _string(json['serialNumber']) ?? '',
+        status: _string(json['status']) ?? '',
+        criticality: _string(json['criticality']) ?? '',
+        description: _string(json['description']) ?? '',
       );
 
   Map<String, dynamic> toJson() => {

@@ -24,6 +24,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
@@ -64,17 +65,9 @@ class NetworkRepositoryImpl implements NetworkRepository {
   }
 
   @override
-  Future<ApiResult<LookupData>> dropDownData(
-    int page,
-    int size,
-    String sort,
-  ) async {
+  Future<ApiResult<LookupData>> lookup() async {
     try {
-      final dropDownData = await _apiService.dropDownData(
-        page: page,
-        size: size,
-        sort: sort,
-      );
+      final dropDownData = await _apiService.lookup();
 
       return ApiResult<LookupData>(
         httpCode: 200,
@@ -91,6 +84,33 @@ class NetworkRepositoryImpl implements NetworkRepository {
       );
     } catch (e) {
       return ApiResult<LookupData>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<ApiResult<OrganizationData>> organization() async {
+    try {
+      final dropDownData = await _apiService.organization();
+
+      return ApiResult<OrganizationData>(
+        httpCode: 200,
+        data: dropDownData,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<OrganizationData>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<OrganizationData>(
         httpCode: 0,
         data: null,
         message: e.toString(),

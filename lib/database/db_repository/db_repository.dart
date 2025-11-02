@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:easy_ops/database/entity/user_list_entity.dart';
 import 'package:easy_ops/database/mappers/mappers.dart';
 import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:easy_ops/database/app_database.dart';
@@ -304,4 +305,12 @@ class DBRepository {
     final List<UserListEntity> rows = await db.userListDao.getAllUsers();
     return rows.map((e) => e.toDomain()).toList();
   }
+
+  Future<void> upsertAllOrganization(List<Organization> list) async {
+    final rows = list.map((e) => e.toEntity()).toList();
+    await db.organizationDao.upsertAll(rows);
+  }
+
+  Future<List<Organization>> getAllOrganization() async =>
+      (await db.organizationDao.getAll()).map((e) => e.toDomain()).toList();
 }

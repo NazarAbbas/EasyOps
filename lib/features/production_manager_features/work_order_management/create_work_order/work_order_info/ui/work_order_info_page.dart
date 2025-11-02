@@ -367,7 +367,8 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                               onTap: () async {
                                 final picked = await LookupPicker.show(
                                   context: context,
-                                  lookupType: LookupType.issuetype.name,
+                                  lookupType:
+                                      LookupType.workorderissuetype.name,
                                   selected: currentSel,
                                 );
                                 if (picked != null) {

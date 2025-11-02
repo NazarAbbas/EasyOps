@@ -77,7 +77,7 @@ abstract class WOKeys {
   static const assetsId = 'assetsId';
 
   static const plantId = 'plantId';
-  static const departmentId = 'departmentId';
+  static const locationId = 'locationId';
   static const reportedAt = 'reportedAt';
   static const reportedOn = 'reportedOn';
   static const shiftId = 'shiftId';

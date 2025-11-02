@@ -25,12 +25,16 @@ class LoginPageController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    //db = await AppDatabase.open();
-    // emailController.text = "satya.eazysaas@gmail.com";
-    //passwordController.text = "r@Iv2Zi8iu?M";
+    emailController.text = 'raajvastra11@gmail.com';
+    passwordController.text = '@Raaj1234';
 
-    emailController.text = "raajvastra11@gmail.com";
-    passwordController.text = "@Raaj1234";
+//Maintaince engineer
+    //emailController.text = "monazarabbas07@gmail.com";
+    //passwordController.text = "fB7#xEGoL0WU";
+
+//Production supervisor
+    //emailController.text = "nnazarabbas07@gmail.com";
+    // passwordController.text = "!Z@z5tqFTpH3";
   }
 
   Future<void> login() async {
@@ -59,11 +63,23 @@ class LoginPageController extends GetxController {
         password: password,
       );
 
+      //final authorities = json['authorities']; // whatever came from API/JWT
+
+      final isProdSuper =
+          hasRole(result.data?.authorities, 'ROLE_PRODUCTION_SUPERVISOR') ||
+              hasRole(result.data?.authorities,
+                  'ROLEPRODUCTION_SUPERVISOR'); // both handled anyw
+
       debugPrint('Login HTTP code: ${result.httpCode}');
 
       if (result.isSuccess && result.data != null) {
         // const userRole = 'maintenance_engineer';
-        const userRole = 'production_manager';
+        //const userRole = 'production_manager';
+
+        final organization = await repositoryImpl.organization();
+
+        await repository
+            .upsertAllOrganization(organization.data!.content); // cache locally
 
         final userList = await repositoryImpl.getUsersList();
         await repository.upsertAllUsers(userList.data!);
@@ -84,8 +100,7 @@ class LoginPageController extends GetxController {
         // final details = await loginPersonDetailsRepository
         //     .getPersonById(loginPersonDetails.data!.id);
 
-        final dropDownData =
-            await repositoryImpl.dropDownData(0, 20, 'sort_order,asc');
+        final dropDownData = await repositoryImpl.lookup();
         final shiftData = await repositoryImpl.shiftData();
         final assetsData = await repositoryImpl.assetsData();
         if (dropDownData.data != null &&
@@ -96,12 +111,13 @@ class LoginPageController extends GetxController {
           await repository.upsertAllShift(shiftData.data!);
 
           final themeCtrl = Get.put(ThemeController(), permanent: true);
-          themeCtrl.setThemeByRole(userRole);
-          if (userRole == 'maintenance_engineer') {
+          if (isProdSuper) {
+            themeCtrl.setThemeByRole('ROLEPRODUCTION_SUPERVISOR');
             await SharePreferences.put(
                 SharePreferences.userRole, SharePreferences.engineerRole);
             // Get.toNamed(Routes.maintenanceEngeneerlandingDashboardScreen);
           } else {
+            themeCtrl.setThemeByRole('ROLEMAINTENANCE_ENGINEER');
             await SharePreferences.put(SharePreferences.userRole,
                 SharePreferences.productionManagerRole);
             //Get.toNamed(Routes.landingDashboardScreen);
@@ -162,4 +178,52 @@ class LoginPageController extends GetxController {
   }
 
   void authenticateWithFingerprint() {}
+
+  /// Normalize & extract authorities as a List<String>
+  List<String> parseAuthorities(dynamic raw) {
+    if (raw == null) return const [];
+
+    // Case 1: already a List<String>
+    if (raw is List<String>) return raw;
+
+    // Case 2: List<dynamic> of strings or maps
+    if (raw is List) {
+      return raw
+          .map((e) {
+            if (e is String) return e;
+            if (e is Map) {
+              // Common keys: "authority", "role", "name"
+              final v = e['authority'] ?? e['role'] ?? e['name'];
+              return (v is String) ? v : null;
+            }
+            return null;
+          })
+          .whereType<String>()
+          .toList();
+    }
+
+    // Fallback: single string like "ROLE_USER,ROLE_PRODUCTION_SUPERVISOR"
+    if (raw is String) {
+      return raw
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+
+    return const [];
+  }
+
+  /// Flexible role comparer:
+  /// - case-insensitive
+  /// - treats "ROLEPRODUCTION_SUPERVISOR" and "ROLE_PRODUCTION_SUPERVISOR" as equal
+  bool hasRole(dynamic authoritiesRaw, String targetRole) {
+    List<String> auths = parseAuthorities(authoritiesRaw);
+
+    String norm(String s) =>
+        s.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
+
+    final want = norm(targetRole);
+    return auths.any((r) => norm(r) == want);
+  }
 }

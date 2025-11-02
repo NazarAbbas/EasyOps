@@ -60,7 +60,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
         child: child!,
       ),
     );
-    if (res != null) controller.reportedTime.value = res;
+    // 🔁 IMPORTANT: Use controller API so shift recalculates automatically
+    if (res != null) controller.setReportedTime(res);
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -85,7 +86,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
         child: child!,
       ),
     );
-    if (res != null) controller.reportedDate.value = res;
+    // 🔁 IMPORTANT: Use controller API so shift recalculates automatically
+    if (res != null) controller.setReportedDate(res);
   }
 
   Future<void> _pickFromList(
@@ -189,9 +191,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                       'Reporter',
                       child: TextField(
                         controller: controller.reporterCtrl,
-                        readOnly:
-                            true, // ⬅️ open bottom list instead of keyboard
-                        onTap: controller.onTapChooseReporter, // ⬅️ OPEN PICKER
+                        readOnly: true, // open bottom list instead of keyboard
+                        onTap: controller.onTapChooseReporter, // OPEN PICKER
                         decoration: AppInput.bordered(
                           hintText: "Choose Reporter",
                           prefixIcon: const Padding(
@@ -246,8 +247,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                               onTap: () => _pickFromList(
                                 context,
                                 title: 'Select Location',
-                                options: controller
-                                    .locationsForPicker, // no placeholder
+                                options: controller.locationsForPicker,
                                 onSelected: controller.onLocationChanged,
                               ),
                             ),
@@ -268,8 +268,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                               onTap: () => _pickFromList(
                                 context,
                                 title: 'Select Plant',
-                                options:
-                                    controller.plantsForPicker, // filtered list
+                                options: controller.plantsForPicker,
                                 onSelected: controller.onPlantChanged,
                               ),
                             ),
@@ -286,7 +285,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             text: timeText,
                             leading: const Icon(CupertinoIcons.time,
                                 size: 18, color: AppColors.muted),
-                            onTap: () => _pickTime(context),
+                            onTap: () =>
+                                _pickTime(context), // auto-shift update
                           ),
                         ),
                         right: _Label(
@@ -295,12 +295,13 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             text: dateText,
                             leading: const Icon(CupertinoIcons.calendar,
                                 size: 18, color: AppColors.muted),
-                            onTap: () => _pickDate(context),
+                            onTap: () =>
+                                _pickDate(context), // auto-shift update
                           ),
                         ),
                       ),
                       SizedBox(height: vGap - 4),
-                      // Shift picker
+                      // Shift picker (kept for manual override if needed)
                       _Label(
                         'Shift',
                         child: _TapField(
@@ -347,8 +348,8 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                           'Operator',
                           child: TextField(
                             controller: controller.operatorCtrl,
-                            readOnly: true, // ⬅️ open bottom list
-                            onTap: controller.onTapChooseOperator, // ⬅️ OPEN
+                            readOnly: true,
+                            onTap: controller.onTapChooseOperator,
                             decoration: AppInput.bordered(
                               hintText: "Choose Operator",
                               prefixIcon: const Padding(
@@ -637,8 +638,9 @@ class _PickerContent extends StatelessWidget {
               ),
               const Spacer(),
               IconButton(
-                  onPressed: Get.back,
-                  icon: const Icon(CupertinoIcons.xmark, size: 18)),
+                onPressed: Get.back,
+                icon: const Icon(CupertinoIcons.xmark, size: 18),
+              ),
             ],
           ),
         ),
@@ -654,7 +656,9 @@ class _PickerContent extends StatelessWidget {
               title: Text(
                 options[i],
                 style: const TextStyle(
-                    color: AppColors.text, fontWeight: FontWeight.w600),
+                  color: AppColors.text,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onTap: () {
                 onSelected(options[i]);

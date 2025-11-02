@@ -17,6 +17,7 @@ import 'package:easy_ops/features/production_manager_features/dashboard_profile_
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/suggestion/models/suggestions_response.dart';
 import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_request.dart';
@@ -119,17 +120,17 @@ class ApiService {
     }
   }
 
-  Future<LookupData> dropDownData({
-    int page = 0,
-    int size = 100,
-    String sort = 'sort_order,asc',
-  }) async {
+  Future<LookupData> lookup() async {
     try {
-      return await _api.getDropDownData(
-        page: page,
-        size: size,
-        sort: sort,
-      );
+      return await _api.lookup();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<OrganizationData> organization() async {
+    try {
+      return await _api.organization();
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

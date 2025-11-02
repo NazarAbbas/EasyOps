@@ -517,7 +517,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
             //return;
 
             Get.toNamed(
-              Routes.maintenanceEngeneerupdateWorkOrderTabScreen,
+              Routes.workOrderTabShellScreen,
               arguments: {
                 Constant.workOrderInfo: order,
                 Constant.workOrderStatus: WorkOrderStatus.open,
@@ -765,7 +765,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      order.type,
+                                      order.issueTypeName ?? '',
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: textPrimary,

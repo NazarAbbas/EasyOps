@@ -89,7 +89,7 @@ class CancelWorkOrderController extends GetxController {
     final workTabsController = Get.find<WorkTabsController>();
     workOrderInfo = workTabsController.workOrder;
     issueTitle.value = workOrderInfo!.title;
-    category.value = workOrderInfo!.departmentName;
+    category.value = workOrderInfo!.locationName;
     time.value = _formatDate(workOrderInfo!.createdAt); // as String;
     priority.value = workOrderInfo!.priority;
     duration.value = workOrderInfo!.estimatedTimeToFix;

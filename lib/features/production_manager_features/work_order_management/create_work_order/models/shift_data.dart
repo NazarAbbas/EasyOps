@@ -171,3 +171,95 @@ class ShiftMeta {
         'totalPages': totalPages,
       };
 }
+
+// ===== Utils on your existing Shift model =====
+
+extension ShiftTimeOps on Shift {
+  /// "HH:mm:ss" -> seconds since midnight (0..86399). Null if bad.
+  int? get _startSec => _toSec(startTime);
+  int? get _endSec => _toSec(endTime);
+
+  bool get crossesMidnight {
+    final s = _startSec, e = _endSec;
+    if (s == null || e == null) return false;
+    return e <= s; // e==s means full-day or zero-length; treat as wrap
+  }
+
+  /// Does [tSec] (seconds since midnight, local) fall inside this shift?
+  bool containsSecond(int tSec) {
+    final s = _startSec, e = _endSec;
+    if (s == null || e == null) return false;
+
+    if (!crossesMidnight) {
+      // Normal case: s < e, interval [s, e)
+      return tSec >= s && tSec < e;
+    } else {
+      // Wraps midnight: [s, 86400) ∪ [0, e)
+      return tSec >= s || tSec < e;
+    }
+  }
+
+  /// "HH:mm:ss" -> seconds since midnight
+  static int? _toSec(String v) {
+    final p = v.split(':');
+    if (p.length != 3) return null;
+    final h = int.tryParse(p[0]),
+        m = int.tryParse(p[1]),
+        s = int.tryParse(p[2]);
+    if (h == null || m == null || s == null) return null;
+    return (h * 3600) + (m * 60) + s;
+  }
+}
+
+/// Convert a local DateTime to seconds since local midnight (0..86399)
+int _localSecondsSinceMidnight(DateTime dt) {
+  final local = dt.toLocal();
+  return local.hour * 3600 + local.minute * 60 + local.second;
+}
+
+/// Pick the shift active at `at` (local). Returns null if none match.
+Shift? selectShiftFor(List<Shift> shifts, {DateTime? at}) {
+  final now = at ?? DateTime.now();
+  final tSec = _localSecondsSinceMidnight(now);
+
+  // Filter only those that contain the current second.
+  final matches = shifts.where((s) => s.containsSecond(tSec)).toList();
+  if (matches.isEmpty) return null;
+
+  // If multiple match (rare, but e.g., a full-day shift plus another),
+  // prefer the *shortest* window (most specific).
+  matches.sort((a, b) {
+    int lenA = _lengthSec(a);
+    int lenB = _lengthSec(b);
+    return lenA.compareTo(lenB);
+  });
+  return matches.first;
+}
+
+/// Duration of a shift in seconds (handles midnight-crossing).
+int _lengthSec(Shift s) {
+  final st = s._startSec, en = s._endSec;
+  if (st == null || en == null) return 86400; // treat invalid as full day
+  return s.crossesMidnight ? (86400 - st + en) : (en - st);
+}
+
+/// Optional: next shift start after `at` (helpful if nothing active).
+Shift? nextShiftAfter(List<Shift> shifts, {DateTime? after}) {
+  final base = after ?? DateTime.now();
+  final sec = _localSecondsSinceMidnight(base);
+
+  Shift? best;
+  int bestDelta = 1 << 30;
+
+  for (final s in shifts) {
+    final st = s._startSec;
+    if (st == null) continue;
+    // delta forward in circular day space
+    final delta = (st - sec + 86400) % 86400;
+    if (delta > 0 && delta < bestDelta) {
+      bestDelta = delta;
+      best = s;
+    }
+  }
+  return best;
+}

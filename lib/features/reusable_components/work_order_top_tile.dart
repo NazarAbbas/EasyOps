@@ -20,7 +20,7 @@ class WorkOrderTile extends StatelessWidget {
 
   bool get _hasEta =>
       (workOrderInfo.estimatedTimeToFix ?? '').trim().isNotEmpty;
-  bool get _hasDept => (workOrderInfo.type ?? '').trim().isNotEmpty;
+  bool get _hasDept => (workOrderInfo.issueTypeName ?? '').trim().isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +97,7 @@ class WorkOrderTile extends StatelessWidget {
               // Department + ETA
               Row(
                 children: [
-                  if (_hasDept) _MutedText(workOrderInfo.type!),
+                  if (_hasDept) _MutedText(workOrderInfo.issueTypeName!),
                   Icon(
                     Icons.sync_alt_rounded,
                     size: 14,

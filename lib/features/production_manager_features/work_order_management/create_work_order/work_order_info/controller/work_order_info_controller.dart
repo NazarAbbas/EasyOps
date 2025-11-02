@@ -94,7 +94,7 @@ class WorkorderInfoController extends GetxController {
     super.onInit();
     await _loadLookups();
     await _loadAssets();
-    if (workOrderInfo != null) {
+    if (workOrderInfo.value != null) {
       await _putWorkOrderIntoBag(workOrderInfo.value!);
     } else {
       await _initOperatorInfo();
@@ -153,16 +153,18 @@ class WorkorderInfoController extends GetxController {
 
   Future<void> _loadLookups() async {
     final impact = await repository.getLookupByType(LookupType.impact);
-    final issue = await repository.getLookupByType(LookupType.issuetype);
-
-    issueTypeOptions.assignAll([
-      _placeholderOption('Select Issue Type', LookupType.issuetype),
-      ...issue,
-    ]);
 
     impactOptions.assignAll([
       _placeholderOption('Select Impact Type', LookupType.impact),
       ...impact,
+    ]);
+
+    final issue =
+        await repository.getLookupByType(LookupType.workorderissuetype);
+
+    issueTypeOptions.assignAll([
+      _placeholderOption('Select Issue Type', LookupType.workorderissuetype),
+      ...issue,
     ]);
   }
 

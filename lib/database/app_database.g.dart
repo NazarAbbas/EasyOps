@@ -94,6 +94,8 @@ class _$AppDatabase extends AppDatabase {
 
   UserListDao? _userListDaoInstance;
 
+  OrganizationDao? _organizationDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -136,6 +138,8 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_holidays` (`id` TEXT NOT NULL, `holidayDate` INTEGER, `holidayName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `organizations` (`id` TEXT NOT NULL, `displayName` TEXT NOT NULL, `orgTypeId` TEXT, `orgTypeName` TEXT, `addressLine1` TEXT, `addressLine2` TEXT, `zip` TEXT, `recordStatus` INTEGER, `tenantId` TEXT, `tenantName` TEXT, `clientId` TEXT, `clientName` TEXT, `parentOrgId` TEXT, `parentOrgName` TEXT, `countryId` TEXT, `countryName` TEXT, `stateId` TEXT, `stateName` TEXT, `districtId` TEXT, `districtName` TEXT, `timezoneId` TEXT, `timezoneName` TEXT, `dateFormatId` TEXT, `languageId` TEXT, `languageName` TEXT, `currencyId` TEXT, `currencyName` TEXT, `taxProfileId` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
             'CREATE TABLE IF NOT EXISTS `users_list` (`id` TEXT NOT NULL, `email` TEXT NOT NULL, `communicationEmail` TEXT, `passwordHash` TEXT NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `phone` TEXT NOT NULL, `userType` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `tenantName` TEXT NOT NULL, `clientId` TEXT NOT NULL, `clientName` TEXT NOT NULL, `orgId` TEXT, `orgName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
@@ -173,6 +177,14 @@ class _$AppDatabase extends AppDatabase {
             'CREATE INDEX `index_operators_details_entity_shiftId` ON `operators_details_entity` (`shiftId`)');
         await database.execute(
             'CREATE INDEX `index_operators_details_entity_departmentId` ON `operators_details_entity` (`departmentId`)');
+        await database.execute(
+            'CREATE UNIQUE INDEX `index_organizations_tenantId_clientId_displayName` ON `organizations` (`tenantId`, `clientId`, `displayName`)');
+        await database.execute(
+            'CREATE INDEX `index_organizations_tenantId_clientId` ON `organizations` (`tenantId`, `clientId`)');
+        await database.execute(
+            'CREATE INDEX `index_organizations_parentOrgId` ON `organizations` (`parentOrgId`)');
+        await database.execute(
+            'CREATE INDEX `index_organizations_recordStatus` ON `organizations` (`recordStatus`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -240,6 +252,12 @@ class _$AppDatabase extends AppDatabase {
   @override
   UserListDao get userListDao {
     return _userListDaoInstance ??= _$UserListDao(database, changeListener);
+  }
+
+  @override
+  OrganizationDao get organizationDao {
+    return _organizationDaoInstance ??=
+        _$OrganizationDao(database, changeListener);
   }
 }
 
@@ -1100,6 +1118,96 @@ class _$UserListDao extends UserListDao {
   Future<void> upsertUsers(List<UserListEntity> users) async {
     await _userListEntityInsertionAdapter.insertList(
         users, OnConflictStrategy.replace);
+  }
+}
+
+class _$OrganizationDao extends OrganizationDao {
+  _$OrganizationDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _organizationEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'organizations',
+            (OrganizationEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'displayName': item.displayName,
+                  'orgTypeId': item.orgTypeId,
+                  'orgTypeName': item.orgTypeName,
+                  'addressLine1': item.addressLine1,
+                  'addressLine2': item.addressLine2,
+                  'zip': item.zip,
+                  'recordStatus': item.recordStatus,
+                  'tenantId': item.tenantId,
+                  'tenantName': item.tenantName,
+                  'clientId': item.clientId,
+                  'clientName': item.clientName,
+                  'parentOrgId': item.parentOrgId,
+                  'parentOrgName': item.parentOrgName,
+                  'countryId': item.countryId,
+                  'countryName': item.countryName,
+                  'stateId': item.stateId,
+                  'stateName': item.stateName,
+                  'districtId': item.districtId,
+                  'districtName': item.districtName,
+                  'timezoneId': item.timezoneId,
+                  'timezoneName': item.timezoneName,
+                  'dateFormatId': item.dateFormatId,
+                  'languageId': item.languageId,
+                  'languageName': item.languageName,
+                  'currencyId': item.currencyId,
+                  'currencyName': item.currencyName,
+                  'taxProfileId': item.taxProfileId
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<OrganizationEntity>
+      _organizationEntityInsertionAdapter;
+
+  @override
+  Future<List<OrganizationEntity>> getAll() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM organizations ORDER BY displayName',
+        mapper: (Map<String, Object?> row) => OrganizationEntity(
+            id: row['id'] as String,
+            displayName: row['displayName'] as String,
+            orgTypeId: row['orgTypeId'] as String?,
+            orgTypeName: row['orgTypeName'] as String?,
+            addressLine1: row['addressLine1'] as String?,
+            addressLine2: row['addressLine2'] as String?,
+            zip: row['zip'] as String?,
+            recordStatus: row['recordStatus'] as int?,
+            tenantId: row['tenantId'] as String?,
+            tenantName: row['tenantName'] as String?,
+            clientId: row['clientId'] as String?,
+            clientName: row['clientName'] as String?,
+            parentOrgId: row['parentOrgId'] as String?,
+            parentOrgName: row['parentOrgName'] as String?,
+            countryId: row['countryId'] as String?,
+            countryName: row['countryName'] as String?,
+            stateId: row['stateId'] as String?,
+            stateName: row['stateName'] as String?,
+            districtId: row['districtId'] as String?,
+            districtName: row['districtName'] as String?,
+            timezoneId: row['timezoneId'] as String?,
+            timezoneName: row['timezoneName'] as String?,
+            dateFormatId: row['dateFormatId'] as String?,
+            languageId: row['languageId'] as String?,
+            languageName: row['languageName'] as String?,
+            currencyId: row['currencyId'] as String?,
+            currencyName: row['currencyName'] as String?,
+            taxProfileId: row['taxProfileId'] as String?));
+  }
+
+  @override
+  Future<void> upsertAll(List<OrganizationEntity> rows) async {
+    await _organizationEntityInsertionAdapter.insertList(
+        rows, OnConflictStrategy.replace);
   }
 }
 

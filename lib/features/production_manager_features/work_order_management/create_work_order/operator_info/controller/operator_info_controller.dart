@@ -4,6 +4,8 @@ import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
@@ -51,12 +53,15 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // Dropdown data sources (typed) + names
   // ─────────────────────────────────────────────────────────────────────────
-  final RxList<LookupValues> locationTypeOptions = <LookupValues>[].obs;
-  final RxList<LookupValues> plantTypeOptions = <LookupValues>[].obs;
+  final RxList<Organization> locationTypeOptions = <Organization>[].obs;
+  final RxList<Organization> plantTypeOptions = <Organization>[].obs;
 
   final RxList<String> locationOptions = <String>[].obs;
   final RxList<String> plantOptions = <String>[].obs;
   final RxList<String> shiftOptions = <String>[].obs;
+
+  // Shifts cache to evaluate reported time
+  final RxList<Shift> _shifts = <Shift>[].obs;
 
   // Convenience getters
   List<String> get locations => locationOptions;
@@ -86,7 +91,7 @@ class OperatorInfoController extends GetxController {
   // Name → ID maps
   // ─────────────────────────────────────────────────────────────────────────
   final Map<String, String> _plantNameToId = {};
-  final Map<String, String> _deptNameToId = {};
+  final Map<String, String> _locationNameToId = {};
   final Map<String, String> _shiftNameToId = {};
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -112,23 +117,17 @@ class OperatorInfoController extends GetxController {
   String get dateText {
     final d = reportedDate.value;
     if (d == null) return 'dd/mm/yyyy';
-    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    final dd = d.day.toString().padLeft(2, '0');
+    final mm = d.month.toString().padLeft(2, '0');
+    return '$dd/$mm/${d.year}';
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-
-    final workOrderInfo = await SharePreferences.getObject(
-      Constant.workOrder,
-      WorkOrders.fromJson,
-    );
-    if (workOrderInfo != null) {
-      await _putWorkOrderIntoBag(workOrderInfo);
-    }
     _initAsync();
   }
 
@@ -146,21 +145,202 @@ class OperatorInfoController extends GetxController {
   String _fullName(String? first, String? last) =>
       [_s(first), _s(last)].where((e) => e.isNotEmpty).join(' ');
 
-  // Build bag from an existing WorkOrder (null-safe, empty string if null)
+  Organization _placeholderOrg(String label) => Organization(
+        id: '',
+        displayName: label,
+        recordStatus: 1,
+        tenantId: '',
+        clientId: '',
+      );
+
+  DateTime? _parseIso(String? s) =>
+      (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
+
+  String? _encodeTime(TimeOfDay? t) => t == null
+      ? null
+      : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  String? _encodeDate(DateTime? d) => d?.toIso8601String();
+
+  TimeOfDay? _decodeTime(String? s) {
+    if (s == null || s.isEmpty) return null;
+    if (s.contains('T') || s.contains('-')) {
+      final dt = DateTime.tryParse(s);
+      if (dt == null) return null;
+      final local = dt.toLocal();
+      return TimeOfDay(hour: local.hour, minute: local.minute);
+    }
+    final parts = s.split(':');
+    if (parts.length != 2) return null;
+    final h = int.tryParse(parts[0]), m = int.tryParse(parts[1]);
+    if (h == null || m == null) return null;
+    return TimeOfDay(hour: h, minute: m);
+  }
+
+  DateTime? _decodeDate(String? s) =>
+      (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Shift evaluation based on a local DateTime
+  // ─────────────────────────────────────────────────────────────────────────
+  int _toSecHms(String hms) {
+    final p = hms.split(':');
+    final h = int.parse(p[0]);
+    final m = int.parse(p[1]);
+    final s = (p.length > 2) ? int.parse(p[2]) : 0;
+    return h * 3600 + m * 60 + s;
+  }
+
+  bool _shiftCrossesMidnight(Shift s) {
+    final st = _toSecHms(s.startTime);
+    final en = _toSecHms(s.endTime);
+    return en <= st; // e.g. 22:00 → 06:00
+  }
+
+  bool _shiftContains(Shift s, int tSec) {
+    final st = _toSecHms(s.startTime);
+    final en = _toSecHms(s.endTime);
+    if (!_shiftCrossesMidnight(s)) {
+      return tSec >= st && tSec < en; // [st, en)
+    } else {
+      return tSec >= st || tSec < en; // overnight
+    }
+  }
+
+  int _lengthSec(Shift s) {
+    final st = _toSecHms(s.startTime);
+    final en = _toSecHms(s.endTime);
+    return _shiftCrossesMidnight(s) ? (86400 - st + en) : (en - st);
+  }
+
+  /// Returns the shift covering [whenLocal]; if multiple match, picks the shortest window.
+  Shift? _selectShiftFor(DateTime whenLocal) {
+    if (_shifts.isEmpty) return null;
+    final tSec =
+        whenLocal.hour * 3600 + whenLocal.minute * 60 + whenLocal.second;
+    final matches = _shifts.where((s) => _shiftContains(s, tSec)).toList();
+    if (matches.isEmpty) return null;
+    matches.sort((a, b) => _lengthSec(a).compareTo(_lengthSec(b)));
+    return matches.first;
+  }
+
+  /// If no current shift covers the time, pick the next starting shift after [whenLocal].
+  Shift? _nextShiftAfter(DateTime whenLocal) {
+    if (_shifts.isEmpty) return null;
+    final tSec =
+        whenLocal.hour * 3600 + whenLocal.minute * 60 + whenLocal.second;
+    Shift? best;
+    int bestDelta = 1 << 30;
+    for (final s in _shifts) {
+      final st = _toSecHms(s.startTime);
+      final delta = (st - tSec + 86400) % 86400;
+      if (delta > 0 && delta < bestDelta) {
+        bestDelta = delta;
+        best = s;
+      }
+    }
+    return best;
+  }
+
+  /// Combine reportedDate + reportedTime into a local DateTime (null if either missing).
+  DateTime? _combineReportedLocal() {
+    final d = reportedDate.value;
+    final t = reportedTime.value;
+    if (d == null || t == null) return null;
+    // Interpret as local wall-clock time chosen by user
+    return DateTime(d.year, d.month, d.day, t.hour, t.minute);
+  }
+
+  /// Recompute shift ONLY from the ReportedAt clock (date+time). If missing, falls back to NOW (one time).
+  void _recomputeShiftFromReported({bool persist = true}) {
+    // 1) Prefer user-selected reported date+time
+    DateTime? anchor = _combineReportedLocal();
+
+    // 2) If user hasn't chosen yet, do a one-time best guess using now (so UI isn't empty)
+    anchor ??= DateTime.now();
+
+    final chosen = _selectShiftFor(anchor) ?? _nextShiftAfter(anchor);
+    if (chosen != null) {
+      shift.value = chosen.name;
+      shiftId.value = chosen.id;
+    } else {
+      shift.value = _placeholder;
+      shiftId.value = '';
+    }
+
+    if (persist) saveToBag();
+  }
+
+  /// Returns (time, date) and sets observables (+ optional persist) — also recomputes shift.
+  (TimeOfDay, DateTime)? setReportedFromIso(String? iso,
+      {bool persistToBag = true}) {
+    final dt = _parseIso(iso);
+    if (dt == null) return null;
+
+    final local = dt.toLocal();
+    final time = TimeOfDay(hour: local.hour, minute: local.minute);
+    final date = DateTime(local.year, local.month, local.day);
+
+    reportedTime.value = time;
+    reportedDate.value = date;
+
+    if (persistToBag) {
+      _bag.merge({
+        WOKeys.reportedTime: _encodeTime(time),
+        WOKeys.reportedDate: _encodeDate(date),
+      });
+    }
+
+    // Shift must follow the ReportedAt clock
+    _recomputeShiftFromReported(persist: persistToBag);
+    return (time, date);
+  }
+
+  /// Call these from UI pickers to keep shift in sync.
+  void setReportedTime(TimeOfDay t, {bool persistToBag = true}) {
+    reportedTime.value = t;
+    if (persistToBag) {
+      _bag.merge({WOKeys.reportedTime: _encodeTime(t)});
+    }
+    _recomputeShiftFromReported(persist: persistToBag);
+  }
+
+  void setReportedDate(DateTime d, {bool persistToBag = true}) {
+    // Strip time to date-only
+    final dateOnly = DateTime(d.year, d.month, d.day);
+    reportedDate.value = dateOnly;
+    if (persistToBag) {
+      _bag.merge({WOKeys.reportedDate: _encodeDate(dateOnly)});
+    }
+    _recomputeShiftFromReported(persist: persistToBag);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Build bag from an existing WorkOrder
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> _putWorkOrderIntoBag(WorkOrders wo) async {
+    // Split ISO reportedTime -> (TimeOfDay, DateTime) and recompute shift afterwards
+    TimeOfDay? reportedAt;
+    DateTime? reportedOn;
+    final res = setReportedFromIso(wo.reportedTime, persistToBag: false);
+    if (res != null) {
+      (reportedAt, reportedOn) = res;
+    }
+
     _bag.merge({
       WOKeys.reporterName:
           _fullName(wo.reportedBy?.firstName, wo.reportedBy?.lastName),
       WOKeys.reporterId: _s(wo.reportedBy?.id),
       WOKeys.reporterPhoneNumber: _s(wo.reportedBy?.phone),
 
-      WOKeys.departmentId: _s(wo.departmentId),
-      WOKeys.plantId: _s(wo.plantId),
+      WOKeys.locationId: _s(wo.locationId),
+      WOKeys.location: _s(wo.locationName),
 
-      // names visible in UI
-      WOKeys.location: _s(wo.plantName),
-      WOKeys.plant: _s(plant.value),
-      WOKeys.shift: _s(shift.value),
+      WOKeys.plantId: _s(wo.plantId),
+      WOKeys.plant: _s(wo.plantName ?? plant.value),
+
+      WOKeys.shiftId: _s(wo.shiftId),
+      WOKeys.shift: _s(wo.shiftName),
 
       // people
       WOKeys.operatorName:
@@ -168,59 +348,51 @@ class OperatorInfoController extends GetxController {
       WOKeys.operatorId: _s(wo.operator?.id),
       WOKeys.operatorPhoneNumber: _s(wo.operator?.phone),
 
-      // flags/time
-      WOKeys.sameAsOperator: sameAsOperator.value, // bool
-      WOKeys.reportedTime: _s(_encodeTime(reportedTime.value)),
-      WOKeys.reportedDate: _s(_encodeDate(reportedDate.value)),
+      // boolean
+      WOKeys.sameAsOperator:
+          (wo.reportedBy?.id != null && wo.reportedBy?.id == wo.operator?.id),
+
+      // time/date — encode (prefer parsed; else current observables)
+      WOKeys.reportedTime: _encodeTime(reportedAt ?? reportedTime.value),
+      WOKeys.reportedDate: _encodeDate(reportedOn ?? reportedDate.value),
     });
+
+    // Ensure shift reflects the reported clock we just parsed (if any)
+    _recomputeShiftFromReported(persist: false);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Init async: load lookups/operators; hydrate from bag
+  // Init async: load lookups/operators/shifts; hydrate from bag
   // ─────────────────────────────────────────────────────────────────────────
   Future<void> _initAsync() async {
+    // If a work order was stored, put it into the bag first (may set reported time/date)
+    final workOrderInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+    if (workOrderInfo != null) {
+      await _putWorkOrderIntoBag(workOrderInfo);
+    }
+
     // Fetch lists
     final operatorsList = await repository.getAllOperator();
-    final shiftList = await repository.getAllShift();
-    final deptList = await repository.getLookupByType(LookupType.department);
-    final plantsList = await repository.getLookupByType(LookupType.plant);
+    final shiftList = await repository.getAllShift(); // List<Shift>
+    final deptList =
+        await repository.getAllOrganization(); // List<Organization>
+    final plantsList =
+        await repository.getAllOrganization(); // List<Organization>
+
+    _shifts.assignAll(shiftList);
 
     // Keep operators for picker
     _operators.assignAll(operatorsList);
     _filteredOperators.assignAll(operatorsList);
 
     // Typed option lists (with placeholder rows)
-    locationTypeOptions.assignAll([
-      LookupValues(
-        id: '',
-        code: '',
-        displayName: 'Select location',
-        description: '',
-        lookupType: LookupType.department.name,
-        sortOrder: -1,
-        recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
-        tenantId: '',
-        clientId: '',
-      ),
-      ...deptList,
-    ]);
-
-    plantTypeOptions.assignAll([
-      LookupValues(
-        id: '',
-        code: '',
-        displayName: 'Select plant',
-        description: '',
-        lookupType: LookupType.plant.name,
-        sortOrder: -1,
-        recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
-        tenantId: '',
-        clientId: '',
-      ),
-      ...plantsList,
-    ]);
+    locationTypeOptions
+        .assignAll([_placeholderOrg('Select location'), ...deptList]);
+    plantTypeOptions
+        .assignAll([_placeholderOrg('Select plant'), ...plantsList]);
 
     // Names lists for simpler dropdowns
     locationOptions
@@ -237,7 +409,7 @@ class OperatorInfoController extends GetxController {
     _plantNameToId
       ..clear()
       ..addEntries(plantsList.map((e) => MapEntry(e.displayName, e.id)));
-    _deptNameToId
+    _locationNameToId
       ..clear()
       ..addEntries(deptList.map((e) => MapEntry(e.displayName, e.id)));
     _shiftNameToId
@@ -249,8 +421,14 @@ class OperatorInfoController extends GetxController {
     plant.value = _placeholder;
     shift.value = _placeholder;
 
-    // Hydrate from bag (also restores operator/reporter text)
+    // Hydrate from bag (also restores operator/reporter text and any saved ids)
     _hydrateFromBag();
+
+    // If reported time/date are present after hydration, recompute shift from them.
+    // Else do a one-time best guess using NOW so UI isn't blank.
+    final hasReported =
+        reportedTime.value != null && reportedDate.value != null;
+    _recomputeShiftFromReported(persist: !hasReported);
 
     // Share lists with other tabs
     _bag.merge({
@@ -263,7 +441,6 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // People binding & picker
   // ─────────────────────────────────────────────────────────────────────────
-  // Only name for UI display
   String _displayFor(OperatosDetails p) => p.name;
 
   void _applySelectedPerson({
@@ -432,7 +609,7 @@ class OperatorInfoController extends GetxController {
         _bag.get<String>(WOKeys.reporterPhoneNumber, reporterPhoneNumber.value);
 
     // Prefer IDs from bag; fallback to names
-    final bagLocationId = _bag.get<String>(WOKeys.departmentId, '');
+    final bagLocationId = _bag.get<String>(WOKeys.locationId, '');
     final bagPlantId = _bag.get<String>(WOKeys.plantId, '');
     final bagShiftId = _bag.get<String>(WOKeys.shiftId, '');
 
@@ -440,13 +617,13 @@ class OperatorInfoController extends GetxController {
     final bagPlantName = _bag.get<String>(WOKeys.plant, '');
     final bagShiftName = _bag.get<String>(WOKeys.shift, '');
 
-    // LOCATION (Department)
+    // LOCATION
     if (bagLocationId.isNotEmpty) {
       locationId.value = bagLocationId;
-      final foundName = _deptNameToId.entries
+      final foundName = _locationNameToId.entries
           .firstWhere(
             (e) => e.value == bagLocationId,
-            orElse: () => const MapEntry('', ''),
+            orElse: () => const MapEntry<String, String>('', ''),
           )
           .key;
       location.value = locations.contains(foundName) ? foundName : _placeholder;
@@ -455,7 +632,7 @@ class OperatorInfoController extends GetxController {
           (bagLocationName.isNotEmpty && locations.contains(bagLocationName))
               ? bagLocationName
               : _placeholder;
-      locationId.value = _deptNameToId[location.value] ?? '';
+      locationId.value = _locationNameToId[location.value] ?? '';
     }
 
     // PLANT
@@ -464,7 +641,7 @@ class OperatorInfoController extends GetxController {
       final foundName = _plantNameToId.entries
           .firstWhere(
             (e) => e.value == bagPlantId,
-            orElse: () => const MapEntry('', ''),
+            orElse: () => const MapEntry<String, String>('', ''),
           )
           .key;
       plant.value = plantsOpt.contains(foundName) ? foundName : _placeholder;
@@ -476,13 +653,13 @@ class OperatorInfoController extends GetxController {
       plantId.value = _plantNameToId[plant.value] ?? '';
     }
 
-    // SHIFT
+    // SHIFT (just restore names/ids; actual correctness will be recomputed from reported clock)
     if (bagShiftId.isNotEmpty) {
       shiftId.value = bagShiftId;
       final foundName = _shiftNameToId.entries
           .firstWhere(
             (e) => e.value == bagShiftId,
-            orElse: () => const MapEntry('', ''),
+            orElse: () => const MapEntry<String, String>('', ''),
           )
           .key;
       shift.value = shiftsOpt.contains(foundName) ? foundName : _placeholder;
@@ -508,7 +685,7 @@ class OperatorInfoController extends GetxController {
   void saveToBag() {
     _bag.merge({
       // IDs for API
-      WOKeys.departmentId: locationId.value,
+      WOKeys.locationId: locationId.value,
       WOKeys.plantId: plantId.value,
       WOKeys.shiftId: shiftId.value,
 
@@ -544,7 +721,7 @@ class OperatorInfoController extends GetxController {
 
   void onLocationChanged(String name) {
     location.value = name;
-    locationId.value = _deptNameToId[name] ?? '';
+    locationId.value = _locationNameToId[name] ?? '';
     saveToBag();
   }
 
@@ -643,7 +820,7 @@ class OperatorInfoController extends GetxController {
       WOKeys.location: '',
       WOKeys.plant: '',
       WOKeys.shift: '',
-      WOKeys.departmentId: '',
+      WOKeys.locationId: '',
       WOKeys.plantId: '',
       WOKeys.shiftId: '',
       WOKeys.sameAsOperator: false,
@@ -651,24 +828,4 @@ class OperatorInfoController extends GetxController {
       WOKeys.reportedDate: null,
     });
   }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Encode/Decode
-  // ─────────────────────────────────────────────────────────────────────────
-  String? _encodeTime(TimeOfDay? t) => t == null
-      ? null
-      : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  TimeOfDay? _decodeTime(String? s) {
-    if (s == null || s.isEmpty) return null;
-    final parts = s.split(':');
-    if (parts.length != 2) return null;
-    final h = int.tryParse(parts[0]), m = int.tryParse(parts[1]);
-    if (h == null || m == null) return null;
-    return TimeOfDay(hour: h, minute: m);
-  }
-
-  String? _encodeDate(DateTime? d) => d?.toIso8601String();
-  DateTime? _decodeDate(String? s) =>
-      (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
 }

@@ -144,7 +144,7 @@ class PageMeta {
 enum LookupType {
   department,
   plant,
-  issuetype,
+  workorderissuetype,
   impact,
   suggestion,
   resolution,
@@ -161,8 +161,8 @@ extension LookupTypeX on LookupType {
         return LookupType.department;
       case 'PLANT':
         return LookupType.plant;
-      case 'ISSUETYPE':
-        return LookupType.issuetype;
+      case 'WORKORDERISSUETYPE':
+        return LookupType.workorderissuetype;
       case 'IMPACT':
         return LookupType.impact;
       case 'SUGGESTION':

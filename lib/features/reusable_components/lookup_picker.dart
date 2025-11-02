@@ -57,8 +57,8 @@ class LookupPicker {
         return LookupType.resolution;
       case 'department':
         return LookupType.department;
-      case 'issuetype':
-        return LookupType.department;
+      case 'workorderissuetype':
+        return LookupType.workorderissuetype;
       case 'impact':
         return LookupType.impact;
       case 'assetcat1':

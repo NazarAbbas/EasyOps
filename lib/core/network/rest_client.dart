@@ -18,6 +18,7 @@ import 'package:easy_ops/features/common_features/login/models/operators_details
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
@@ -38,11 +39,10 @@ abstract class RestClient {
   Future<LoginResponse> loginBasic(@Header('Authorization') String auth);
 
   @GET('/client-lookup/')
-  Future<LookupData> getDropDownData({
-    @Query('page') int page = 0,
-    @Query('size') int size = 20,
-    @Query('sort') String sort = 'sort_order,asc',
-  });
+  Future<LookupData> lookup();
+
+  @GET('/organization/')
+  Future<OrganizationData> organization();
 
   @POST('/work-order/with-media')
   @Headers(<String, String>{'Content-Type': 'multipart/form-data'})

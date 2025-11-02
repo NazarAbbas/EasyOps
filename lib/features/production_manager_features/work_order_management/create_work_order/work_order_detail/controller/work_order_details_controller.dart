@@ -212,7 +212,7 @@ class WorkOrderDetailsController extends GetxController {
       final impactId = _bag.get<String>(WOKeys.impactId, '');
       final assetId = _bag.get<String>(WOKeys.assetsId, '');
       final plantId = _bag.get<String>(WOKeys.plantId, '');
-      final departmentId = _bag.get<String>(WOKeys.departmentId, '');
+      final departmentId = _bag.get<String>(WOKeys.locationId, '');
       final shiftId = _bag.get<String>(WOKeys.shiftId, '');
 
       final schedStartStr =

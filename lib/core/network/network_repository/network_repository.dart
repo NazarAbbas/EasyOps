@@ -18,6 +18,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
@@ -31,7 +32,8 @@ abstract class NetworkRepository {
     required String password,
   });
 
-  Future<ApiResult<LookupData>> dropDownData(int page, int size, String sort);
+  Future<ApiResult<OrganizationData>> organization();
+  Future<ApiResult<LookupData>> lookup();
   Future<ApiResult<ShiftData>> shiftData();
   Future<ApiResult<AssetsData>> assetsData();
   Future<ApiResult<LoginPersonDetails>> loginPersonDetails(String userName);

@@ -61,13 +61,13 @@ class ThemeController extends GetxController {
   late final ThemeData guestTheme = _exactTheme(Colors.grey);
 
   late final Map<String, ThemeData> _byRole = {
-    'production_manager': productionManagerTheme,
-    'maintenance_engineer': maintenanceEngineerTheme,
-    'seller': sellerTheme,
-    'superuser': superUserTheme,
-    'super user': superUserTheme,
-    'auditor': auditorTheme,
-    'guest': guestTheme,
+    'ROLEPRODUCTION_SUPERVISOR': productionManagerTheme,
+    'ROLEMAINTENANCE_ENGINEER': maintenanceEngineerTheme,
+    // 'seller': sellerTheme,
+    // 'superuser': superUserTheme,
+    // 'super user': superUserTheme,
+    // 'auditor': auditorTheme,
+    // 'guest': guestTheme,
   };
 
   final Rx<ThemeData> currentTheme = ThemeData().obs;
