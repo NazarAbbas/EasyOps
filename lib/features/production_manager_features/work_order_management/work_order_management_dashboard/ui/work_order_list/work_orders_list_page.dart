@@ -516,14 +516,14 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
 
             //return;
 
-            Get.toNamed(
-              Routes.workOrderTabShellScreen,
-              arguments: {
-                Constant.workOrderInfo: order,
-                Constant.workOrderStatus: WorkOrderStatus.open,
-              },
-            );
-            return;
+            // Get.toNamed(
+            //   Routes.workOrderTabShellScreen,
+            //   arguments: {
+            //     Constant.workOrderInfo: order,
+            //     Constant.workOrderStatus: WorkOrderStatus.open,
+            //   },
+            // );
+            // return;
             if (userRole == SharePreferences.engineerRole) {
               if (status == "OPEN" || status == "REOPEN" || status == "HOLD") {
                 Get.toNamed(

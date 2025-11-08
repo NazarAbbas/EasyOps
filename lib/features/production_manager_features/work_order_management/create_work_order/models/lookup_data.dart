@@ -147,7 +147,7 @@ enum LookupType {
   workorderissuetype,
   impact,
   suggestion,
-  resolution,
+  resolutiontype,
   cancellation,
   assetcat1,
   activityType,
@@ -168,7 +168,7 @@ extension LookupTypeX on LookupType {
       case 'SUGGESTION':
         return LookupType.suggestion;
       case 'RESOLUTIONTYPE':
-        return LookupType.resolution;
+        return LookupType.resolutiontype;
       case 'CANCELLATION':
         return LookupType.cancellation;
       case 'ASSETCAT1':

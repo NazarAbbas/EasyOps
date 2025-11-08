@@ -75,7 +75,7 @@ class MEHoldWorkOrderController extends GetxController {
 
   Future<void> _loadHoldReasons() async {
     // Use your local DB lookups; fallback to a placeholder row
-    final list = await db.getLookupByType(LookupType.resolution) ??
+    final list = await db.getLookupByType(LookupType.resolutiontype) ??
         const <LookupValues>[];
 
     final placeholder = LookupValues(
@@ -83,7 +83,7 @@ class MEHoldWorkOrderController extends GetxController {
       code: '',
       displayName: 'Select reason',
       description: '',
-      lookupType: LookupType.resolution.name,
+      lookupType: LookupType.resolutiontype.name,
       sortOrder: -1,
       recordStatus: 1,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),

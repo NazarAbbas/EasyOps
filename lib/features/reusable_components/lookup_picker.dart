@@ -18,7 +18,8 @@ class LookupPicker {
     final repository = Get.find<DBRepository>();
     List<LookupValues>? serverItems;
     if (lookupCode.isEmpty) {
-      final type = _parseLookupType(lookupType);
+      final type = LookupTypeX.fromString(
+          lookupType); // -> LookupType.department  _parseLookupType(lookupType);
       serverItems = await repository.getLookupByType(type);
     } else {
       serverItems = await repository.getLookupByCode(lookupCode);
@@ -51,20 +52,28 @@ class LookupPicker {
     );
   }
 
-  static LookupType _parseLookupType(String raw) {
-    switch (raw.trim().toLowerCase()) {
-      case 'resolution':
-        return LookupType.resolution;
-      case 'department':
-        return LookupType.department;
-      case 'workorderissuetype':
-        return LookupType.workorderissuetype;
-      case 'impact':
-        return LookupType.impact;
-      case 'assetcat1':
-        return LookupType.assetcat1;
-      default:
-        return LookupType.resolution;
-    }
-  }
+  // static LookupType _parseLookupType(String raw) {
+  //   switch (raw.trim().toLowerCase()) {
+  //     case 'resolution':
+  //       return LookupType.resolution;
+  //     case 'department':
+  //       return LookupType.department;
+  //     case 'workorderissuetype':
+  //       return LookupType.workorderissuetype;
+  //     case 'impact':
+  //       return LookupType.impact;
+  //     case 'assetcat1':
+  //       return LookupType.assetcat1;
+  //     case 'plant':
+  //       return LookupType.plant;
+  //     case 'suggestion':
+  //       return LookupType.suggestion;
+  //     case 'cancellation':
+  //       return LookupType.cancellation;
+  //     case 'activityType':
+  //       return LookupType.activityType;
+  //     default:
+  //       return LookupType.resolution;
+  //   }
+  //}
 }

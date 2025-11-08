@@ -6,6 +6,7 @@ import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/core/utils/app_snackbar.dart';
 import 'package:easy_ops/features/common_features/login/validator/validator.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,10 +66,10 @@ class LoginPageController extends GetxController {
 
       //final authorities = json['authorities']; // whatever came from API/JWT
 
-      final isProdSuper =
-          hasRole(result.data?.authorities, 'ROLE_PRODUCTION_SUPERVISOR') ||
-              hasRole(result.data?.authorities,
-                  'ROLEPRODUCTION_SUPERVISOR'); // both handled anyw
+      final isProdSuper = false;
+      // hasRole(result.data?.authorities, 'ROLE_PRODUCTION_SUPERVISOR') ||
+      //     hasRole(result.data?.authorities,
+      //         'ROLEPRODUCTION_SUPERVISOR');
 
       debugPrint('Login HTTP code: ${result.httpCode}');
 
@@ -107,20 +108,19 @@ class LoginPageController extends GetxController {
             shiftData.data != null &&
             assetsData.data != null) {
           await repository.upsertLookupData(dropDownData.data!);
+          final alllookup = repository.getLookupByType(LookupType.assetcat1);
           await repository.upsertAssetData(assetsData.data!);
           await repository.upsertAllShift(shiftData.data!);
 
           final themeCtrl = Get.put(ThemeController(), permanent: true);
           if (isProdSuper) {
             themeCtrl.setThemeByRole('ROLEPRODUCTION_SUPERVISOR');
-            await SharePreferences.put(
-                SharePreferences.userRole, SharePreferences.engineerRole);
-            // Get.toNamed(Routes.maintenanceEngeneerlandingDashboardScreen);
-          } else {
-            themeCtrl.setThemeByRole('ROLEMAINTENANCE_ENGINEER');
             await SharePreferences.put(SharePreferences.userRole,
                 SharePreferences.productionManagerRole);
-            //Get.toNamed(Routes.landingDashboardScreen);
+          } else {
+            themeCtrl.setThemeByRole('ROLEMAINTENANCE_ENGINEER');
+            await SharePreferences.put(
+                SharePreferences.userRole, SharePreferences.engineerRole);
           }
           Get.toNamed(Routes.landingDashboardScreen);
           AppSnackbar.success(

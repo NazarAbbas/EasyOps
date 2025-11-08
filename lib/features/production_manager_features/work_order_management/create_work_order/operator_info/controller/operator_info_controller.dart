@@ -3,7 +3,6 @@ import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
@@ -181,7 +180,7 @@ class OperatorInfoController extends GetxController {
       (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Shift evaluation based on a local DateTime
+  // Shift evaluation based on a local *time-only* anchor
   // ─────────────────────────────────────────────────────────────────────────
   int _toSecHms(String hms) {
     final p = hms.split(':');
@@ -213,6 +212,16 @@ class OperatorInfoController extends GetxController {
     return _shiftCrossesMidnight(s) ? (86400 - st + en) : (en - st);
   }
 
+  /// Build an anchor DateTime using only the reported time.
+  /// If the user hasn't chosen a date, we use *today* — but date has no effect on shift logic.
+  DateTime? _combineReportedLocalTimeOnly() {
+    final t = reportedTime.value;
+    if (t == null) return null;
+    final now = DateTime.now();
+    final d = reportedDate.value ?? now; // date ignored for logic; time matters
+    return DateTime(d.year, d.month, d.day, t.hour, t.minute, 0);
+  }
+
   /// Returns the shift covering [whenLocal]; if multiple match, picks the shortest window.
   Shift? _selectShiftFor(DateTime whenLocal) {
     if (_shifts.isEmpty) return null;
@@ -242,23 +251,10 @@ class OperatorInfoController extends GetxController {
     return best;
   }
 
-  /// Combine reportedDate + reportedTime into a local DateTime (null if either missing).
-  DateTime? _combineReportedLocal() {
-    final d = reportedDate.value;
-    final t = reportedTime.value;
-    if (d == null || t == null) return null;
-    // Interpret as local wall-clock time chosen by user
-    return DateTime(d.year, d.month, d.day, t.hour, t.minute);
-  }
-
-  /// Recompute shift ONLY from the ReportedAt clock (date+time). If missing, falls back to NOW (one time).
+  /// Recompute shift using *only* the reported clock time.
+  /// If time isn't set yet, do a one-time best guess with now().
   void _recomputeShiftFromReported({bool persist = true}) {
-    // 1) Prefer user-selected reported date+time
-    DateTime? anchor = _combineReportedLocal();
-
-    // 2) If user hasn't chosen yet, do a one-time best guess using now (so UI isn't empty)
-    anchor ??= DateTime.now();
-
+    final anchor = _combineReportedLocalTimeOnly() ?? DateTime.now();
     final chosen = _selectShiftFor(anchor) ?? _nextShiftAfter(anchor);
     if (chosen != null) {
       shift.value = chosen.name;
@@ -267,7 +263,6 @@ class OperatorInfoController extends GetxController {
       shift.value = _placeholder;
       shiftId.value = '';
     }
-
     if (persist) saveToBag();
   }
 
@@ -291,7 +286,6 @@ class OperatorInfoController extends GetxController {
       });
     }
 
-    // Shift must follow the ReportedAt clock
     _recomputeShiftFromReported(persist: persistToBag);
     return (time, date);
   }
@@ -306,7 +300,7 @@ class OperatorInfoController extends GetxController {
   }
 
   void setReportedDate(DateTime d, {bool persistToBag = true}) {
-    // Strip time to date-only
+    // Keep storing date for backend, but shift logic ignores it
     final dateOnly = DateTime(d.year, d.month, d.day);
     reportedDate.value = dateOnly;
     if (persistToBag) {
@@ -357,7 +351,6 @@ class OperatorInfoController extends GetxController {
       WOKeys.reportedDate: _encodeDate(reportedOn ?? reportedDate.value),
     });
 
-    // Ensure shift reflects the reported clock we just parsed (if any)
     _recomputeShiftFromReported(persist: false);
   }
 
@@ -424,10 +417,8 @@ class OperatorInfoController extends GetxController {
     // Hydrate from bag (also restores operator/reporter text and any saved ids)
     _hydrateFromBag();
 
-    // If reported time/date are present after hydration, recompute shift from them.
-    // Else do a one-time best guess using NOW so UI isn't blank.
-    final hasReported =
-        reportedTime.value != null && reportedDate.value != null;
+    // If reported time is present after hydration, recompute shift from it (date ignored).
+    final hasReported = reportedTime.value != null;
     _recomputeShiftFromReported(persist: !hasReported);
 
     // Share lists with other tabs
@@ -653,7 +644,7 @@ class OperatorInfoController extends GetxController {
       plantId.value = _plantNameToId[plant.value] ?? '';
     }
 
-    // SHIFT (just restore names/ids; actual correctness will be recomputed from reported clock)
+    // SHIFT (just restore names/ids; actual correctness will be recomputed from reported time)
     if (bagShiftId.isNotEmpty) {
       shiftId.value = bagShiftId;
       final foundName = _shiftNameToId.entries
@@ -759,6 +750,7 @@ class OperatorInfoController extends GetxController {
     }
 
     if (reportedTime.value == null) errors.add('Reported At (Time)');
+    // If backend doesn't require date, you can comment the next line:
     if (reportedDate.value == null) errors.add('Reported On (Date)');
     return errors;
   }

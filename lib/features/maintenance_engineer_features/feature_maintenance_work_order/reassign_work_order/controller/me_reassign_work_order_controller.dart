@@ -1,44 +1,52 @@
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// ───────────────────────── Controller ─────────────────────────
-class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
+class MEReassignWorkOrderController extends GetxController {
   final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
-
-  //final LookupRepository lookupRepository = Get.find<LookupRepository>();
-
-  //final repository = Get.find<Repository>();
 
   final RxList<LookupValues> reason = <LookupValues>[].obs;
   final Rxn<LookupValues> selectedReason = Rxn<LookupValues>();
   final selectedReasonValue = 'Select Reason'.obs;
+
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
 
   final TextEditingController remarksCtrl = TextEditingController();
   final RxString remarks = ''.obs;
 
-  // submitting state
+  /// submitting state
   final RxBool isSubmitting = false.obs;
 
-  WorkOrders? workOrderInfo;
+  /// ⬇️ Make reactive & nullable so UI can guard rendering
+  final Rxn<WorkOrders> workOrderInfo = Rxn<WorkOrders>();
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    final workTabsController = Get.find<UpdateWorkTabsController>();
-    workOrderInfo = workTabsController.workOrder!;
     remarks.value = remarksCtrl.text;
   }
 
   @override
+  Future<void> onReady() async {
+    final wo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+    workOrderInfo.value = wo; // triggers UI update
+    super.onReady();
+  }
+
+  @override
   void onClose() {
+    remarksCtrl.dispose();
     super.onClose();
   }
 
@@ -57,7 +65,7 @@ class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
       return;
     }
 
-    final woId = workOrderInfo?.id ?? '';
+    final woId = workOrderInfo.value?.id ?? '';
     if (woId.isEmpty) {
       Get.snackbar(
         'Missing ID',
@@ -73,7 +81,6 @@ class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
     try {
       isSubmitting.value = true;
 
-      // Build request (map the reason as needed: id/code/displayName)
       final sel = selectedReason.value!;
       final req = CancelWorkOrderRequest(
         status: 'Reassign',
@@ -88,8 +95,8 @@ class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
 
       if (result.httpCode == 200 && result.data != null) {
         Get.snackbar(
-          'Cancelled',
-          'Work order reassign successfully.',
+          'Reassigned',
+          'Work order reassigned successfully.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green.shade100,
           colorText: Colors.black87,
@@ -101,7 +108,7 @@ class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
         );
       } else {
         Get.snackbar(
-          'Cancel failed',
+          'Reassign failed',
           (result.message?.trim().isNotEmpty ?? false)
               ? result.message!
               : 'Unexpected response (code ${result.httpCode}).',
@@ -121,7 +128,7 @@ class MaintenanceEnginnerReassignWorkOrderController extends GetxController {
         margin: const EdgeInsets.all(12),
       );
     } finally {
-      //isSubmitting.value = false;
+      isSubmitting.value = false; // ✅ always reset
     }
   }
 }

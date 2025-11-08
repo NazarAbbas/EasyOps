@@ -1,13 +1,13 @@
-import 'package:easy_ops/core/utils/loading_overlay.dart' show LoadingOverlay;
+// page.dart
+import 'package:easy_ops/core/utils/loading_overlay.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_cancel_work_order/controller/me_cancel_work_order_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/controller/reassign_work_order_controller.dart';
 import 'package:easy_ops/features/reusable_components/lookup_picker.dart';
 import 'package:easy_ops/features/reusable_components/work_order_top_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
-/// Palette
 class _C {
   static const bg = Color(0xFFF7F8FA);
   static const surface = Colors.white;
@@ -20,17 +20,20 @@ class _C {
   static const dangerBg = Color(0xFFFFE7E7);
 }
 
-/// ───────────────────────── UI Page ─────────────────────────
-class MaintenanceEngineerReassignWorkOrderPage
-    extends GetView<MaintenanceEnginnerReassignWorkOrderController> {
-  const MaintenanceEngineerReassignWorkOrderPage({super.key});
+class MaintenanceEngineerGeneralCancelWorkOrderPage
+    extends GetView<MaintenanceEnginnerGeneralCancelWorkOrderController> {
+  const MaintenanceEngineerGeneralCancelWorkOrderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final c = controller;
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
+
     return Obx(() {
+      final wo = c.workOrderInfo.value; // ⬅️ reactive read
+      final isBusy = c.isSubmitting.value;
+
       return Stack(
         children: [
           Scaffold(
@@ -42,30 +45,29 @@ class MaintenanceEngineerReassignWorkOrderPage
               centerTitle: true,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                ),
-                onPressed: c.isSubmitting.value ? null : () => Get.back(),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white),
+                onPressed: isBusy ? null : () => Get.back(),
               ),
               title: const Text(
-                'Reassign Work Order',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                'Cancel Work Order',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
               ),
             ),
             body: AbsorbPointer(
-              absorbing: c.isSubmitting.value,
+              absorbing: isBusy,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
                 children: [
-                  // _WoInfoCard(controller: c),
-                  WorkOrderTile(
-                    workOrderInfo: controller.workOrderInfo!,
-                    onTap: () => print('Open work order'),
-                  ),
+                  // ⬇️ Guarded rendering: only show tile when data is ready
+                  if (wo != null)
+                    WorkOrderTile(
+                      workOrderInfo: wo,
+                      onTap: () => debugPrint('Open work order'),
+                    )
+                  else
+                    const _WorkOrderTileSkeleton(),
 
                   const SizedBox(height: 16),
                   _FormCard(controller: c),
@@ -74,17 +76,18 @@ class MaintenanceEngineerReassignWorkOrderPage
             ),
             bottomNavigationBar: _BottomBar(controller: c),
           ),
-          if (c.isSubmitting.value)
-            const LoadingOverlay(message: 'Reassigning…'),
+          if (isBusy) const LoadingOverlay(message: 'Cancelling…'),
         ],
       );
     });
   }
 }
 
+/// ───────────────────────── Widgets ─────────────────────────
+
 class _FormCard extends StatelessWidget {
   const _FormCard({required this.controller});
-  final MaintenanceEnginnerReassignWorkOrderController controller;
+  final MaintenanceEnginnerGeneralCancelWorkOrderController controller;
 
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
@@ -95,11 +98,9 @@ class _FormCard extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             children: [
-              Text(
-                s,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700, color: _C.text),
-              ),
+              Text(s,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, color: _C.text)),
               if (optional) ...[
                 const SizedBox(width: 6),
                 const Text('(Optional)', style: TextStyle(color: _C.muted)),
@@ -115,30 +116,24 @@ class _FormCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           label('Reason'),
-          // ⬇️ Keep the same keys/fields; show a tap field that opens a bottom sheet.
-          Obx(
-            () {
-              final sel = controller.selectedReason.value;
-              final text =
-                  _isPlaceholder(sel) ? 'Select reason' : sel!.displayName;
-              return _TapField(
-                text: text,
-                onTap: () async {
-                  final v = await LookupPicker.show(
-                    context: context,
-                    lookupType: LookupType.resolution.name,
-                    selected: controller.selectedReason.value,
-                  );
-                  if (v != null) {
-                    controller.selectedReason.value = v;
-                    controller.selectedReasonValue.value =
-                        v.displayName; // <-- update the text
-                  }
-                },
-                enabled: !controller.isSubmitting.value,
-              );
-            },
-          ),
+          Obx(() {
+            final sel = controller.selectedReason.value;
+            final text =
+                _isPlaceholder(sel) ? 'Select reason' : sel!.displayName;
+            return _TapField(
+              text: text,
+              onTap: () async {
+                final v = await LookupPicker.show(
+                  context: context,
+                  // ⬇️ Use the correct lookup for cancellation reasons
+                  lookupType: LookupType.cancellation.name,
+                  selected: controller.selectedReason.value,
+                );
+                if (v != null) controller.selectedReason.value = v;
+              },
+              enabled: !controller.isSubmitting.value,
+            );
+          }),
           const SizedBox(height: 16),
           label('Remarks', optional: true),
           _RemarksField(controller: controller),
@@ -156,26 +151,11 @@ class _FormCard extends StatelessWidget {
       ),
     );
   }
-
-  // Future<void> _openReasonSheet(BuildContext context) async {
-  //   if (controller.isSubmitting.value) return;
-
-  //   final chosen = await ReasonPicker.show(
-  //     context: context,
-  //     items: controller.reason.toList(), // List<LookupValues>
-  //     selected: controller.selectedReason.value, // LookupValues?
-  //     title: 'Select Reason',
-  //   );
-
-  //   if (chosen != null) {
-  //     controller.selectedReason.value = chosen; // ⬅️ key unchanged
-  //   }
-  // }
 }
 
 class _RemarksField extends StatelessWidget {
   const _RemarksField({required this.controller});
-  final MaintenanceEnginnerReassignWorkOrderController controller;
+  final MaintenanceEnginnerGeneralCancelWorkOrderController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +194,7 @@ class _RemarksField extends StatelessWidget {
 
 class _BottomBar extends StatelessWidget {
   const _BottomBar({required this.controller});
-  final MaintenanceEnginnerReassignWorkOrderController controller;
+  final MaintenanceEnginnerGeneralCancelWorkOrderController controller;
 
   bool _isPlaceholder(LookupValues? v) =>
       v == null || (v.id.isEmpty && v.displayName == 'Select reason');
@@ -223,6 +203,7 @@ class _BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).appBarTheme.backgroundColor ??
         Theme.of(context).colorScheme.primary;
+
     return SafeArea(
       top: false,
       child: Container(
@@ -251,10 +232,8 @@ class _BottomBar extends StatelessWidget {
                         },
                   child: Text(
                     'Discard',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: primary,
-                    ),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, color: primary),
                   ),
                 ),
               ),
@@ -262,7 +241,7 @@ class _BottomBar extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Obx(() {
-                final sel = controller.selectedReason.value; // ⬅️ unchanged key
+                final sel = controller.selectedReason.value;
                 final canSubmit =
                     !_isPlaceholder(sel) && !controller.isSubmitting.value;
                 return FilledButton(
@@ -277,7 +256,7 @@ class _BottomBar extends StatelessWidget {
                   onPressed: canSubmit
                       ? () async {
                           HapticFeedback.mediumImpact();
-                          await controller.onReassign();
+                          await controller.onCancel();
                         }
                       : null,
                   child: controller.isSubmitting.value
@@ -286,15 +265,12 @@ class _BottomBar extends StatelessWidget {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.4,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text(
-                          'Reassign',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                      : const Text('Cancel work order',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
                 );
               }),
             ),
@@ -305,14 +281,10 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-/// ───────────────────────── Mini Widgets ─────────────────────────
+/// Small tap-field widget
 class _TapField extends StatelessWidget {
-  const _TapField({
-    required this.text,
-    required this.onTap,
-    this.enabled = true,
-  });
-
+  const _TapField(
+      {required this.text, required this.onTap, this.enabled = true});
   final String text;
   final VoidCallback onTap;
   final bool enabled;
@@ -328,10 +300,8 @@ class _TapField extends StatelessWidget {
           isDense: true,
           filled: true,
           fillColor: const Color(0xFFF6F7FB),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 12,
-          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           suffixIcon: const Padding(
             padding: EdgeInsets.only(right: 6),
             child: Icon(Icons.keyboard_arrow_down_rounded, color: _C.muted),
@@ -368,6 +338,39 @@ final _cardDecoration = BoxDecoration(
   borderRadius: BorderRadius.circular(16),
   border: Border.all(color: _C.border),
   boxShadow: const [
-    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4)),
+    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4))
   ],
 );
+
+/// Simple placeholder while work order is loading
+class _WorkOrderTileSkeleton extends StatelessWidget {
+  const _WorkOrderTileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: _cardDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _shimmerBox(height: 16, width: double.infinity),
+          const SizedBox(height: 8),
+          _shimmerBox(height: 14, width: double.infinity),
+          const SizedBox(height: 8),
+          _shimmerBox(height: 14, width: double.infinity),
+        ],
+      ),
+    );
+  }
+
+  Widget _shimmerBox({required double height, required double width}) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF2F8),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+}

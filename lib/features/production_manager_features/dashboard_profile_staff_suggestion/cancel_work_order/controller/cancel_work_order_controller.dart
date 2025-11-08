@@ -95,7 +95,7 @@ class CancelWorkOrderController extends GetxController {
     duration.value = workOrderInfo!.estimatedTimeToFix;
     statusText.value = workOrderInfo!.status;
 
-    final list = await repository.getLookupByType(LookupType.resolution);
+    final list = await repository.getLookupByType(LookupType.resolutiontype);
 
     // Placeholder + server list
     final placeholder = LookupValues(

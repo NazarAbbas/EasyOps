@@ -499,7 +499,7 @@ class _ReasonPickerField extends GetView<CancelWorkOrderController> {
         onTap: () async {
           final v = await LookupPicker.show(
             context: context,
-            lookupType: LookupType.resolution.name,
+            lookupType: LookupType.resolutiontype.name,
             selected: controller.selectedReason.value,
           );
           if (v != null) {

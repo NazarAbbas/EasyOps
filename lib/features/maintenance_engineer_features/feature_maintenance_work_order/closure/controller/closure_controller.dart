@@ -101,14 +101,14 @@ class MaintenanceEnginnerClosureController extends GetxController {
       );
 
       // Load resolution lookup
-      final list = await repository.getLookupByType(LookupType.resolution);
+      final list = await repository.getLookupByType(LookupType.resolutiontype);
 
       final placeholder = LookupValues(
         id: '',
         code: '',
         displayName: 'Select resolution type',
         description: '',
-        lookupType: LookupType.resolution.name,
+        lookupType: LookupType.resolutiontype.name,
         sortOrder: -1,
         recordStatus: 1,
         updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
@@ -121,6 +121,19 @@ class MaintenanceEnginnerClosureController extends GetxController {
       selectedReasonValue.value = placeholder.displayName;
     } finally {
       isBootstrapping.value = false;
+    }
+  }
+
+  Future<void> actionPerform(String actionType) async {
+    if (actionType == 'Hold Work Order') {
+      Get.toNamed(Routes.maintenanceEngeneergeneralHoldWorkOrderScreen);
+    }
+    if (actionType == 'Reassign Work Order') {
+      Get.toNamed(
+          Routes.maintenanceEngeneergeneralReassignStartWorkOrderScreen);
+    }
+    if (actionType == 'Cancel Work Order') {
+      Get.toNamed(Routes.maintenanceEngeneergeneralCancelWorkOrderScreen);
     }
   }
 

@@ -202,7 +202,7 @@ class _FormCard extends GetView<ReopenWorkOrderController> {
             onTap: () async {
               final v = await LookupPicker.show(
                 context: context,
-                lookupType: LookupType.resolution.name,
+                lookupType: LookupType.resolutiontype.name,
                 selected: controller.selectedReason.value,
               );
               if (v != null) {

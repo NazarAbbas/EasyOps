@@ -1,10 +1,11 @@
+// controller.dart
+import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,14 +22,25 @@ class MaintenanceEnginnerGeneralCancelWorkOrderController
   final RxString remarks = ''.obs;
 
   final RxBool isSubmitting = false.obs;
-  WorkOrders? workOrderInfo;
+
+  // ⬇️ Make work order reactive & nullable
+  final Rxn<WorkOrders> workOrderInfo = Rxn<WorkOrders>();
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    final workTabsController = Get.find<UpdateWorkTabsController>();
-    workOrderInfo = workTabsController.workOrder!;
     remarks.value = remarksCtrl.text;
+  }
+
+  @override
+  Future<void> onReady() async {
+    // Load after first frame; first build will see null safely
+    final wo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+    workOrderInfo.value = wo;
+    super.onReady();
   }
 
   @override
@@ -43,7 +55,7 @@ class MaintenanceEnginnerGeneralCancelWorkOrderController
     if (_isPlaceholder(selectedReason.value)) {
       Get.snackbar(
         'Reason required',
-        'Please select a reason to reassign this work order.',
+        'Please select a reason to cancel this work order.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -52,7 +64,7 @@ class MaintenanceEnginnerGeneralCancelWorkOrderController
       return;
     }
 
-    final woId = workOrderInfo?.id ?? '';
+    final woId = workOrderInfo.value?.id ?? '';
     if (woId.isEmpty) {
       Get.snackbar(
         'Missing ID',
@@ -68,12 +80,11 @@ class MaintenanceEnginnerGeneralCancelWorkOrderController
     try {
       isSubmitting.value = true;
 
-      // Build request (map the reason as needed: id/code/displayName)
       final sel = selectedReason.value!;
       final req = CancelWorkOrderRequest(
         status: 'Cancel',
         remark: remarksCtrl.text.trim(),
-        comment: sel.displayName, // or sel.id / sel.code per API contract
+        comment: sel.displayName, // or sel.id / sel.code per API
       );
 
       final result = await repositoryImpl.cancelOrder(
@@ -116,7 +127,7 @@ class MaintenanceEnginnerGeneralCancelWorkOrderController
         margin: const EdgeInsets.all(12),
       );
     } finally {
-      // isSubmitting.value = false;
+      isSubmitting.value = false; // ✅ ensure it resets
     }
   }
 }

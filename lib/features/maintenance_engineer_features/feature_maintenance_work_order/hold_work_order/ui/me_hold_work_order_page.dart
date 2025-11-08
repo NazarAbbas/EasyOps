@@ -77,7 +77,7 @@ class MaintenanceEngineerHoldWorkOrderPage
                     ),
                     const SizedBox(height: 12),
                   ],
-                  _HoldContextCard(c),
+                  // _HoldContextCard(c),
                   const SizedBox(height: 12),
                   _FormCard(c),
                 ],
@@ -211,7 +211,7 @@ class _FormCard extends StatelessWidget {
             onTap: () async {
               final v = await LookupPicker.show(
                 context: context,
-                lookupType: LookupType.resolution.name,
+                lookupType: LookupType.resolutiontype.name,
                 selected: c.selectedReason.value,
               );
               if (v != null) {

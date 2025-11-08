@@ -59,7 +59,7 @@ class ClosureWorkOrderController extends GetxController {
       onDrawEnd: () => hasSignature.value = true,
     );
 
-    final list = await repository.getLookupByType(LookupType.resolution);
+    final list = await repository.getLookupByType(LookupType.resolutiontype);
 
     // Placeholder + server list
     final placeholder = LookupValues(

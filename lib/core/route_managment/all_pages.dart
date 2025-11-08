@@ -19,7 +19,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboar
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/general_work_order/ui/maintenance_engeneer_general_work_order_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/landing_dashboard/ui/maintenance_engeneer_landing_dashboard_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_dashboard_screens/preventive_dashboard/ui/maintenance_engeneer_preventive_dashboard_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_cancel_work_order/ui/maintenance_engineer_general_cancel_work_order_page_from_diagnostic.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_cancel_work_order/ui/me_cancel_work_order_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_closure/ui/maintenance_engeneer_general_closure_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_closure_signature/ui/maintenance_engineer_general_sign_off_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_general_work_order/general_diagnostics/ui/maintenance_engineer_general_diagnostics_page.dart';
@@ -41,7 +41,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/maintenance_wotk_order_management/ui/maintenance_engeneer_work_order_management_list_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/pending_activity/ui/maintenance_engeneer_panding_activity_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/rca_analysis/ui/maintenance_engeneer_rca_analysis_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/ui/maintenance_engeneer_reassign_work_order_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/ui/me_reassign_work_order_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/controller/request_spares_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/ui/maintenance_engeneer_request_spares_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/ui/maintenance_engeneer_return_spare_page.dart';
@@ -469,7 +469,7 @@ class AllPages {
       ),
       GetPage(
         name: Routes.maintenanceEngeneerreassignWorkOrderScreen,
-        page: () => MaintenanceEngineerReassignWorkOrderPage(),
+        page: () => MEReassignWorkOrderPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),

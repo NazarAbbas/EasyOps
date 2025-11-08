@@ -102,7 +102,7 @@ class _BottomBar extends GetView<MaintenanceEnginnerClosureController> {
             // Popup trigger styled like enabled button
             Expanded(
               child: PopupMenuButton<String>(
-                onSelected: (v) => Get.snackbar('Action', v),
+                onSelected: (v) => controller.actionPerform(v),
                 itemBuilder: (context) => const [
                   PopupMenuItem(
                     value: 'Hold Work Order',
@@ -227,7 +227,7 @@ class _ClosureCommentsCard
               onTap: () async {
                 final v = await LookupPicker.show(
                   context: context,
-                  lookupType: LookupType.resolution.name,
+                  lookupType: LookupType.resolutiontype.name,
                   selected: controller.selectedReason.value,
                 );
                 if (v != null) {
