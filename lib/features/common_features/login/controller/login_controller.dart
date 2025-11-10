@@ -26,16 +26,16 @@ class LoginPageController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    emailController.text = 'raajvastra11@gmail.com';
-    passwordController.text = '@Raaj1234';
+    //emailController.text = 'raajvastra11@gmail.com';
+    //passwordController.text = '@Raaj1234';
 
 //Maintaince engineer
-    //emailController.text = "monazarabbas07@gmail.com";
-    //passwordController.text = "fB7#xEGoL0WU";
+    // emailController.text = "monazarabbas07@gmail.com";
+    // passwordController.text = "fB7#xEGoL0WU";
 
 //Production supervisor
-    //emailController.text = "nnazarabbas07@gmail.com";
-    // passwordController.text = "!Z@z5tqFTpH3";
+    emailController.text = "nnazarabbas07@gmail.com";
+    passwordController.text = "!Z@z5tqFTpH3";
   }
 
   Future<void> login() async {
@@ -66,10 +66,9 @@ class LoginPageController extends GetxController {
 
       //final authorities = json['authorities']; // whatever came from API/JWT
 
-      final isProdSuper = false;
-      // hasRole(result.data?.authorities, 'ROLE_PRODUCTION_SUPERVISOR') ||
-      //     hasRole(result.data?.authorities,
-      //         'ROLEPRODUCTION_SUPERVISOR');
+      final isProdSuper =
+          hasRole(result.data?.authorities, 'ROLE_PRODUCTION_SUPERVISOR') ||
+              hasRole(result.data?.authorities, 'ROLEPRODUCTION_SUPERVISOR');
 
       debugPrint('Login HTTP code: ${result.httpCode}');
 
