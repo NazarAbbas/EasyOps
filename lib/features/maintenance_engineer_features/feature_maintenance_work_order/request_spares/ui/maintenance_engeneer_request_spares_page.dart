@@ -586,13 +586,22 @@ class _ActionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconWidget = Icon(icon, size: 22, color: color ?? _C.text);
-    return Tooltip(
-      message: tooltip ?? '',
-      waitDuration: const Duration(milliseconds: 400),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(padding: const EdgeInsets.all(6.0), child: iconWidget),
+
+    // Use Semantics explicitly instead of Tooltip to avoid Tooltip's overlay semantics changes
+    return Semantics(
+      // label is used by screen readers
+      label: tooltip ?? '',
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: iconWidget,
+          ),
+        ),
       ),
     );
   }
@@ -720,29 +729,36 @@ class _FilterCard extends GetView<MaintenanceEnginnerSparesRequestController> {
           Row(
             children: [
               const Spacer(),
-              SizedBox(
-                height: 44,
-                child: Obx(() {
-                  final canGo = controller.selectedCat1.value != null &&
-                      controller.selectedCat2.value != null;
-                  return FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor:
-                          canGo ? primary : primary.withOpacity(0.35),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  // give a sensible max width so the button never gets an infinite width
+                  maxWidth: isTablet ? 300.0 : 160.0,
+                  minWidth: isTablet ? 180.0 : 120.0,
+                ),
+                child: SizedBox(
+                  height: 44,
+                  child: Obx(() {
+                    final canGo = controller.selectedCat1.value != null &&
+                        controller.selectedCat2.value != null;
+                    return FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor:
+                            canGo ? primary : primary.withOpacity(0.35),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 1.5,
                       ),
-                      elevation: 1.5,
-                    ),
-                    onPressed: canGo ? controller.go : null,
-                    icon: const Icon(Icons.search_rounded, size: 20),
-                    label: const Text(
-                      'Go',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  );
-                }),
+                      onPressed: canGo ? controller.go : null,
+                      icon: const Icon(Icons.search_rounded, size: 20),
+                      label: const Text(
+                        'Go',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    );
+                  }),
+                ),
               ),
             ],
           ),

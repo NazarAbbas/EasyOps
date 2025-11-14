@@ -201,11 +201,11 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
           colorText: Colors.black87,
           margin: const EdgeInsets.all(12),
         );
-        Get.toNamed(Routes.maintenanceEngeneerstartWorkOrderScreen);
-        // Get.offAllNamed(
-        //   Routes.maintenanceEngeneerlandingDashboardScreen,
-        //   arguments: {'tab': 3},
-        // );
+        //Get.toNamed(Routes.maintenanceEngeneerstartWorkOrderScreen);
+        Get.offAllNamed(
+          Routes.landingDashboardScreen,
+          arguments: {'tab': 3},
+        );
       } else {
         isSubmitting.value = false;
         Get.snackbar(
@@ -221,14 +221,14 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
       }
     } catch (e) {
       isSubmitting.value = false;
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.black87,
-        margin: const EdgeInsets.all(12),
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   e.toString(),
+      //   snackPosition: SnackPosition.BOTTOM,
+      //   backgroundColor: Colors.red.shade100,
+      //   colorText: Colors.black87,
+      //   margin: const EdgeInsets.all(12),
+      // );
     } finally {
       //isSubmitting.value = false;
     }

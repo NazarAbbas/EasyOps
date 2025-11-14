@@ -38,10 +38,6 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
     // }
 
     // workOrderInfo =SharedPreference
-    workOrderInfo = await SharePreferences.getObject(
-      Constant.workOrder,
-      WorkOrders.fromJson,
-    );
   }
 
   /* ---------- public API (unchanged signatures) ---------- */
@@ -166,6 +162,10 @@ class MaintenanceEnginnerSpareCartController extends GetxController {
   }
 
   Future<void> placeOrder() async {
+    workOrderInfo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
     if (cart.isEmpty) {
       Get.snackbar('Cart Empty', 'Please add items first.',
           snackPosition: SnackPosition.BOTTOM);

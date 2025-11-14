@@ -1235,8 +1235,8 @@ class _SearchField extends StatelessWidget {
       child: TextField(
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
-        style: TextStyle(color: Colors.white, fontSize: fs),
-        cursorColor: Colors.white,
+        style: TextStyle(color: Colors.black, fontSize: fs),
+        cursorColor: Colors.black,
         decoration: InputDecoration(
           hintText: 'Search Work Orders',
           hintStyle: TextStyle(color: Colors.white70, fontSize: fs),
