@@ -108,7 +108,10 @@ class WorkOrdersController extends GetxController {
     super.onInit();
 
     // Recompute visible list whenever any of these change
-    everAll([orders, query, selectedTab], (_) => _recomputeVisible());
+    everAll(
+      [orders, query, selectedTab, dateFilterEnabled, selectedDay],
+      (_) => _recomputeVisible(),
+    );
     _loadInitial();
   }
 
@@ -168,9 +171,10 @@ class WorkOrdersController extends GetxController {
   void setQuery(String v) => query.value = v;
 
   void _recomputeVisible() {
+    // start from full dataset
     List<WorkOrders> src = orders;
 
-    // 0) Calendar date window by createdAt -> applied if user picked a day
+    // calendar date window (applied after query/tab logic below)
     DateTime? start;
     DateTime? end;
     if (dateFilterEnabled.value) {
@@ -179,41 +183,70 @@ class WorkOrdersController extends GetxController {
       end = _nextDayLocal(d);
     }
 
-    // 1) Filter by tab
-    switch (selectedTab.value) {
-      case 0: // Today
-        final now = DateTime.now();
-        final start = DateTime(now.year, now.month, now.day);
-        final end = start.add(const Duration(days: 1));
-        src = src.where((w) {
-          final t =
-              w.createdAt.toLocal(); // "2025-10-12T11:15:32.075737Z" -> local
-          return !t.isBefore(start) && t.isBefore(end);
-        }).toList();
-        break;
-      case 1: // Open
-        src = src.where((w) => w.status.toLowerCase() == 'open').toList();
-        break;
-      case 2: // Escalated
-        src = src.where((w) => w.escalated > 0).toList();
-        break;
-      case 3: // Critical
-        src = src.where((w) => w.priority.toLowerCase() == 'high').toList();
-        break;
+    // If there's a search query -> search across ALL orders (ignore selectedTab)
+    final q = query.value.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      src = src.where((w) {
+        // guard against null fields
+        final issueNo = (w.issueNo ?? '').toLowerCase();
+        final title = (w.title ?? '').toLowerCase();
+        final desc = (w.description ?? '').toLowerCase();
+        final assetName = (w.asset?.name ?? '').toLowerCase();
+        final operatorName =
+            ('${w.operator?.firstName ?? ''} ${w.operator?.lastName ?? ''}')
+                .toLowerCase();
+        final reportedBy =
+            ('${w.reportedBy?.firstName ?? ''} ${w.reportedBy?.lastName ?? ''}')
+                .toLowerCase();
+        final priority = (w.priority ?? '').toLowerCase();
+        final status = (w.status ?? '').toLowerCase();
+
+        return issueNo.contains(q) ||
+            title.contains(q) ||
+            desc.contains(q) ||
+            assetName.contains(q) ||
+            operatorName.contains(q) ||
+            reportedBy.contains(q) ||
+            priority.contains(q) ||
+            status.contains(q);
+      }).toList();
+    } else {
+      // No query: apply selected tab filter as before
+      switch (selectedTab.value) {
+        case 0: // Today
+          final now = DateTime.now();
+          final startDay = DateTime(now.year, now.month, now.day);
+          final endDay = startDay.add(const Duration(days: 1));
+          src = src.where((w) {
+            final t = w.createdAt.toLocal();
+            return !t.isBefore(startDay) && t.isBefore(endDay);
+          }).toList();
+          break;
+        case 1: // Open
+          src = src
+              .where((w) => (w.status ?? '').toLowerCase() == 'open')
+              .toList();
+          break;
+        case 2: // Escalated
+          src = src.where((w) => (w.escalated ?? 0) > 0).toList();
+          break;
+        case 3: // Critical
+          src = src
+              .where((w) => (w.priority ?? '').toLowerCase() == 'high')
+              .toList();
+          break;
+        default:
+          break;
+      }
     }
 
-// 2) Apply date window if we have one (either calendar-picked or Today)
+    //  Apply calendar date window (if user picked a day) — this will further restrict
+    //  results even when searching. Remove this block if search should ignore date.
     if (start != null && end != null) {
       src = src.where((w) {
         final t = w.createdAt.toLocal();
         return !t.isBefore(start!) && t.isBefore(end!);
       }).toList();
-    }
-
-    // 3) Filter by search query (title)
-    final q = query.value.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      src = src.where((w) => w.title.toLowerCase().contains(q)).toList();
     }
 
     visibleOrders.assignAll(src);

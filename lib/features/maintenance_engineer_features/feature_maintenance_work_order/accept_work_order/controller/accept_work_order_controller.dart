@@ -3,6 +3,7 @@
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
+import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/cancel_work_order/models/cancel_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/tabs/controller/update_work_tabs_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
@@ -51,35 +52,43 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
   final status = ''.obs;
   final isSubmitting = false.obs;
   String? workOrderId;
+  // ⬇️ Make work order reactive & nullable
+  WorkOrders? workOrderInfo = null;
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
 
-    final workTabsController = Get.find<UpdateWorkTabsController>();
-    final workOrderInfo = workTabsController.workOrder;
+    // final workTabsController = Get.find<UpdateWorkTabsController>();
+    //final workOrderInfo = workTabsController.workOrder;
+    final wo = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+    workOrderInfo = wo;
 
     if (workOrderInfo == null) return;
 
     // ----- Operator -----
-    workOrderId = workOrderInfo.id;
-    status.value = workOrderInfo.status;
-    issueNo.value = workOrderInfo.issueNo ?? '-';
-    final first = (workOrderInfo.operator?.firstName ?? '').trim();
-    final last = (workOrderInfo.operator?.lastName ?? '').trim();
+    workOrderId = workOrderInfo?.id;
+    status.value = workOrderInfo!.status;
+    issueNo.value = workOrderInfo?.issueNo ?? '-';
+    final first = (workOrderInfo?.operator?.firstName ?? '').trim();
+    final last = (workOrderInfo?.operator?.lastName ?? '').trim();
     final name = ('$first $last').trim();
 
     operatorName.value = name.isEmpty ? 'Not available' : name;
     operatorPhoneNumber.value =
-        workOrderInfo.operator?.phone ?? 'Not available';
-    operatorInfo.value = workOrderInfo.asset.name.isNotEmpty
-        ? workOrderInfo.asset.name
+        workOrderInfo?.operator?.phone ?? 'Not available';
+    operatorInfo.value = workOrderInfo!.asset.name.isNotEmpty
+        ? workOrderInfo!.asset.name
         : 'Not available';
 
-    cnc_1.value = '${workOrderInfo.asset.name}(${workOrderInfo.asset.assetNo})';
-    issueType.value = workOrderInfo.issueTypeName ?? "-";
+    cnc_1.value =
+        '${workOrderInfo?.asset.name}(${workOrderInfo?.asset.assetNo})';
+    issueType.value = workOrderInfo?.issueTypeName ?? "-";
 
     // ----- Media binding (images + single audio) -----
-    final files = workOrderInfo.mediaFiles ?? const <MediaFile>[];
+    final files = workOrderInfo?.mediaFiles ?? const <MediaFile>[];
 
     final images = files
         .where((f) => (f.fileType ?? '').toLowerCase().startsWith('image/'))
@@ -100,19 +109,19 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
     voiceNotePath.value = firstAudio;
 
     // ----- Reporter -----
-    final rFirst = (workOrderInfo.reportedBy?.firstName ?? '').trim();
-    final rLast = (workOrderInfo.reportedBy?.lastName ?? '').trim();
+    final rFirst = (workOrderInfo?.reportedBy?.firstName ?? '').trim();
+    final rLast = (workOrderInfo?.reportedBy?.lastName ?? '').trim();
     final rName = ('$rFirst $rLast').trim();
     reportedBy.value = rName.isEmpty ? 'Not available' : rName;
 
     // ----- Meta / summary -----
-    date.value = _formatDate(workOrderInfo.createdAt);
-    priority.value = workOrderInfo.priority;
-    final t = (workOrderInfo.title).trim();
+    date.value = _formatDate(workOrderInfo!.createdAt);
+    priority.value = workOrderInfo!.priority;
+    final t = (workOrderInfo!.title).trim();
     workOrderTitle.value = t.isEmpty ? 'Not available' : t;
-    final r = (workOrderInfo.remark ?? '').trim();
+    final r = (workOrderInfo?.remark ?? '').trim();
     remark.value = r.isEmpty ? 'Not available' : r;
-    description.value = workOrderInfo.description;
+    description.value = workOrderInfo!.description;
   }
 
   // --------- Helpers ---------
@@ -202,6 +211,7 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
           margin: const EdgeInsets.all(12),
         );
         //Get.toNamed(Routes.maintenanceEngeneerstartWorkOrderScreen);
+        Get.delete<MaintenanceEnginnerAcceptWorkOrderController>();
         Get.offAllNamed(
           Routes.landingDashboardScreen,
           arguments: {'tab': 3},

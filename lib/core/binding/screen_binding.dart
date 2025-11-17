@@ -50,9 +50,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/tabs/controller/work_order_details_tabs_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/timeline/controller/timeline_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/add_resource/controller/add_resource_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/controller/confirm_work_order_slot_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/controller/me_confirm_work_order_slot_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_start_work/controller/preventive_start_work_controller.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/controller/preventive_work_order_list_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/controller/me_preventive_work_order_list_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/puposed_new_slot/controller/purposed_new_slot_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/reschedular/controller/reschedule_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/consume_spare_parts/controller/consume_spare_parts_controller.dart';
@@ -192,8 +192,8 @@ class ScreenBindings implements Bindings {
     Get.lazyPut(() => MaintenanceEnginnerSparesRequestController());
     Get.lazyPut(() => MaintenanceEnginnerHistoryController());
     Get.lazyPut(() => MaintenanceEnginnerTimelineController());
-    Get.lazyPut(() => MaintenanceEnginnerPreventiveWorkOrderListController());
-    Get.lazyPut(() => MaintenanceEnginnerPreventiveWorkOrderController());
+    Get.lazyPut(() => MEPreventiveWorkOrderListController());
+    Get.lazyPut(() => MEPreventiveWorkOrderController());
     Get.lazyPut(() => MaintenanceEnginnerPurposedNewSlotController());
     Get.lazyPut(() => MaintenanceEnginnerPreventiveStartWorkController());
     Get.lazyPut(() => MaintenanceEnginnerAddResourceController());

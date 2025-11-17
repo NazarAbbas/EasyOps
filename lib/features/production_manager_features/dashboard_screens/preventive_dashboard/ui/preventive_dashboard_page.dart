@@ -1,4 +1,5 @@
 // lib/core/navigation/main_tab_shell.dart
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/ui/me_preventive_work_order_list_page.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_profile_staff_suggestion/assets_management/assets_management_dashboard/ui/assets_management_dashboard_page.dart';
 import 'package:easy_ops/features/production_manager_features/dashboard_screens/preventive_dashboard/controller/preventive_dashboard_controller.dart';
 import 'package:easy_ops/features/production_manager_features/feature_preventive_maintenance/preventive_work_order_list/ui/preventive_work_order_list_page.dart';
@@ -21,10 +22,10 @@ class PreventiveDashboardPage extends StatelessWidget {
         controller: c.pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: const [
-          PreventiveWorkOrderListPage(),
+          MEPreventiveWorkOrderListPage(),
           // SparePartsTabsShell(),
           AssetsManagementDashboardPage(),
-          PreventiveWorkOrderListPage(),
+          MEPreventiveWorkOrderListPage(),
           // PreventiveWorkOrderPage(), // your existing page
         ],
       ),

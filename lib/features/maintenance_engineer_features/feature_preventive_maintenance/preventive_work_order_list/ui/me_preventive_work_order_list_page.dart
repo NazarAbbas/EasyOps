@@ -2,7 +2,7 @@
 
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/controller/preventive_work_order_list_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/controller/me_preventive_work_order_list_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,9 +10,9 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../models/preventive_maintenance_dashboard_model.dart';
 
-class MaintenanceEngineerPreventiveWorkOrderListPage
-    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController> {
-  const MaintenanceEngineerPreventiveWorkOrderListPage({super.key});
+class MEPreventiveWorkOrderListPage
+    extends GetView<MEPreventiveWorkOrderListController> {
+  const MEPreventiveWorkOrderListPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -128,14 +128,13 @@ class MaintenanceEngineerPreventiveWorkOrderListPage
 
 /* ───────────────────────── Header (drop-in) ───────────────────────── */
 
-class _GradientHeader
-    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController>
+class _GradientHeader extends GetView<MEPreventiveWorkOrderListController>
     implements PreferredSizeWidget {
   const _GradientHeader();
 
   @override
-  MaintenanceEnginnerPreventiveWorkOrderListController get controller =>
-      Get.find<MaintenanceEnginnerPreventiveWorkOrderListController>();
+  MEPreventiveWorkOrderListController get controller =>
+      Get.find<MEPreventiveWorkOrderListController>();
 
   @override
   Size get preferredSize => const Size.fromHeight(120);
@@ -278,8 +277,7 @@ class _GradientHeader
 
 /* ───────────────────────── Calendar ───────────────────────── */
 
-class _CalendarCard
-    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController> {
+class _CalendarCard extends GetView<MEPreventiveWorkOrderListController> {
   const _CalendarCard();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
@@ -533,13 +531,12 @@ class _CriticalPill extends StatelessWidget {
 
 /* ───────────────────────── Top Tabs ───────────────────────── */
 
-class _Tabs
-    extends GetView<MaintenanceEnginnerPreventiveWorkOrderListController> {
+class _Tabs extends GetView<MEPreventiveWorkOrderListController> {
   const _Tabs();
 
   @override
-  MaintenanceEnginnerPreventiveWorkOrderListController get controller =>
-      Get.find<MaintenanceEnginnerPreventiveWorkOrderListController>();
+  MEPreventiveWorkOrderListController get controller =>
+      Get.find<MEPreventiveWorkOrderListController>();
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

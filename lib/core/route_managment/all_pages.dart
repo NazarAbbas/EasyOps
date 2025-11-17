@@ -51,9 +51,9 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/tabs/ui/maintenance_engeneer_work_order_details_tabs_shell.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/timeline/ui/maintenance_engeneer_timeline_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/add_resource/ui/maintenance_engeneer_add_resource_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/ui/maintenance_engeneer_confirm_work_order_slot_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/ui/me_confirm_work_order_slot_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_start_work/ui/maintenance_engeneer_preventive_start_work_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/ui/maintenance_engeneer_preventive_work_order_list_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/preventive_work_order_list/ui/me_preventive_work_order_list_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/puposed_new_slot/ui/maintenance_engeneer_purposed_new_slot_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/reschedular/ui/maintenance_engeneer_reschedule_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_spare_parts/tabs/ui/maintenance_engeneer_spare_parts_tabs_shell.dart';
@@ -553,13 +553,13 @@ class AllPages {
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpreventiveMaintenanceDashboardScreen,
-        page: () => MaintenanceEngineerPreventiveWorkOrderListPage(),
+        page: () => MEPreventiveWorkOrderListPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),
       GetPage(
         name: Routes.maintenanceEngeneerpreventiveWorkOrderScreen,
-        page: () => MaintenanceEngineerConfirmSlotPage(),
+        page: () => MEConfirmSlotPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),

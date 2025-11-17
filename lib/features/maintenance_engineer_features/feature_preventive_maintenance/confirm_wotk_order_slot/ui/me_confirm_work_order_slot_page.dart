@@ -5,7 +5,7 @@
 
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/controller/confirm_work_order_slot_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_preventive_maintenance/confirm_wotk_order_slot/controller/me_confirm_work_order_slot_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -26,9 +26,8 @@ class _TabsController extends GetxController {
   void set(int i) => index.value = i;
 }
 
-class MaintenanceEngineerConfirmSlotPage
-    extends GetView<MaintenanceEnginnerPreventiveWorkOrderController> {
-  const MaintenanceEngineerConfirmSlotPage({super.key});
+class MEConfirmSlotPage extends GetView<MEPreventiveWorkOrderController> {
+  const MEConfirmSlotPage({super.key});
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 
@@ -455,8 +454,7 @@ class _PreventiveCard extends StatelessWidget {
   }
 }
 
-class _SlotDropdown
-    extends GetView<MaintenanceEnginnerPreventiveWorkOrderController> {
+class _SlotDropdown extends GetView<MEPreventiveWorkOrderController> {
   const _SlotDropdown({super.key});
 
   @override
