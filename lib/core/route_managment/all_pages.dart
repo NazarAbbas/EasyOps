@@ -44,7 +44,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/ui/me_reassign_work_order_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/controller/request_spares_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/ui/maintenance_engeneer_request_spares_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/ui/maintenance_engeneer_return_spare_page.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/ui/me_return_spare_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/ui/maintenance_engeneer_spare_cart_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/ui/maintenance_engeneer_start_work_order_page.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_submit/ui/maintenance_engeneer_start_work_submit_page.dart';
@@ -511,7 +511,7 @@ class AllPages {
       ),
       GetPage(
         name: Routes.maintenanceEngeneerreturnSpareScreen,
-        page: () => MaintenanceEngineerReturnSparesPage(),
+        page: () => MEReturnSparesPage(),
         binding: ScreenBindings(),
         transition: Transition.rightToLeft,
       ),

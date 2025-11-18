@@ -1,16 +1,15 @@
 // lib/ui/modules/maintenance_work_order/return_spare_parts/ui/return_spares_page.dart
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/controller/return_spare_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/controller/me_return_spare_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MaintenanceEngineerReturnSparesPage
-    extends GetView<MaintenanceEnginnerReturnSparesController> {
-  const MaintenanceEngineerReturnSparesPage({super.key});
+class MEReturnSparesPage extends GetView<MEReturnSparesController> {
+  const MEReturnSparesPage({super.key});
 
   @override
-  MaintenanceEnginnerReturnSparesController get controller =>
-      Get.put(MaintenanceEnginnerReturnSparesController());
+  MEReturnSparesController get controller =>
+      Get.put(MEReturnSparesController());
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +138,7 @@ class MaintenanceEngineerReturnSparesPage
 
 /* ───────────────────────── Row Widget ───────────────────────── */
 
-class _SpareRow extends GetView<MaintenanceEnginnerReturnSparesController> {
+class _SpareRow extends GetView<MEReturnSparesController> {
   final SpareItem item;
   const _SpareRow({required this.item});
 

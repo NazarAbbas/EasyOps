@@ -43,7 +43,7 @@ import 'package:easy_ops/features/maintenance_engineer_features/feature_maintena
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/reassign_work_order/controller/me_reassign_work_order_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/controller/request_spares_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/request_spares/ui/maintenance_engeneer_request_spares_page.dart';
-import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/controller/return_spare_controller.dart';
+import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/return_spare_parts/controller/me_return_spare_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/spare_cart/controller/spare_cart_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_order/controller/me_start_work_order_controller.dart';
 import 'package:easy_ops/features/maintenance_engineer_features/feature_maintenance_work_order/start_work_submit/controller/start_work_submit_controller.dart';
@@ -186,7 +186,7 @@ class ScreenBindings implements Bindings {
         () => MaintenanceEnginnerCancelWorkOrderControllerFromDiagnostics());
     Get.lazyPut(() => MaintenanceEnginnerClosureController());
     Get.lazyPut(() => MaintenanceEnginnerSignOffController());
-    Get.lazyPut(() => MaintenanceEnginnerReturnSparesController());
+    Get.lazyPut(() => MEReturnSparesController());
     Get.lazyPut(() => MaintenanceEnginnerRcaAnalysisController());
     Get.lazyPut(() => MaintenanceEnginnerPendingActivityController());
     Get.lazyPut(() => MaintenanceEnginnerSparesRequestController());

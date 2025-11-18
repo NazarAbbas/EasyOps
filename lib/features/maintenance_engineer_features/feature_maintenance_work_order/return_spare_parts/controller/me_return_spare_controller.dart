@@ -9,7 +9,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MaintenanceEnginnerReturnSparesController extends GetxController {
+class MEReturnSparesController extends GetxController {
   final isSaving = false.obs;
   final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
 
