@@ -9,6 +9,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
@@ -125,9 +126,13 @@ class OperatorInfoController extends GetxController {
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
     _initAsync();
+
+    // final prefs = await SharedPreferences.getInstance();
+    // final loginPersonId = prefs.getString(Constant.loginPersonId);
+    // final details = await repository.getPersonById(loginPersonId!);
   }
 
   @override

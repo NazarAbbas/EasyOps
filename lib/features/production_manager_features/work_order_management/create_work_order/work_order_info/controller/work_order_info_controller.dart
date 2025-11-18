@@ -96,12 +96,11 @@ class WorkorderInfoController extends GetxController {
     await _loadAssets();
     if (workOrderInfo.value != null) {
       await _putWorkOrderIntoBag(workOrderInfo.value!);
+      _loadFromBag();
     } else {
       await _initOperatorInfo();
     }
     // await _initOperatorInfo();
-    _loadFromBag();
-
     // await _initAsync(); // ensure lookups/assets available before reactions
     // _setupReactions(); // set up reactive label syncing
 
@@ -127,9 +126,8 @@ class WorkorderInfoController extends GetxController {
       final details = await repository.getPersonById(loginPerson);
       if (details != null) {
         operatorName.value = '${details.name}(${details.id})';
-        if (details.contacts.isNotEmpty &&
-            details.contacts.first.phone != null) {
-          operatorMobileNumber.value = details.contacts.first.phone!;
+        if (details.userPhone != null) {
+          operatorMobileNumber.value = details.userPhone!;
         }
 
         final dt = (details.updatedAt ?? DateTime.now()).toUtc();

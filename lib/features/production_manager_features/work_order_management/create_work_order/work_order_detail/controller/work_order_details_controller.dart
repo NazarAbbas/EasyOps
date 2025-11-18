@@ -279,7 +279,7 @@ class WorkOrderDetailsController extends GetxController {
         if (res.httpCode == 201 && res.data != null) {
           Get.snackbar(
             'Create',
-            'Work Order Created Successfully',
+            'Work Order created successfully (Issue No: ${res.data?.issueNo ?? "N/A"})',
             snackPosition: SnackPosition.TOP,
             backgroundColor: AppColors.successGreen,
             colorText: AppColors.white,

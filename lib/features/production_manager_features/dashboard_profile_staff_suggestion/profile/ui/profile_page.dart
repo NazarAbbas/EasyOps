@@ -229,10 +229,15 @@ class _HolidayTimeline extends StatelessWidget {
         child: Column(
           children: List.generate(items.length, (i) {
             final h = items[i];
-            final d = h.holidayDate as DateTime?;
+            // Normalize to local, date-only here:
+            final raw = h.holidayDate as DateTime?;
+            final d = _localDateOnly(raw);
+
             final name = (h.holidayName?.trim().isNotEmpty ?? false)
                 ? h.holidayName!.trim()
                 : 'Holiday';
+
+            final today = DateTime.now();
             final isPast = d != null
                 ? DateTime(d.year, d.month, d.day)
                     .isBefore(DateTime(today.year, today.month, today.day))
@@ -430,7 +435,9 @@ class _DatePill extends StatelessWidget {
       );
     }
 
-    final d = date!;
+    // normalize here so month/day never shift due to timezone
+    final raw = date!;
+    final d = _localDateOnly(raw)!; // safe because raw != null
     final dd = d.day.toString().padLeft(2, '0');
     final mmm = _mmm[d.month - 1];
 
@@ -1092,4 +1099,14 @@ class _EmptyHolidays extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Convert a DateTime (any timezone) into a local, date-only DateTime
+/// Example: 2025-01-01T00:00:00Z -> DateTime(2025,1,1) in local zone
+DateTime? _localDateOnly(DateTime? d) {
+  if (d == null) return null;
+  // If it's UTC, convert to local; if it's already local, keep it.
+  final local = d.isUtc ? d.toLocal() : d;
+  // Truncate time-of-day so we compare/display only the calendar date.
+  return DateTime(local.year, local.month, local.day);
 }
