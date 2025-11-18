@@ -37,6 +37,8 @@ class ProfilePage extends GetView<ProfileController> {
               return ad.compareTo(bd);
             });
 
+          // local expanded state (keeps it simple; move to controller for persistence)
+
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
             child: Column(
@@ -149,22 +151,59 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
                 const SizedBox(height: 16),
 
-                // ===== Holidays (Timeline, no calendar) =====
-                _RowTitleWithCount(
-                    title: 'Holiday Calendar', count: items.length),
-                const SizedBox(height: 8),
+// ===== Holidays (collapsible) =====
+// use the same sorted items and next computed above
+                _CollapsedRow(
+                  title: 'Holiday Calendar',
+                  subtitle: items.isEmpty
+                      ? 'No holidays'
+                      : (items.length == 1
+                          ? '1 holiday'
+                          : '${items.length} holidays'),
+                  // use controller's RxBool (persisted in controller)
+                  expanded: c.holidayExpanded,
+                  onTap: () => c.holidayExpanded.toggle(),
+                  child: Obx(() {
+                    // collapsed preview (compact) when not expanded
+                    if (!c.holidayExpanded.value) {
+                      if (next != null) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // show upcoming banner in preview (normalized date)
+                            _UpcomingHolidayBanner(
+                              title: next.holidayName,
+                              date:
+                                  _localDateOnly(next.holidayDate as DateTime?),
+                            ),
+                            const SizedBox(height: 8),
+                            const _MiniLine(
+                                'Tap to expand and view full holiday list'),
+                          ],
+                        );
+                      } else {
+                        return const _MiniLine(
+                            'Tap to expand and view holiday list');
+                      }
+                    }
 
-                if (next != null)
-                  _UpcomingHolidayBanner(
-                    title: next.holidayName,
-                    date: next.holidayDate,
-                  ),
-
-                if (items.isEmpty)
-                  const _EmptyHolidays()
-                else
-                  _HolidayTimeline(items: items),
-
+                    // expanded: show banner + full timeline or empty state
+                    return Column(
+                      children: [
+                        if (next != null)
+                          _UpcomingHolidayBanner(
+                            title: next.holidayName,
+                            date: _localDateOnly(next.holidayDate as DateTime?),
+                          ),
+                        const SizedBox(height: 8),
+                        if (items.isEmpty)
+                          const _EmptyHolidays()
+                        else
+                          _HolidayTimeline(items: items),
+                      ],
+                    );
+                  }),
+                ),
                 const SizedBox(height: 20),
 
                 // Log out
@@ -523,8 +562,9 @@ class _RelativeChip extends StatelessWidget {
     if (diff == 0) return 'Today';
     if (diff == 1) return 'Tomorrow';
     if (diff == -1) return 'Yesterday';
-    if (diff > 1) return 'In $diff days';
-    return '${diff.abs()} days ago';
+    if (diff > 1) return diff == 1 ? 'In 1 day' : 'In $diff days';
+    final ago = diff.abs();
+    return ago == 1 ? '1 day ago' : '$ago days ago';
   }
 }
 
