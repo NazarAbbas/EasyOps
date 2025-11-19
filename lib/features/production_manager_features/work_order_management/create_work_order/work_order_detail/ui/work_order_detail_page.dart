@@ -8,6 +8,8 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:get/get.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
   const WorkOrderDetailsPage({super.key});
@@ -252,16 +254,17 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                               if (controller.photoPaths.isEmpty)
                                 const _EmptyHint(text: 'No photos attached')
                               else
-                                _PhotoGrid(paths: controller.photoPaths),
+                                _PhotoGrid(
+                                  paths: controller.photoPaths,
+                                  onPhotoTap: (index) => _showPhotoViewer(controller.photoPaths, index),
+                                ),
                               const SizedBox(height: 12),
                               if (controller.voiceNotePath.value.isEmpty)
                                 const _EmptyHint(text: 'No audio attached')
                               else
                                 ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 360),
-                                  child: _AudioCard(
-                                      path: controller.voiceNotePath.value),
+                                  constraints: const BoxConstraints(maxWidth: 360),
+                                  child: _AudioCard(path: controller.voiceNotePath.value),
                                 ),
                             ],
                           )
@@ -330,6 +333,103 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
       ),
     );
   }
+  /* -------------------- Photo Viewer -------------------- */
+
+  void _showPhotoViewer(List<String> paths, int initialIndex) {
+    if (paths.isEmpty) return;
+
+    final PageController pageController = PageController(initialPage: initialIndex);
+    int currentIndex = initialIndex;
+
+    showDialog(
+      context: Get.context!,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            child: Stack(
+              children: [
+                // Photo viewer
+                PhotoViewGallery.builder(
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  builder: (BuildContext context, int index) {
+                    final path = paths[index];
+                    return PhotoViewGalleryPageOptions(
+                      imageProvider: _getImageProvider(path),
+                      initialScale: PhotoViewComputedScale.contained,
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.covered * 2,
+                    );
+                  },
+                  itemCount: paths.length,
+                  loadingBuilder: (context, event) => Center(
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        value: event == null
+                            ? 0
+                            : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+                      ),
+                    ),
+                  ),
+                  backgroundDecoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                  ),
+                  pageController: pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentIndex = index;
+                    });
+                  },
+                ),
+
+                // Close button
+                Positioned(
+                  top: 40,
+                  right: 20,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                    onPressed: () => Get.back(),
+                  ),
+                ),
+
+                // Image counter - NOW UPDATES WHEN SWIPING
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: Text(
+                      '${currentIndex + 1} / ${paths.length}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  ImageProvider _getImageProvider(String path) {
+    if (_isUrl(path)) {
+      return NetworkImage(path);
+    } else {
+      return FileImage(File(path));
+    }
+  }
+
+  bool _isUrl(String p) => p.toLowerCase().startsWith('http');
 }
 
 /* ───────────────────────── Original helpers ───────────────────────── */
@@ -539,7 +639,9 @@ class _LineWithIcon extends StatelessWidget {
 
 class _PhotoGrid extends StatelessWidget {
   final List<String> paths;
-  const _PhotoGrid({required this.paths});
+  final Function(int index)? onPhotoTap;
+
+  const _PhotoGrid({required this.paths, this.onPhotoTap});
 
   bool _isUrl(String p) => p.toLowerCase().startsWith('http');
 
@@ -579,7 +681,10 @@ class _PhotoGrid extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 4 / 3,
           ),
-          itemBuilder: (_, i) => _Thumb(path: valid[i]),
+          itemBuilder: (_, i) => _Thumb(
+            path: valid[i],
+            onTap: () => onPhotoTap?.call(i),
+          ),
         );
       },
     );
@@ -588,7 +693,8 @@ class _PhotoGrid extends StatelessWidget {
 
 class _Thumb extends StatelessWidget {
   final String path;
-  const _Thumb({required this.path});
+  final VoidCallback? onTap;
+  const _Thumb({required this.path, this.onTap});
 
   bool _isUrl(String p) => p.toLowerCase().startsWith('http');
 
@@ -606,7 +712,7 @@ class _Thumb extends StatelessWidget {
           color: const Color(0xFFF1F5F9),
           child: const Center(
             child:
-                Icon(CupertinoIcons.exclamationmark_triangle, color: _C.muted),
+            Icon(CupertinoIcons.exclamationmark_triangle, color: _C.muted),
           ),
         ),
       );
@@ -616,32 +722,35 @@ class _Thumb extends StatelessWidget {
       img = Image.file(f, fit: BoxFit.cover);
     }
 
-    return ClipRRect(
-      borderRadius: border,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          img,
-          Positioned(
-            right: 8,
-            bottom: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Photo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: border,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            img,
+            Positioned(
+              right: 8,
+              bottom: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Photo',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                  ),
                 ),
               ),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
