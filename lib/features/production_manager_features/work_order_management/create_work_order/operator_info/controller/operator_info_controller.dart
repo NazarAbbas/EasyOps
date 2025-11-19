@@ -130,9 +130,11 @@ class OperatorInfoController extends GetxController {
     super.onInit();
     _initAsync();
 
-    // final prefs = await SharedPreferences.getInstance();
-    // final loginPersonId = prefs.getString(Constant.loginPersonId);
-    // final details = await repository.getPersonById(loginPersonId!);
+    await _setLoggedInPersonAsReporter();
+
+     final prefs = await SharedPreferences.getInstance();
+     final loginPersonId = prefs.getString(Constant.loginPersonId);
+     final details = await repository.getPersonById(loginPersonId!);
   }
 
   @override
@@ -825,4 +827,33 @@ class OperatorInfoController extends GetxController {
       WOKeys.reportedDate: null,
     });
   }
+
+  Future<void> _setLoggedInPersonAsReporter() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final loginPersonId = prefs.getString(Constant.loginPersonId);
+
+      if (loginPersonId != null && loginPersonId.isNotEmpty) {
+        final details = await repository.getPersonById(loginPersonId);
+
+        if (details != null) {
+          // Set the user's actual name
+          reporterCtrl.text = details.name ?? "Current User";
+          reporterId.value = loginPersonId;
+          reporterPhoneNumber.value = details.userPhone ?? "";
+
+          // Also set as operator
+          sameAsOperator.value = true;
+          operatorCtrl.text = details.name ?? "Current User";
+          operatorId.value = loginPersonId;
+          operatorPhoneNumber.value = details.userPhone ?? "";
+
+          saveToBag();
+        }
+      }
+    } catch (e) {
+      print('Error setting default reporter: $e');
+    }
+  }
 }
+
