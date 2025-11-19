@@ -395,7 +395,7 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
                   ),
                 ),
 
-                // Image counter - NOW UPDATES WHEN SWIPING
+                // Image counter
                 Positioned(
                   bottom: 20,
                   left: 0,
