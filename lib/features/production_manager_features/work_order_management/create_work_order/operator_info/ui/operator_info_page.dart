@@ -296,7 +296,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             leading: const Icon(CupertinoIcons.calendar,
                                 size: 18, color: AppColors.muted),
                             onTap: () =>
-                                _pickDate(context), // auto-shift update
+                                _pickDate(context), // auto-shift
                           ),
                         ),
                       ),
