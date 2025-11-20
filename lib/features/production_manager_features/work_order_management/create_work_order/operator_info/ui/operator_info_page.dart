@@ -301,24 +301,24 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         ),
                       ),
                       SizedBox(height: vGap - 4),
-                      // Shift picker (kept for manual override if needed)
+                      // Shift field (auto-determined, non-interactive)
                       _Label(
                         'Shift',
-                        child: _TapField(
-                          text: controller.shift.value.isEmpty
-                              ? 'Select'
-                              : controller.shift.value,
-                          leading: const Icon(
-                              CupertinoIcons.square_stack_3d_down_dottedline,
-                              size: 18,
-                              color: AppColors.muted),
-                          trailing: const Icon(CupertinoIcons.chevron_down,
-                              color: AppColors.muted),
-                          onTap: () => _pickFromList(
-                            context,
-                            title: 'Select Shift',
-                            options: controller.shiftsOpt,
-                            onSelected: (v) => controller.onShiftChanged(v),
+                        child: AbsorbPointer(
+                          child: Opacity(
+                            opacity: 0.7, // Visual feedback that it's disabled
+                            child: _TapField(
+                              text: controller.shift.value.isEmpty
+                                  ? 'Auto-detected shift will appear here'
+                                  : controller.shift.value, // Take shift automatically
+                              leading: const Icon(
+                                  CupertinoIcons.square_stack_3d_down_dottedline,
+                                  size: 18,
+                                  color: AppColors.muted),
+                              trailing: const Icon(CupertinoIcons.lock_fill, // Lock icon
+                                  color: AppColors.muted),
+                              onTap: () {}, // Empty callback
+                            ),
                           ),
                         ),
                       ),
