@@ -338,7 +338,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _CheckboxLine(
-                        label: 'Same as Operator',
+                        label: 'Same as Reporter',
                         value: controller.sameAsOperator.value,
                         onChanged: (v) => controller.onSameAsOperatorChanged(v),
                       ),

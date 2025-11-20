@@ -418,7 +418,7 @@ class _TimelineRow extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _RelativeChip(date: date),
+                        //_RelativeChip(date: date),
                       ],
                     ),
                   ],
