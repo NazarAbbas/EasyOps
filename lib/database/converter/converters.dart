@@ -30,7 +30,7 @@ class DateTimeIsoConverter extends TypeConverter<DateTime, String> {
   DateTime decode(String databaseValue) => DateTime.parse(databaseValue);
 
   @override
-  String encode(DateTime value) => value.toUtc().toIso8601String();
+  String encode(DateTime? value) => value?.toUtc().toIso8601String() ?? '';
 }
 
 enum Criticality { LOW, MEDIUM, HIGH }

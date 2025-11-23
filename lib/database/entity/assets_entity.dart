@@ -8,13 +8,32 @@ import 'package:floor/floor.dart';
 @Entity(
   tableName: 'assets',
   indices: [
-    Index(value: ['tenantId', 'clientId', 'serialNumber'], unique: true),
     Index(value: ['tenantId', 'clientId', 'plantId']),
-    Index(value: ['tenantId', 'clientId', 'departmentId']),
+    Index(value: ['tenantId', 'clientId', 'serialNumber']),
     Index(value: ['tenantId', 'clientId', 'status']),
     Index(value: ['updatedAt']),
   ],
 )
+
+//{
+//             "id": "AST-24Sep2025130416546006",
+//             "assetNo": "AS-3333",
+//             "name": "Industrial Pump Station A",
+//             "criticality": "HIGH",
+//             "description": "Main water pump station for building A - handles primary water distribution",
+//             "serialNumber": "PS-2024-001",
+//             "status": "ACTIVE",
+//             "recordStatus": 1,
+//             "updatedAt": "2025-09-24T13:04:16.551608Z",
+//             "tenantId": "TEN-12Jun2025185848699001",
+//             "clientId": "CLT-12Jun2025224115635000",
+//             "plantId": null,
+//             "plantName": null,
+//             "assetManufacturerId": null,
+//             "assetManufacturerName": null,
+//             "technicalSpecifications": null,
+//             "commercialSpecifications": null
+//         },
 class AssetEntity {
   @primaryKey
   final String id; // "AST-24Sep2025130416546006"
@@ -38,10 +57,8 @@ class AssetEntity {
   final String clientId;
 
   final String plantId;
-  final String departmentId;
 
   final String? plantName;
-  final String? departmentName;
 
   const AssetEntity({
     required this.id,
@@ -59,8 +76,6 @@ class AssetEntity {
     required this.tenantId,
     required this.clientId,
     required this.plantId,
-    required this.departmentId,
-    required this.plantName,
-    required this.departmentName,
+    required this.plantName
   });
 }

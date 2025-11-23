@@ -2,9 +2,9 @@ import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/network/network_repository/nework_repository_impl.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/theme_controller.dart';
+import 'package:easy_ops/core/utils/app_snackbar.dart';
 import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/db_repository.dart';
-import 'package:easy_ops/core/utils/app_snackbar.dart';
 import 'package:easy_ops/features/common_features/login/validator/validator.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:flutter/material.dart';
@@ -94,21 +94,41 @@ class LoginPageController extends GetxController {
         // final details = await operatorDetailsRepository.getAllOperator();
 
         await repository.upsertLoginPersonDetails(loginPersonDetails.data!);
+
+        final person = await repository.getPersonById(loginPersonDetails.data!.id);
+        debugPrint('Person contact : ${person?.managerName}   ${person?.managerContact}');
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
             Constant.loginPersonId, loginPersonDetails.data!.id);
         // final details = await loginPersonDetailsRepository
         //     .getPersonById(loginPersonDetails.data!.id);
 
+        final loginPerson =
+            await repository.getPersonById(loginPersonDetails.data!.id);
+
         final dropDownData = await repositoryImpl.lookup();
+        final workOrderCategory = await repositoryImpl.workOrderCategoryLookup();
         final shiftData = await repositoryImpl.shiftData();
         final assetsData = await repositoryImpl.assetsData();
         if (dropDownData.data != null &&
+            workOrderCategory.data!=null &&
             shiftData.data != null &&
             assetsData.data != null) {
+
           await repository.upsertLookupData(dropDownData.data!);
-          final alllookup = repository.getLookupByType(LookupType.assetcat1);
+          // final alllookup = repository.getLookupByType(LookupType.assetcat1);
+
+          await repository.upsertLookupData(workOrderCategory.data!);
+
           await repository.upsertAssetData(assetsData.data!);
+
+          final assets = await repository.getAllAssets();
+          debugPrint('asset count in DB: ${assets.length}');
+          for (final a in assets) {
+            debugPrint('${a.id} - ${a.serialNumber} - ${a.name}');
+          }
+
           await repository.upsertAllShift(shiftData.data!);
 
           final themeCtrl = Get.put(ThemeController(), permanent: true);

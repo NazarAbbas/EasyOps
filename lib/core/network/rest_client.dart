@@ -41,6 +41,10 @@ abstract class RestClient {
   @GET('/client-lookup/')
   Future<LookupData> lookup();
 
+  //https://user-dev.eazyops.in:8443/v1/api/lookup-value/type/WORK_ORDER_CATEGORY' \
+  @GET('/lookup-value/type/WORK_ORDER_CATEGORY')
+  Future<LookupData> workOrderCategoryLookup();
+
   @GET('/organization/')
   Future<OrganizationData> organization();
 

@@ -34,6 +34,7 @@ abstract class NetworkRepository {
 
   Future<ApiResult<OrganizationData>> organization();
   Future<ApiResult<LookupData>> lookup();
+  Future<ApiResult<LookupData>> workOrderCategoryLookup();
   Future<ApiResult<ShiftData>> shiftData();
   Future<ApiResult<AssetsData>> assetsData();
   Future<ApiResult<LoginPersonDetails>> loginPersonDetails(String userName);

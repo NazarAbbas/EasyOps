@@ -28,10 +28,10 @@ class LookupEntity {
   final int recordStatus;
 
   // Stored via TypeConverter to ISO text
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
 
-  final String tenantId;
-  final String clientId;
+  final String? tenantId;
+  final String? clientId;
 
   const LookupEntity({
     required this.id,
@@ -41,8 +41,8 @@ class LookupEntity {
     required this.lookupType,
     required this.sortOrder,
     required this.recordStatus,
-    required this.updatedAt,
-    required this.tenantId,
-    required this.clientId,
+    this.updatedAt,
+    this.tenantId,
+    this.clientId,
   });
 }

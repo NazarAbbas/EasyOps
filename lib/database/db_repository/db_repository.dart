@@ -112,6 +112,7 @@ class DBRepository {
       departmentName: personRow.departmentName,
       managerId: personRow.managerId,
       managerName: personRow.managerName,
+      managerContact: personRow.managerContact,
       shiftId: personRow.shiftId,
       shiftName: personRow.shiftName,
       contacts: contacts

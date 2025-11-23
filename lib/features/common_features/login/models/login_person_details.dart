@@ -79,7 +79,7 @@ class LoginPersonDetails {
       departmentName: json['departmentName'] as String?,
       managerId: json['managerId'] as String?,
       managerName: json['managerName'] as String?,
-      managerContact: json['managerContact'] ?? '',
+      managerContact: json['managerContact'] as String?,
       shiftId: json['shiftId'] as String?,
       shiftName: json['shiftName'] as String?,
       contacts: _readList<Map<String, dynamic>>(json['contacts'])

@@ -16,6 +16,7 @@ class OperatorInfoController extends GetxController {
   // DI
   // ─────────────────────────────────────────────────────────────────────────
   final DBRepository repository = Get.find<DBRepository>();
+
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -65,17 +66,22 @@ class OperatorInfoController extends GetxController {
 
   // Convenience getters
   List<String> get locations => locationOptions;
+
   List<String> get plantsOpt => plantOptions;
+
   List<String> get shiftsOpt => shiftOptions;
 
   // Filtered (exclude placeholder)
   static const String _placeholder = 'Select';
+
   bool _isPlaceholder(String v) => v.trim().isEmpty || v.trim() == _placeholder;
 
   List<String> get locationsForPicker =>
       locationOptions.where((e) => e != _placeholder).toList();
+
   List<String> get plantsForPicker =>
       plantOptions.where((e) => e != _placeholder).toList();
+
   List<String> get shiftsForPicker =>
       shiftOptions.where((e) => e != _placeholder).toList();
 
@@ -132,9 +138,9 @@ class OperatorInfoController extends GetxController {
 
     await _setLoggedInPersonAsReporter();
 
-     final prefs = await SharedPreferences.getInstance();
-     final loginPersonId = prefs.getString(Constant.loginPersonId);
-     final details = await repository.getPersonById(loginPersonId!);
+    final prefs = await SharedPreferences.getInstance();
+    final loginPersonId = prefs.getString(Constant.loginPersonId);
+    final details = await repository.getPersonById(loginPersonId!);
   }
 
   @override
@@ -148,6 +154,7 @@ class OperatorInfoController extends GetxController {
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────
   String _s(String? v) => v?.trim() ?? '';
+
   String _fullName(String? first, String? last) =>
       [_s(first), _s(last)].where((e) => e.isNotEmpty).join(' ');
 
@@ -573,6 +580,7 @@ class OperatorInfoController extends GetxController {
 
   // Public methods for UI bindings
   void onTapChooseOperator() => openPeoplePicker(setOperatorField: true);
+
   void onTapChooseReporter() => openPeoplePicker(setOperatorField: false);
 
   void onSameAsOperatorChanged(bool v) {
@@ -856,4 +864,3 @@ class OperatorInfoController extends GetxController {
     }
   }
 }
-

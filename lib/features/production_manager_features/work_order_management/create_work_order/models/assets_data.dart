@@ -44,9 +44,7 @@ class AssetItem {
   final String tenantId;
   final String clientId;
   final String plantId;
-  final String departmentId;
   final String? plantName;
-  final String? departmentName;
 
   AssetItem({
     required this.id,
@@ -64,9 +62,7 @@ class AssetItem {
     required this.tenantId,
     required this.clientId,
     required this.plantId,
-    required this.departmentId,
-    this.plantName,
-    this.departmentName,
+    this.plantName
   });
 
   factory AssetItem.fromJson(Map<String, dynamic> j) => AssetItem(
@@ -85,9 +81,7 @@ class AssetItem {
         tenantId: (j['tenantId'] ?? '').toString(),
         clientId: (j['clientId'] ?? '').toString(),
         plantId: (j['plantId'] ?? '').toString(),
-        departmentId: (j['departmentId'] ?? '').toString(),
-        plantName: j['plantName'] as String?,
-        departmentName: j['departmentName'] as String?,
+        plantName: j['plantName'] as String?
       );
 
   Map<String, dynamic> toJson() => {
@@ -107,9 +101,7 @@ class AssetItem {
         'tenantId': tenantId,
         'clientId': clientId,
         'plantId': plantId,
-        'departmentId': departmentId,
         if (plantName != null) 'plantName': plantName,
-        if (departmentName != null) 'departmentName': departmentName,
       };
 }
 

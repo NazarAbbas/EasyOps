@@ -22,6 +22,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/closure_work_order/models/close_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
+import 'package:flutter/material.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_ops/core/network/api_factory.dart';
@@ -128,6 +129,14 @@ class ApiService {
     }
   }
 
+  Future<LookupData> workOrderCategoryLookup() async {
+    try {
+      return await _api.workOrderCategoryLookup();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
   Future<OrganizationData> organization() async {
     try {
       return await _api.organization();
@@ -222,6 +231,7 @@ class ApiService {
     try {
       // 1️⃣ Encode the workOrder JSON and wrap it as a JSON multipart part
       final jsonString = jsonEncode(req.toJson());
+      debugPrint('Create Work Order Request : $jsonString');
       final workOrderPart = MultipartFile.fromString(
         jsonString,
         contentType: MediaType('application', 'json'),

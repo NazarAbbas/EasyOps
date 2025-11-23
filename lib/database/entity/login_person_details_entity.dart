@@ -20,6 +20,7 @@ class LoginPersonDetailsEntity {
   final String? departmentName;
   final String? managerId;
   final String? managerName;
+  final String? managerContact;
   final String? shiftId;
   final String? shiftName;
 
@@ -41,6 +42,7 @@ class LoginPersonDetailsEntity {
     this.departmentName,
     this.managerId,
     this.managerName,
+    this.managerContact,
     this.shiftId,
     this.shiftName,
   });

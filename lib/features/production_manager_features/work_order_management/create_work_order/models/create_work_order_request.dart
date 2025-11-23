@@ -119,8 +119,35 @@ class CreateWorkOrderRequest {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'type': type.toApi(),
+  //{
+  // "type": "Maintenance",
+  // "plantId": "CLU-23Sep2025184636779022",
+  // "departmentId": "CLU-23Sep2025184335252018",
+  // "priority": "High",
+  // "status": "Open",
+  // "title": "Equipment Maintenance",
+  // "description": "Regular maintenance for production equipment",
+  // "remark": "Urgent repair needed",
+  // "comment": "Additional notes and comments about the work order",
+  // "scheduledStart": "2025-01-15T09:00:00Z",
+  // "scheduledEnd": "2025-01-15T17:00:00Z",
+  // "assetId": "AST-24Sep2025130416546006",
+  // "reportedById": "PER-123456",
+  // "operatorId": "PER-789012",
+  // "impactId": "CLU-24Sep2025131625261017",
+  // "escalated": 0,
+  // "reportedTime": "2025-01-15T08:30:00Z",
+  // "estimatedTimeToFix": "2 hours",
+  // "assignedToId": "PER-123458"
+  // }
+
+  Map<String, dynamic> toJson() =>
+      {
+        'type': issueTypeId,
+        'category':WorkType.breakdownManagement,
+        'categoryName':WorkType.breakdownManagement,
+        'plantId': plantId,
+        'departmentId': departmentId,
         'priority': priority.toApi(),
         'status': status.toApi(),
         'title': title,
@@ -130,16 +157,19 @@ class CreateWorkOrderRequest {
         'scheduledStart': scheduledStart.toUtc().toIso8601String(),
         'scheduledEnd': scheduledEnd.toUtc().toIso8601String(),
         'assetId': assetId,
-        'plantId': plantId,
-        'departmentId': departmentId,
+        'reportedById':reporterById,
+        'operatorId': operatorId,
         'issueTypeId': issueTypeId,
         'impactId': impactId,
         'shiftId': shiftId,
+        'reportedTime':scheduledStart,
+        'estimatedTimeToFix':scheduledEnd,
         'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),
       };
 
   // Optional helpers
   String toJsonString() => json.encode(toJson());
+
   static CreateWorkOrderRequest fromJsonString(String s) =>
       CreateWorkOrderRequest.fromJson(json.decode(s) as Map<String, dynamic>);
 }
@@ -150,17 +180,20 @@ class MediaFile {
 
   const MediaFile({required this.filePath, required this.fileType});
 
-  MediaFile copyWith({String? filePath, String? fileType}) => MediaFile(
+  MediaFile copyWith({String? filePath, String? fileType}) =>
+      MediaFile(
         filePath: filePath ?? this.filePath,
         fileType: fileType ?? this.fileType,
       );
 
-  factory MediaFile.fromJson(Map<String, dynamic> json) => MediaFile(
+  factory MediaFile.fromJson(Map<String, dynamic> json) =>
+      MediaFile(
         filePath: json['filePath'] as String,
         fileType: json['fileType'] as String,
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'filePath': filePath,
         'fileType': fileType,
       };

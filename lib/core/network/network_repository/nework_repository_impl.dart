@@ -92,6 +92,33 @@ class NetworkRepositoryImpl implements NetworkRepository {
   }
 
   @override
+  Future<ApiResult<LookupData>> workOrderCategoryLookup() async {
+    try {
+      final dropDownData = await _apiService.workOrderCategoryLookup();
+
+      return ApiResult<LookupData>(
+        httpCode: 200,
+        data: dropDownData,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<LookupData>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<LookupData>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  @override
   Future<ApiResult<OrganizationData>> organization() async {
     try {
       final dropDownData = await _apiService.organization();

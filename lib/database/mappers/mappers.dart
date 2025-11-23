@@ -37,9 +37,7 @@ extension AssetEntityDomainX on AssetEntity {
         tenantId: tenantId,
         clientId: clientId,
         plantId: plantId,
-        departmentId: departmentId,
-        plantName: plantName,
-        departmentName: departmentName,
+        plantName: plantName
       );
 }
 
@@ -67,9 +65,7 @@ extension AssetDomainEntityX on AssetItem {
         tenantId: tenantId,
         clientId: clientId,
         plantId: plantId,
-        departmentId: departmentId,
         plantName: plantName,
-        departmentName: departmentName,
       );
 }
 
@@ -112,6 +108,7 @@ extension LoginPersonDetailsMapper on LoginPersonDetails {
       departmentName: departmentName ?? '',
       managerId: managerId ?? '',
       managerName: managerName ?? '',
+      managerContact: managerContact ?? '',
       shiftId: shiftId ?? '',
       shiftName: shiftName ?? '',
     );

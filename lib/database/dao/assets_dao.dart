@@ -5,7 +5,7 @@ import 'package:floor/floor.dart';
 @dao
 abstract class AssetDao {
   // Simple replace upsert (DELETE+INSERT under the hood)
-  @Insert(onConflict: OnConflictStrategy.replace)
+  @Insert(onConflict: OnConflictStrategy.abort)
   Future<void> upsertAll(List<AssetEntity> items);
 
   @Query('''

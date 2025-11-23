@@ -120,13 +120,13 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `lookup` (`id` TEXT NOT NULL, `code` TEXT NOT NULL, `displayName` TEXT NOT NULL, `description` TEXT NOT NULL, `lookupType` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `assets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `criticality` TEXT NOT NULL, `description` TEXT, `serialNumber` TEXT NOT NULL, `manufacturer` TEXT, `manufacturerPhone` TEXT, `manufacturerEmail` TEXT, `manufacturerAddress` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `plantName` TEXT, `departmentName` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `assets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `criticality` TEXT NOT NULL, `description` TEXT, `serialNumber` TEXT NOT NULL, `manufacturer` TEXT, `manufacturerPhone` TEXT, `manufacturerEmail` TEXT, `manufacturerAddress` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `plantName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `shifts` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `managerContact` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_attendance` (`id` TEXT NOT NULL, `attDate` TEXT NOT NULL, `checkIn` TEXT, `checkOut` TEXT, `remarks` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `personId` TEXT NOT NULL, `personName` TEXT NOT NULL, `shiftId` TEXT, `shiftName` TEXT, FOREIGN KEY (`personId`) REFERENCES `login_person_details` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
         await database.execute(
@@ -146,11 +146,11 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE UNIQUE INDEX `index_lookup_tenantId_clientId_lookupType_code` ON `lookup` (`tenantId`, `clientId`, `lookupType`, `code`)');
         await database.execute(
-            'CREATE UNIQUE INDEX `index_assets_tenantId_clientId_serialNumber` ON `assets` (`tenantId`, `clientId`, `serialNumber`)');
+            'CREATE INDEX `index_assets_tenantId_clientId_serialNumber` ON `assets` (`tenantId`, `clientId`, `serialNumber`)');
         await database.execute(
             'CREATE INDEX `index_assets_tenantId_clientId_plantId` ON `assets` (`tenantId`, `clientId`, `plantId`)');
         await database.execute(
-            'CREATE INDEX `index_assets_tenantId_clientId_departmentId` ON `assets` (`tenantId`, `clientId`, `departmentId`)');
+            'CREATE INDEX `index_assets_tenantId_clientId` ON `assets` (`tenantId`, `clientId`)');
         await database.execute(
             'CREATE INDEX `index_assets_tenantId_clientId_status` ON `assets` (`tenantId`, `clientId`, `status`)');
         await database.execute(
@@ -287,6 +287,7 @@ class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
                   'departmentName': item.departmentName,
                   'managerId': item.managerId,
                   'managerName': item.managerName,
+                  'managerContact': item.managerContact,
                   'shiftId': item.shiftId,
                   'shiftName': item.shiftName
                 });
@@ -322,6 +323,7 @@ class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
             departmentName: row['departmentName'] as String?,
             managerId: row['managerId'] as String?,
             managerName: row['managerName'] as String?,
+            managerContact: row['managerContact'] as String?,
             shiftId: row['shiftId'] as String?,
             shiftName: row['shiftName'] as String?),
         arguments: [id]);
@@ -348,6 +350,7 @@ class _$LoginPersonDetailsDao extends LoginPersonDetailsDao {
             departmentName: row['departmentName'] as String?,
             managerId: row['managerId'] as String?,
             managerName: row['managerName'] as String?,
+            managerContact: row['managerContact'] as String?,
             shiftId: row['shiftId'] as String?,
             shiftName: row['shiftName'] as String?));
   }
@@ -570,7 +573,7 @@ class _$LookupDao extends LookupDao {
                   'lookupType': item.lookupType,
                   'sortOrder': item.sortOrder,
                   'recordStatus': item.recordStatus,
-                  'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt),
+                  'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt?? DateTime.now()),
                   'tenantId': item.tenantId,
                   'clientId': item.clientId
                 });
@@ -646,9 +649,7 @@ class _$AssetDao extends AssetDao {
                   'tenantId': item.tenantId,
                   'clientId': item.clientId,
                   'plantId': item.plantId,
-                  'departmentId': item.departmentId,
-                  'plantName': item.plantName,
-                  'departmentName': item.departmentName
+                  'plantName': item.plantName
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -680,9 +681,7 @@ class _$AssetDao extends AssetDao {
             tenantId: row['tenantId'] as String,
             clientId: row['clientId'] as String,
             plantId: row['plantId'] as String,
-            departmentId: row['departmentId'] as String,
-            plantName: row['plantName'] as String?,
-            departmentName: row['departmentName'] as String?));
+            plantName: row['plantName'] as String?));
   }
 
   @override
@@ -706,16 +705,14 @@ class _$AssetDao extends AssetDao {
             tenantId: row['tenantId'] as String,
             clientId: row['clientId'] as String,
             plantId: row['plantId'] as String,
-            departmentId: row['departmentId'] as String,
-            plantName: row['plantName'] as String?,
-            departmentName: row['departmentName'] as String?),
+            plantName: row['plantName'] as String?),
         arguments: [serialNo]);
   }
 
   @override
   Future<void> upsertAll(List<AssetEntity> items) async {
     await _assetEntityInsertionAdapter.insertList(
-        items, OnConflictStrategy.replace);
+        items, OnConflictStrategy.abort);
   }
 }
 

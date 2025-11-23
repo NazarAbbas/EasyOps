@@ -27,6 +27,7 @@ class LookupData {
   /// Convenience
   static LookupData fromJsonString(String s) =>
       LookupData.fromJson(json.decode(s) as Map<String, dynamic>);
+
   String toJsonString() => json.encode(toJson());
 }
 
@@ -39,9 +40,9 @@ class LookupValues {
   final String lookupType;
   final int sortOrder;
   final int recordStatus;
-  final DateTime updatedAt;
-  final String tenantId;
-  final String clientId;
+  final DateTime? updatedAt;
+  final String? tenantId;
+  final String? clientId;
 
   const LookupValues({
     required this.id,
@@ -51,9 +52,9 @@ class LookupValues {
     required this.lookupType,
     required this.sortOrder,
     required this.recordStatus,
-    required this.updatedAt,
-    required this.tenantId,
-    required this.clientId,
+    this.updatedAt,
+    this.tenantId,
+    this.clientId,
   });
 
   factory LookupValues.fromJson(Map<String, dynamic> json) {
@@ -79,9 +80,10 @@ class LookupValues {
         'lookupType': lookupType,
         'sortOrder': sortOrder,
         'recordStatus': recordStatus,
-        'updatedAt': updatedAt.toUtc().toIso8601String(),
-        'tenantId': tenantId,
-        'clientId': clientId,
+        if (updatedAt != null)
+          'updatedAt': updatedAt!.toUtc().toIso8601String(),
+        if (clientId != null) 'tenantId': tenantId,
+        if (clientId != null) 'clientId': clientId,
       };
 
   LookupValues copyWith({
