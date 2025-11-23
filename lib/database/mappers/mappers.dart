@@ -202,13 +202,13 @@ extension LookupEntityDomain on LookupEntity {
         id: id,
         code: code,
         displayName: displayName,
-        description: description,
+       /* description: description,*/
         lookupType: lookupType,
         sortOrder: sortOrder,
         recordStatus: recordStatus,
-        updatedAt: updatedAt,
+       /* updatedAt: updatedAt,
         tenantId: tenantId,
-        clientId: clientId,
+        clientId: clientId,*/
       );
 }
 
@@ -217,13 +217,13 @@ extension LookupEntityMapper on LookupValues {
         id: id,
         code: code,
         displayName: displayName,
-        description: description,
+        /*description: description,*/
         lookupType: lookupType,
         sortOrder: sortOrder,
         recordStatus: recordStatus,
-        updatedAt: updatedAt,
+       /* updatedAt: updatedAt,
         tenantId: tenantId,
-        clientId: clientId,
+        clientId: clientId,*/
       );
 }
 

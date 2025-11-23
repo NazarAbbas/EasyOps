@@ -118,7 +118,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `lookup` (`id` TEXT NOT NULL, `code` TEXT NOT NULL, `displayName` TEXT NOT NULL, `description` TEXT NOT NULL, `lookupType` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `lookup` (`id` TEXT NOT NULL, `code` TEXT NOT NULL, `displayName` TEXT NOT NULL, `lookupType` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `recordStatus` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `assets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `criticality` TEXT NOT NULL, `description` TEXT, `serialNumber` TEXT NOT NULL, `manufacturer` TEXT, `manufacturerPhone` TEXT, `manufacturerEmail` TEXT, `manufacturerAddress` TEXT, `status` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `plantName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -142,9 +142,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `users_list` (`id` TEXT NOT NULL, `email` TEXT NOT NULL, `communicationEmail` TEXT, `passwordHash` TEXT NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `phone` TEXT NOT NULL, `userType` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `tenantName` TEXT NOT NULL, `clientId` TEXT NOT NULL, `clientName` TEXT NOT NULL, `orgId` TEXT, `orgName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE INDEX `index_lookup_tenantId_clientId_lookupType` ON `lookup` (`tenantId`, `clientId`, `lookupType`)');
+            'CREATE INDEX `index_lookup_lookupType` ON `lookup` (`lookupType`)');
         await database.execute(
-            'CREATE UNIQUE INDEX `index_lookup_tenantId_clientId_lookupType_code` ON `lookup` (`tenantId`, `clientId`, `lookupType`, `code`)');
+            'CREATE UNIQUE INDEX `index_lookup_lookupType_code` ON `lookup` (`lookupType`, `code`)');
         await database.execute(
             'CREATE INDEX `index_assets_tenantId_clientId_serialNumber` ON `assets` (`tenantId`, `clientId`, `serialNumber`)');
         await database.execute(
@@ -569,13 +569,13 @@ class _$LookupDao extends LookupDao {
                   'id': item.id,
                   'code': item.code,
                   'displayName': item.displayName,
-                  'description': item.description,
+                 /* 'description': item.description,*/
                   'lookupType': item.lookupType,
                   'sortOrder': item.sortOrder,
                   'recordStatus': item.recordStatus,
-                  'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt?? DateTime.now()),
+                  /*'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt?? DateTime.now()),
                   'tenantId': item.tenantId,
-                  'clientId': item.clientId
+                  'clientId': item.clientId*/
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -590,7 +590,9 @@ class _$LookupDao extends LookupDao {
   Future<List<LookupEntity>> getActiveByType(LookupType lookupType) async {
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, /*description: row['description'] as String,*/ lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int,
+          /* updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String*/
+            ),
         arguments: [_lookupTypeConverter.encode(lookupType)]);
   }
 
@@ -598,7 +600,8 @@ class _$LookupDao extends LookupDao {
   Future<List<LookupEntity>> getActiveByCode(String lookupCode) async {
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, description: row['description'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int, updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String),
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, /*description: row['description'] as String,*/ lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int,
+            /*updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String*/),
         arguments: [lookupCode]);
   }
 
@@ -609,13 +612,14 @@ class _$LookupDao extends LookupDao {
             id: row['id'] as String,
             code: row['code'] as String,
             displayName: row['displayName'] as String,
-            description: row['description'] as String,
+           /* description: row['description'] as String,*/
             lookupType: row['lookupType'] as String,
             sortOrder: row['sortOrder'] as int,
             recordStatus: row['recordStatus'] as int,
-            updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
+            /*updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
             tenantId: row['tenantId'] as String,
-            clientId: row['clientId'] as String));
+            clientId: row['clientId'] as String*/
+        ));
   }
 
   @override

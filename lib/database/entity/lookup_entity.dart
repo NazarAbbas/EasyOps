@@ -7,8 +7,8 @@ import '../../features/production_manager_features/work_order_management/create_
   tableName: 'lookup',
   indices: [
     // Fast filtering by tenant/client/type, and unique on code inside that scope.
-    Index(value: ['tenantId', 'clientId', 'lookupType']),
-    Index(value: ['tenantId', 'clientId', 'lookupType', 'code'], unique: true),
+    Index(value: ['lookupType']),
+    Index(value: ['lookupType', 'code']),
   ],
 )
 class LookupEntity {
@@ -17,7 +17,7 @@ class LookupEntity {
 
   final String code;
   final String displayName;
-  final String description;
+  /*final String description;*/
 
   // Stored via TypeConverter as TEXT (e.g., 'DEPARTMENT')
   final String lookupType;
@@ -28,21 +28,21 @@ class LookupEntity {
   final int recordStatus;
 
   // Stored via TypeConverter to ISO text
-  final DateTime? updatedAt;
+/*  final DateTime? updatedAt;
 
   final String? tenantId;
-  final String? clientId;
+  final String? clientId;*/
 
   const LookupEntity({
     required this.id,
     required this.code,
     required this.displayName,
-    required this.description,
+    /*required this.description,*/
     required this.lookupType,
     required this.sortOrder,
     required this.recordStatus,
-    this.updatedAt,
+    /*this.updatedAt,
     this.tenantId,
-    this.clientId,
+    this.clientId,*/
   });
 }

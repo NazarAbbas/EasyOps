@@ -102,14 +102,14 @@ class CancelWorkOrderController extends GetxController {
       id: '',
       code: '',
       displayName: 'Select reason',
-      description: '',
+     /* description: '',*/
       lookupType:
           LookupType.department.name, // keep as-is if your model requires
       sortOrder: -1,
       recordStatus: 1,
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+     /* updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
       tenantId: '',
-      clientId: '',
+      clientId: '',*/
     );
 
     reason.assignAll([placeholder, ...list]);

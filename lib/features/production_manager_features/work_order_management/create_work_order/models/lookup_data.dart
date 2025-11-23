@@ -36,25 +36,25 @@ class LookupValues {
   final String id;
   final String code;
   final String displayName;
-  final String description;
+  /*final String description;*/
   final String lookupType;
   final int sortOrder;
   final int recordStatus;
-  final DateTime? updatedAt;
+  /*final DateTime? updatedAt;
   final String? tenantId;
-  final String? clientId;
+  final String? clientId;*/
 
   const LookupValues({
     required this.id,
     required this.code,
     required this.displayName,
-    required this.description,
+    /*required this.description,*/
     required this.lookupType,
     required this.sortOrder,
     required this.recordStatus,
-    this.updatedAt,
+    /*this.updatedAt,
     this.tenantId,
-    this.clientId,
+    this.clientId,*/
   });
 
   factory LookupValues.fromJson(Map<String, dynamic> json) {
@@ -62,13 +62,13 @@ class LookupValues {
       id: json['id'] as String,
       code: json['code'] as String,
       displayName: json['displayName'] as String,
-      description: json['description'] as String,
+     /* description: json['description'] as String,*/
       lookupType: json['lookupType'] as String,
       sortOrder: (json['sortOrder'] as num).toInt(),
       recordStatus: (json['recordStatus'] as num).toInt(),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      /*updatedAt: DateTime.parse(json['updatedAt'] as String),
       tenantId: json['tenantId'] as String,
-      clientId: json['clientId'] as String,
+      clientId: json['clientId'] as String,*/
     );
   }
 
@@ -76,14 +76,14 @@ class LookupValues {
         'id': id,
         'code': code,
         'displayName': displayName,
-        'description': description,
+        /*'description': description,*/
         'lookupType': lookupType,
         'sortOrder': sortOrder,
         'recordStatus': recordStatus,
-        if (updatedAt != null)
+       /* if (updatedAt != null)
           'updatedAt': updatedAt!.toUtc().toIso8601String(),
         if (clientId != null) 'tenantId': tenantId,
-        if (clientId != null) 'clientId': clientId,
+        if (clientId != null) 'clientId': clientId,*/
       };
 
   LookupValues copyWith({
@@ -94,21 +94,21 @@ class LookupValues {
     String? lookupType,
     int? sortOrder,
     int? recordStatus,
-    DateTime? updatedAt,
+    /*DateTime? updatedAt,
     String? tenantId,
-    String? clientId,
+    String? clientId,*/
   }) {
     return LookupValues(
       id: id ?? this.id,
       code: code ?? this.code,
       displayName: displayName ?? this.displayName,
-      description: description ?? this.description,
+    /*  description: description ?? this.description,*/
       lookupType: lookupType ?? this.lookupType,
       sortOrder: sortOrder ?? this.sortOrder,
       recordStatus: recordStatus ?? this.recordStatus,
-      updatedAt: updatedAt ?? this.updatedAt,
+     /* updatedAt: updatedAt ?? this.updatedAt,
       tenantId: tenantId ?? this.tenantId,
-      clientId: clientId ?? this.clientId,
+      clientId: clientId ?? this.clientId,*/
     );
   }
 }

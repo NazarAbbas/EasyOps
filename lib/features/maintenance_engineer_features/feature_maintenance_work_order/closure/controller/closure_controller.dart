@@ -107,13 +107,13 @@ class MaintenanceEnginnerClosureController extends GetxController {
         id: '',
         code: '',
         displayName: 'Select resolution type',
-        description: '',
+       /* description: '',*/
         lookupType: LookupType.resolutiontype.name,
         sortOrder: -1,
         recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+        /*updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
         tenantId: '',
-        clientId: '',
+        clientId: '',*/
       );
 
       reason.assignAll([placeholder, ...list]);

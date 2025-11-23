@@ -83,13 +83,13 @@ class NewSuggestionController extends GetxController {
         id: '',
         code: '',
         displayName: 'Select location',
-        description: '',
+       /* description: '',*/
         lookupType: LookupType.department.name,
         sortOrder: -1,
         recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+       /* updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
         tenantId: '',
-        clientId: '',
+        clientId: '',*/
       ),
       ...deptList,
     ]);
@@ -99,13 +99,13 @@ class NewSuggestionController extends GetxController {
         id: '',
         code: '',
         displayName: 'Select suggestion',
-        description: '',
+       /* description: '',*/
         lookupType: LookupType.suggestion.name,
         sortOrder: -1,
         recordStatus: 1,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+        /*updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
         tenantId: '',
-        clientId: '',
+        clientId: '',*/
       ),
       ...suggestionList,
     ]);

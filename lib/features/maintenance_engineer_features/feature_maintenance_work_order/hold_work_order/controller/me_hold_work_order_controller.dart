@@ -82,13 +82,13 @@ class MEHoldWorkOrderController extends GetxController {
       id: '',
       code: '',
       displayName: 'Select reason',
-      description: '',
+     /* description: '',*/
       lookupType: LookupType.resolutiontype.name,
       sortOrder: -1,
       recordStatus: 1,
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+     /* updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
       tenantId: '',
-      clientId: '',
+      clientId: '',*/
     );
 
     reasons.assignAll([placeholder, ...list]);

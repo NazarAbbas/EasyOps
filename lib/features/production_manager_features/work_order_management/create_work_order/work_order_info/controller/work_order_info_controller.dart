@@ -178,13 +178,13 @@ class WorkorderInfoController extends GetxController {
       id: '',
       code: '',
       displayName: label,
-      description: '',
+     /* description: '',*/
       lookupType: t.name,
       sortOrder: -1,
       recordStatus: 1,
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
+      /*updatedAt: DateTime.fromMillisecondsSinceEpoch(0).toUtc(),
       tenantId: '',
-      clientId: '',
+      clientId: '',*/
     );
   }
 
