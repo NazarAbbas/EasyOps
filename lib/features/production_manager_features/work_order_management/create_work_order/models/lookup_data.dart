@@ -147,6 +147,7 @@ enum LookupType {
   department,
   plant,
   workorderissuetype,
+  workOrderCategory,
   impact,
   suggestion,
   resolutiontype,

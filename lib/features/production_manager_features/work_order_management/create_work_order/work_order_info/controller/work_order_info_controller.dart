@@ -1,4 +1,4 @@
-// lib/.../work_order_info/controller/workorder_info_controller.dart
+// lib/.../work_order_info/controller/work_order_info_controller.dart
 import 'package:easy_ops/core/constants/constant.dart';
 import 'package:easy_ops/core/route_managment/routes.dart';
 import 'package:easy_ops/core/theme/app_colors.dart';
@@ -75,6 +75,14 @@ class WorkorderInfoController extends GetxController {
   //WorkOrders? workOrderInfo;
   WorkOrderStatus? workOrderStatus;
 
+  final workTypeOptions = <LookupValues>[].obs;
+  final selectedWorkTypeId = ''.obs;
+  final selectedWorkType = ''.obs;
+  final selectedWorkTypeDisplay = 'Select Work Type'.obs;
+
+  final workTypeLookup = LookupValues(id: '', code:'', displayName: '', lookupType: '', sortOrder: 0, recordStatus: 0).obs;
+
+
   // ─────────────────────────────────────────────────────────────────────────
   // Lifecycle
   // ─────────────────────────────────────────────────────────────────────────
@@ -94,6 +102,7 @@ class WorkorderInfoController extends GetxController {
     super.onInit();
     await _loadLookups();
     await _loadAssets();
+    await _loadWorkType();
     if (workOrderInfo.value != null) {
       await _putWorkOrderIntoBag(workOrderInfo.value!);
       _loadFromBag();
@@ -147,6 +156,21 @@ class WorkorderInfoController extends GetxController {
     final day = DateFormat('dd').format(d);
     final mon = DateFormat('MMM').format(d).toLowerCase();
     return '$time | $day $mon';
+  }
+
+  Future<void> _loadWorkType() async {
+    var workType = await repository.getActiveByCode("BREAKDOWN");
+
+    if (workType.isEmpty) {
+      final workOrderCategories = await repository.getLookupByType(LookupType.workOrderCategory);
+      workType = workOrderCategories.where((l) => l.code?.toUpperCase() == 'BREAKDOWN').toList();
+    }
+
+    if (workType.isNotEmpty) {
+      workTypeLookup.value = workType.first;
+    }
+
+    print('Work type loaded: ${workTypeLookup.value.displayName}');
   }
 
   Future<void> _loadLookups() async {
