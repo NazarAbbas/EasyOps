@@ -141,11 +141,10 @@ class CreateWorkOrderRequest {
   // "assignedToId": "PER-123458"
   // }
 
-  Map<String, dynamic> toJson() =>
-      {
+  Map<String, dynamic> toJson() => {
         'type': issueTypeId,
-        'category':WorkType.breakdownManagement,
-        'categoryName':WorkType.breakdownManagement,
+        'category': type.toCode(),
+        'categoryName': WorkType.breakdownManagement,
         'plantId': plantId,
         'departmentId': departmentId,
         'priority': priority.toApi(),
@@ -157,13 +156,13 @@ class CreateWorkOrderRequest {
         'scheduledStart': scheduledStart.toUtc().toIso8601String(),
         'scheduledEnd': scheduledEnd.toUtc().toIso8601String(),
         'assetId': assetId,
-        'reportedById':reporterById,
+        'reportedById': reporterById,
         'operatorId': operatorId,
         'issueTypeId': issueTypeId,
         'impactId': impactId,
         'shiftId': shiftId,
-        'reportedTime':scheduledStart,
-        'estimatedTimeToFix':scheduledEnd,
+        'reportedTime': scheduledStart,
+        'estimatedTimeToFix': scheduledEnd,
         'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),
       };
 
@@ -180,20 +179,17 @@ class MediaFile {
 
   const MediaFile({required this.filePath, required this.fileType});
 
-  MediaFile copyWith({String? filePath, String? fileType}) =>
-      MediaFile(
+  MediaFile copyWith({String? filePath, String? fileType}) => MediaFile(
         filePath: filePath ?? this.filePath,
         fileType: fileType ?? this.fileType,
       );
 
-  factory MediaFile.fromJson(Map<String, dynamic> json) =>
-      MediaFile(
+  factory MediaFile.fromJson(Map<String, dynamic> json) => MediaFile(
         filePath: json['filePath'] as String,
         fileType: json['fileType'] as String,
       );
 
-  Map<String, dynamic> toJson() =>
-      {
+  Map<String, dynamic> toJson() => {
         'filePath': filePath,
         'fileType': fileType,
       };
@@ -266,6 +262,7 @@ extension WorkStatusX on WorkStatus {
 }
 
 enum WorkType {
+  general,
   breakdownManagement,
   preventiveMaintenance,
   predictiveMaintenance,
@@ -289,6 +286,23 @@ extension WorkTypeX on WorkType {
         return 'Preventive Maintenance';
       case WorkType.predictiveMaintenance:
         return 'Predictive Maintenance';
+      case WorkType.general:
+        return 'General';
+      case WorkType.other:
+        return 'Other';
+    }
+  }
+
+  String toCode() {
+    switch (this) {
+      case WorkType.breakdownManagement:
+        return 'BREAKDOWN';
+      case WorkType.preventiveMaintenance:
+        return 'PREVENTIVE';
+      case WorkType.general:
+        return 'GENERAL';
+      case WorkType.predictiveMaintenance:
+        return 'PREDICTIVE';
       case WorkType.other:
         return 'Other';
     }
