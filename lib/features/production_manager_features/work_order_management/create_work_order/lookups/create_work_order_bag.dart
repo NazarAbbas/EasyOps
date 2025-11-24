@@ -108,6 +108,9 @@ abstract class WOKeys {
   static const String plant = 'plant';
   static const String shift = 'shift';
 
+  static const String categoryID = 'categoryId';
+  static const String categoryName = 'categoryName';
+
   static const String sameAsOperator = 'sameAsOperator'; // bool
 
   // Stored as strings for portability

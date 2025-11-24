@@ -124,7 +124,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `shifts` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL,`categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `managerContact` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -569,7 +569,7 @@ class _$LookupDao extends LookupDao {
                   'id': item.id,
                   'code': item.code,
                   'displayName': item.displayName,
-                 /* 'description': item.description,*/
+                  /* 'description': item.description,*/
                   'lookupType': item.lookupType,
                   'sortOrder': item.sortOrder,
                   'recordStatus': item.recordStatus,
@@ -590,8 +590,15 @@ class _$LookupDao extends LookupDao {
   Future<List<LookupEntity>> getActiveByType(LookupType lookupType) async {
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, /*description: row['description'] as String,*/ lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int,
-          /* updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String*/
+        mapper: (Map<String, Object?> row) => LookupEntity(
+              id: row['id'] as String,
+              code: row['code'] as String,
+              displayName: row['displayName'] as String,
+              /*description: row['description'] as String,*/
+              lookupType: row['lookupType'] as String,
+              sortOrder: row['sortOrder'] as int,
+              recordStatus: row['recordStatus'] as int,
+              /* updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String*/
             ),
         arguments: [_lookupTypeConverter.encode(lookupType)]);
   }
@@ -599,27 +606,36 @@ class _$LookupDao extends LookupDao {
   @override
   Future<List<LookupEntity>> getActiveByCode(String lookupCode) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, /*description: row['description'] as String,*/ lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int,
-            /*updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String*/),
-        arguments: [lookupCode]);
+      'SELECT * FROM lookup WHERE code = ?1 AND recordStatus = 1 ORDER BY sortOrder',
+      mapper: (Map<String, Object?> row) => LookupEntity(
+        id: row['id'] as String,
+        code: row['code'] as String,
+        displayName: row['displayName'] as String,
+        //description: row['description'] as String?, // or non-null default
+        lookupType: row['lookupType'] as String,
+        sortOrder: (row['sortOrder'] as num).toInt(),
+        recordStatus: (row['recordStatus'] as num).toInt(),
+        // updatedAt / tenantId / clientId as nullable if needed
+      ),
+      arguments: [lookupCode],
+    );
   }
 
   @override
   Future<List<LookupEntity>> getAll() async {
     return _queryAdapter.queryList('SELECT * FROM lookup ORDER BY sortOrder',
         mapper: (Map<String, Object?> row) => LookupEntity(
-            id: row['id'] as String,
-            code: row['code'] as String,
-            displayName: row['displayName'] as String,
-           /* description: row['description'] as String,*/
-            lookupType: row['lookupType'] as String,
-            sortOrder: row['sortOrder'] as int,
-            recordStatus: row['recordStatus'] as int,
-            /*updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
+              id: row['id'] as String,
+              code: row['code'] as String,
+              displayName: row['displayName'] as String,
+              /* description: row['description'] as String,*/
+              lookupType: row['lookupType'] as String,
+              sortOrder: row['sortOrder'] as int,
+              recordStatus: row['recordStatus'] as int,
+              /*updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
             tenantId: row['tenantId'] as String,
             clientId: row['clientId'] as String*/
-        ));
+            ));
   }
 
   @override
@@ -716,7 +732,7 @@ class _$AssetDao extends AssetDao {
   @override
   Future<void> upsertAll(List<AssetEntity> items) async {
     await _assetEntityInsertionAdapter.insertList(
-        items, OnConflictStrategy.abort);
+        items, OnConflictStrategy.replace);
   }
 }
 
@@ -784,6 +800,8 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
                   'operatorName': item.operatorName,
                   'operatorId': item.operatorId,
                   'operatorPhoneNumber': item.operatorPhoneNumber,
+                  'categoryId': item.categoryId,
+                  'categoryName': item.categoryName,
                   'reporterId': item.reporterId,
                   'reporterName': item.reporterName,
                   'reporterPhoneNumber': item.reporterPhoneNumber,
@@ -814,6 +832,8 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
                   'operatorName': item.operatorName,
                   'operatorId': item.operatorId,
                   'operatorPhoneNumber': item.operatorPhoneNumber,
+                  'categoryId': item.categoryId,
+                  'categoryName': item.categoryName,
                   'reporterId': item.reporterId,
                   'reporterName': item.reporterName,
                   'reporterPhoneNumber': item.reporterPhoneNumber,
@@ -857,6 +877,8 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
             operatorId: row['operatorId'] as String,
             operatorName: row['operatorName'] as String,
             operatorPhoneNumber: row['operatorPhoneNumber'] as String,
+            categoryId: row['categoryId'] as String,
+            categoryName: row['categoryName'] as String,
             reporterId: row['reporterId'] as String,
             reporterName: row['reporterName'] as String,
             reporterPhoneNumber: row['reporterPhoneNumber'] as String,

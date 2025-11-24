@@ -21,7 +21,7 @@ abstract class LookupDao {
 
   @Query('''
     SELECT * FROM lookup
-    WHERE lookupType = :lookupCode
+    WHERE code = :lookupCode
       AND recordStatus = 1
     ORDER BY sortOrder
   ''')

@@ -7,6 +7,9 @@ class OfflineWorkOrder {
   final String operatorId;
   final String operatorPhoneNumber;
 
+  final String categoryId;
+  final String categoryName;
+
   final String reporterId;
   final String reporterName;
   final String reporterPhoneNumber;
@@ -39,6 +42,8 @@ class OfflineWorkOrder {
     required this.operatorId,
     required this.operatorName,
     required this.operatorPhoneNumber,
+    required this.categoryId,
+    required this.categoryName,
     required this.reporterId,
     required this.reporterName,
     required this.reporterPhoneNumber,

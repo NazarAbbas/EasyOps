@@ -7,13 +7,12 @@ import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WorkorderInfoController extends GetxController {
   // Optional "Reason" selector (unused here, kept for compatibility)
@@ -80,8 +79,14 @@ class WorkorderInfoController extends GetxController {
   final selectedWorkType = ''.obs;
   final selectedWorkTypeDisplay = 'Select Work Type'.obs;
 
-  final workTypeLookup = LookupValues(id: '', code:'', displayName: '', lookupType: '', sortOrder: 0, recordStatus: 0).obs;
-
+  final workTypeLookup = LookupValues(
+          id: '',
+          code: '',
+          displayName: '',
+          lookupType: '',
+          sortOrder: 0,
+          recordStatus: 0)
+      .obs;
 
   // ─────────────────────────────────────────────────────────────────────────
   // Lifecycle
@@ -162,15 +167,18 @@ class WorkorderInfoController extends GetxController {
     var workType = await repository.getActiveByCode("BREAKDOWN");
 
     if (workType.isEmpty) {
-      final workOrderCategories = await repository.getLookupByType(LookupType.workOrderCategory);
-      workType = workOrderCategories.where((l) => l.code?.toUpperCase() == 'BREAKDOWN').toList();
+      final workOrderCategories =
+          await repository.getLookupByCode("BREAKDOWN");
+      workType = workOrderCategories
+          .where((l) => l.code.toUpperCase() == 'BREAKDOWN')
+          .toList();
     }
 
     if (workType.isNotEmpty) {
       workTypeLookup.value = workType.first;
     }
 
-    print('Work type loaded: ${workTypeLookup.value.displayName}');
+    debugPrint('Work type loaded: ${workTypeLookup.value.displayName}');
   }
 
   Future<void> _loadLookups() async {
@@ -202,7 +210,7 @@ class WorkorderInfoController extends GetxController {
       id: '',
       code: '',
       displayName: label,
-     /* description: '',*/
+      /* description: '',*/
       lookupType: t.name,
       sortOrder: -1,
       recordStatus: 1,
@@ -263,7 +271,9 @@ class WorkorderInfoController extends GetxController {
   }
 
   void addPhoto(String path) => photos.add(path);
+
   void addPhotos(Iterable<String> paths) => photos.addAll(paths);
+
   void removePhotoAt(int index) {
     if (index < 0 || index >= photos.length) return;
     photos.removeAt(index);
@@ -272,6 +282,7 @@ class WorkorderInfoController extends GetxController {
   void clearPhotos() => photos.clear();
 
   void setVoiceNote(String path) => voiceNotePath.value = path;
+
   void clearVoiceNote() => voiceNotePath.value = '';
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -335,6 +346,13 @@ class WorkorderInfoController extends GetxController {
 
   // ── Core: write WO → bag, then read bag → UI ────────────────────────────
   Future<void> _putWorkOrderIntoBag(WorkOrders wo) async {
+
+    //Category
+    final workTypeId  =  workTypeLookup.value.id ?? '';
+    debugPrint('Work type id from WO: $workTypeId');
+    final workTypeName = workTypeLookup.value.code ?? '';
+    debugPrint('Work type name from WO: $workTypeName');
+
     // IDs
     final issueId = (wo.issueTypeId ?? '').trim();
     final impactId = (wo.impactId ?? '').trim();
@@ -381,6 +399,10 @@ class WorkorderInfoController extends GetxController {
       WOKeys.impactId: impactId,
       WOKeys.issueType: (wo.issueTypeName ?? '').trim(),
       WOKeys.impact: (wo.impactName ?? '').trim(),
+
+      //Category details
+      WOKeys.categoryID: workTypeLookup.value.id,
+      WOKeys.categoryName: workTypeLookup.value.code,
 
       // // Asset
       WOKeys.assetsId: assetIdV,
@@ -477,7 +499,10 @@ class WorkorderInfoController extends GetxController {
       //  ───────────────────────────────────────────────
       WOKeys.operatorName: operatorName.value,
       WOKeys.operatorPhoneNumber: operatorMobileNumber.value,
-      WOKeys.operatorInfo: operatorInfo
+      WOKeys.operatorInfo: operatorInfo,
+
+      WOKeys.categoryID : workTypeLookup.value.id,
+      WOKeys.categoryName : workTypeLookup.value.code,
     });
   }
 }

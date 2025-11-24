@@ -231,7 +231,7 @@ class ApiService {
     try {
       // 1️⃣ Encode the workOrder JSON and wrap it as a JSON multipart part
       final jsonString = jsonEncode(req.toJson());
-      debugPrint('Create Work Order Request : $jsonString');
+      //debugPrint('Create Work Order Request : $jsonString');
       final workOrderPart = MultipartFile.fromString(
         jsonString,
         contentType: MediaType('application', 'json'),

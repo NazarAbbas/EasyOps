@@ -234,6 +234,8 @@ extension OfflineWorkOrderEntityX on OfflineWorkOrderEntity {
         operatorId: operatorId,
         operatorName: operatorName,
         operatorPhoneNumber: operatorPhoneNumber,
+        categoryName: categoryName,
+        categoryId: categoryId,
         reporterId: reporterId,
         reporterName: reporterName,
         reporterPhoneNumber: reporterPhoneNumber,
@@ -266,6 +268,8 @@ extension OfflineWorkOrderDomainX on OfflineWorkOrder {
         operatorId: operatorId,
         operatorName: operatorName,
         operatorPhoneNumber: operatorPhoneNumber,
+        categoryId: categoryId,
+        categoryName: categoryName,
         reporterId: reporterId,
         reporterName: reporterName,
         reporterPhoneNumber: reporterPhoneNumber,
@@ -295,6 +299,8 @@ extension OfflineWorkOrderDomainX on OfflineWorkOrder {
 extension OfflineWorkOrderApiMapper on OfflineWorkOrder {
   CreateWorkOrderRequest toApiRequest() {
     return CreateWorkOrderRequest(
+      categoryId: categoryId,
+      categoryName: categoryName,
       operatorId: operatorId,
       operatorName: operatorName,
       operatorPhoneNumber: operatorPhoneNumber,

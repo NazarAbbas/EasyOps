@@ -36,6 +36,10 @@ class WorkOrderDetailsController extends GetxController {
   final operatorPhoneNumber = ''.obs;
   final reportedName = ''.obs;
 
+  //Category
+  final categoryName = ''.obs;
+  final categoryId = ''.obs;
+
   // Details
   final descriptionText = ''.obs;
   final priority = ''.obs;
@@ -62,6 +66,9 @@ class WorkOrderDetailsController extends GetxController {
     // Header with asset number if present
     final assetNumber = _bag.get<String>(WOKeys.assetsNumber, '');
     cnc_1.value = 'CNC-1 (${assetNumber.isEmpty ? '-' : assetNumber})';
+
+    categoryName.value = _bag.get<String>(WOKeys.categoryName, '');
+    categoryId.value = _bag.get<String>(WOKeys.categoryID, '');
 
     // Reporter / Operator basics
     reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
@@ -236,6 +243,8 @@ class WorkOrderDetailsController extends GetxController {
       }
 
       final req = CreateWorkOrderRequest(
+        categoryId: categoryId.value,
+        categoryName: categoryName.value,
         operatorId: operatorId,
         operatorName: operatorName.value,
         operatorPhoneNumber: operatorPhoneNumber.value,
@@ -309,6 +318,8 @@ class WorkOrderDetailsController extends GetxController {
       operatorId: req.operatorId,
       operatorName: req.operatorName,
       operatorPhoneNumber: req.operatorPhoneNumber,
+      categoryId: req.categoryId,
+      categoryName: req.categoryName,
       reporterId: req.reporterById,
       reporterName: req.reporterName,
       reporterPhoneNumber: req.reporterPhoneNumber,

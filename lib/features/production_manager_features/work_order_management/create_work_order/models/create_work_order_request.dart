@@ -5,6 +5,9 @@ class CreateWorkOrderRequest {
   final String operatorId;
   final String operatorPhoneNumber;
 
+  final String categoryId;
+  final String categoryName;
+
   final String reporterById;
   final String reporterName;
   final String reporterPhoneNumber;
@@ -29,6 +32,8 @@ class CreateWorkOrderRequest {
     required this.operatorId,
     required this.operatorName,
     required this.operatorPhoneNumber,
+    required this.categoryId,
+    required this.categoryName,
     required this.reporterById,
     required this.reporterName,
     required this.reporterPhoneNumber,
@@ -70,6 +75,8 @@ class CreateWorkOrderRequest {
       operatorId: operatorId ?? this.operatorId,
       operatorName: operatorName ?? this.operatorName,
       operatorPhoneNumber: operatorPhoneNumber ?? this.operatorPhoneNumber,
+      categoryId: categoryId,
+      categoryName: categoryName,
       reporterById: reporterById ?? this.reporterById,
       reporterName: reporterName ?? this.reporterName,
       reporterPhoneNumber: reporterPhoneNumber ?? this.reporterPhoneNumber,
@@ -96,6 +103,8 @@ class CreateWorkOrderRequest {
       operatorId: json['operatorId'] as String,
       operatorName: json['operatorName'] as String,
       operatorPhoneNumber: json['operatorPhoneNumber'] as String,
+      categoryId: json['categoryId'] as String,
+      categoryName: json['categoryName'] as String,
       reporterById: json['reporterId'] as String,
       reporterName: json['reporterName'] as String,
       reporterPhoneNumber: json['reporterPhoneNumber'] as String,
@@ -143,8 +152,8 @@ class CreateWorkOrderRequest {
 
   Map<String, dynamic> toJson() => {
         'type': issueTypeId,
-        'category': type.toCode(),
-        'categoryName': WorkType.breakdownManagement,
+        'categoryId': categoryId,
+        'categoryName': categoryName,
         'plantId': plantId,
         'departmentId': departmentId,
         'priority': priority.toApi(),
@@ -161,8 +170,8 @@ class CreateWorkOrderRequest {
         'issueTypeId': issueTypeId,
         'impactId': impactId,
         'shiftId': shiftId,
-        'reportedTime': scheduledStart,
-        'estimatedTimeToFix': scheduledEnd,
+        'reportedTime': scheduledStart.toUtc().toIso8601String(),
+        'estimatedTimeToFix': scheduledEnd.toUtc().toIso8601String(),
         'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),
       };
 
