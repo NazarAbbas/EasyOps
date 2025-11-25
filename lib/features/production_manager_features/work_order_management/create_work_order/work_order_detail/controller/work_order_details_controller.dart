@@ -74,11 +74,14 @@ class WorkOrderDetailsController extends GetxController {
     reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
     final isSameAsOperator = _bag.get<String>(WOKeys.sameAsOperator, 'false');
     if (isSameAsOperator == 'true') {
-      _initDefaults();
+      // Set initial values from reporter data (bag), then override with DB data if available
+      operatorName.value = _bag.get<String>(WOKeys.reporterName, '');
+      operatorPhoneNumber.value = _bag.get<String>(WOKeys.reporterPhoneNumber, '');
+      _initDefaults();  // This will asynchronously update with DB data
     } else {
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
-      operatorPhoneNumber.value =
-          _bag.get<String>(WOKeys.operatorPhoneNumber, '');
+      operatorPhoneNumber.value = _bag.get<String>(WOKeys.operatorPhoneNumber, '');
+      operatorInfo.value = _bag.get<String>(WOKeys.operatorInfo, '');
     }
 
     // Types / Priority / Descriptions
@@ -140,7 +143,12 @@ class WorkOrderDetailsController extends GetxController {
 
     if (details.assets.isNotEmpty) {
       operatorInfo.value =
-          '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+      '${details.assets.first.assetName} | $s | ${details.assets.first.assetSerialNumber}';
+    }
+
+    final loc = _joinNonEmpty([_bag.get<String>(WOKeys.location, ''), _bag.get<String>(WOKeys.plant, '')], ' | ');
+    if (loc.isNotEmpty) {
+      operatorInfo.value = operatorInfo.value.isEmpty ? loc : '${operatorInfo.value} | $loc';
     }
   }
 
