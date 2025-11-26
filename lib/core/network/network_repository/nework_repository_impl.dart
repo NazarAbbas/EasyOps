@@ -33,6 +33,8 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:get/get.dart';
 
+import '../../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
+
 class NetworkRepositoryImpl implements NetworkRepository {
   final ApiService _apiService = Get.find<ApiService>();
 
@@ -57,6 +59,33 @@ class NetworkRepositoryImpl implements NetworkRepository {
       return ApiResult<LoginResponse>(httpCode: code, data: null, message: msg);
     } catch (e) {
       return ApiResult<LoginResponse>(
+        httpCode: 0,
+        data: null,
+        message: e.toString(),
+      );
+    }
+  }
+
+  // Add getplantsorg
+  @override
+  Future<ApiResult<PlantsOrgData>> getPlantsOrg() async {
+    try {
+      final plantsOrgData = await _apiService.getPlantsOrg();
+      return ApiResult<PlantsOrgData>(
+        httpCode: 200,
+        data: plantsOrgData,
+        message: 'Success',
+      );
+    } on DioException catch (e) {
+      final code = e.response?.statusCode ?? 0;
+      final msg = NetworkExceptions.getMessage(e);
+      return ApiResult<PlantsOrgData>(
+        httpCode: code,
+        data: null,
+        message: msg,
+      );
+    } catch (e) {
+      return ApiResult<PlantsOrgData>(
         httpCode: 0,
         data: null,
         message: e.toString(),

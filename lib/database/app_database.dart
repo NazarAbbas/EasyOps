@@ -5,6 +5,7 @@ import 'package:easy_ops/database/converter/converters.dart';
 import 'package:easy_ops/database/converter/criticality_converter.dart';
 import 'package:easy_ops/database/converter/epoch_datetime_converter.dart';
 import 'package:easy_ops/database/dao/assets_dao.dart';
+import 'package:easy_ops/database/dao/get_plants_org_dao.dart';
 import 'package:easy_ops/database/dao/login_person_details_dao.dart';
 import 'package:easy_ops/database/dao/lookup_dao.dart';
 import 'package:easy_ops/database/dao/offline_work_order_dao.dart';
@@ -49,6 +50,7 @@ abstract class AppDatabase extends FloorDatabase {
   LookupDao get lookupDao;
   AssetDao get assetDao;
   ShiftDao get shiftDao;
+  PlantsOrgDao get plantDao;
   OfflineWorkOrderDao get offlineWorkOrderDao;
   OperatorsDetailsDao get operatorsDetailsDao;
   LoginPersonHolidaysDao get loginPersonHolidaysDao;

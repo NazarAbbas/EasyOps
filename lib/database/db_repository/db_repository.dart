@@ -19,6 +19,9 @@ import 'package:easy_ops/features/common_features/login/models/operators_details
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/database/entity/shift_entity.dart';
 
+import '../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
+import '../entity/get_plants_org_entity.dart';
+
 class DBRepository {
   final AppDatabase db = Get.find<AppDatabase>();
 
@@ -39,6 +42,44 @@ class DBRepository {
       await db.assetDao.upsertAll(entities);
     }
   }
+
+  // PlantsOrg Repository - UPDATED with correct fields
+  Future<List<PlantsOrgItem>> getAllPlants() async {
+    final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getAll();
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<List<PlantsOrgItem>> getActivePlants() async {
+    final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getActivePlants();
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<List<PlantsOrgItem>> getPlantsByTenant(String tenantId) async {
+    final List<PlantsOrgEntity> rows =
+    await db.plantsOrgDao.getActiveByTenant(tenantId);
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<List<PlantsOrgItem>> getPlantsByClient(String clientId) async {
+    final List<PlantsOrgEntity> rows =
+    await db.plantsOrgDao.getActiveByClient(clientId);
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<PlantsOrgItem?> getPlantById(String id) async {
+    final PlantsOrgEntity? row = await db.plantsOrgDao.getById(id);
+    return row?.toDomain();
+  }
+
+  // plantsorg - UPDATED with correct mapping
+  Future<void> upsertPlantsOrgData(PlantsOrgData apiPage) async {
+    final entities = apiPage.content.map((e) => PlantsOrgEntity.fromDomain(e)).toList();
+    if (entities.isNotEmpty) {
+      await db.plantsOrgDao.upsertAll(entities);
+    }
+  }
+
+
   // End Assets Repository
 
   /// Save or update person details + related contacts + attendance in local DB

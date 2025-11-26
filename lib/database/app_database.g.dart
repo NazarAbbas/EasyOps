@@ -86,6 +86,8 @@ class _$AppDatabase extends AppDatabase {
 
   ShiftDao? _shiftDaoInstance;
 
+  PlantsOrgDao? _plantsOrgDao;
+
   OfflineWorkOrderDao? _offlineWorkOrderDaoInstance;
 
   OperatorsDetailsDao? _operatorsDetailsDaoInstance;
@@ -229,6 +231,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   ShiftDao get shiftDao {
     return _shiftDaoInstance ??= _$ShiftDao(database, changeListener);
+  }
+
+  @override
+  ShiftDao get plantdao {
+    return _plantsOrgDao ??= $Pl(database, changeListener);
   }
 
   @override
@@ -755,6 +762,8 @@ class _$ShiftDao extends ShiftDao {
                   'tenantId': item.tenantId,
                   'clientId': item.clientId
                 });
+
+
 
   final sqflite.DatabaseExecutor database;
 
