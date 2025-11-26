@@ -9,6 +9,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OperatorInfoController extends GetxController {
@@ -136,6 +137,8 @@ class OperatorInfoController extends GetxController {
     super.onInit();
     _initAsync();
 
+    reportedTime.value = TimeOfDay.now();
+    reportedDate.value = DateTime.now();
     await _setLoggedInPersonAsReporter();
 
     final prefs = await SharedPreferences.getInstance();

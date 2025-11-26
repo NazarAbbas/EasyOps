@@ -212,7 +212,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                     _Row2(
                       spacing: 12,
                       left: Obx(() => _LabelValuePlain(
-                          'Employee ID', controller.reporterId.value)),
+                          'Employee code', controller.reporterId.value)),
                       right: Obx(() => _LabelValuePlain('Phone Number',
                           controller.reporterPhoneNumber.value)),
                     ),
@@ -369,7 +369,7 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         _Row2(
                           spacing: 12,
                           left: Obx(() => _LabelValuePlain(
-                              'Employee ID', controller.operatorId.value)),
+                              'Employee code', controller.operatorId.value)),
                           right: Obx(() => _LabelValuePlain('Phone Number',
                               controller.operatorPhoneNumber.value)),
                         ),

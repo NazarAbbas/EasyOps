@@ -46,43 +46,41 @@ class AssetItem {
   final String plantId;
   final String? plantName;
 
-  AssetItem({
-    required this.id,
-    required this.name,
-    required this.criticality,
-    this.description,
-    this.serialNumber,
-    this.manufacturer,
-    this.manufacturerPhone,
-    this.manufacturerEmail,
-    this.manufacturerAddress,
-    required this.status,
-    required this.recordStatus,
-    required this.updatedAt,
-    required this.tenantId,
-    required this.clientId,
-    required this.plantId,
-    this.plantName
-  });
+  AssetItem(
+      {required this.id,
+      required this.name,
+      required this.criticality,
+      this.description,
+      this.serialNumber,
+      this.manufacturer,
+      this.manufacturerPhone,
+      this.manufacturerEmail,
+      this.manufacturerAddress,
+      required this.status,
+      required this.recordStatus,
+      required this.updatedAt,
+      required this.tenantId,
+      required this.clientId,
+      required this.plantId,
+      this.plantName});
 
   factory AssetItem.fromJson(Map<String, dynamic> j) => AssetItem(
-        id: (j['id'] ?? '').toString(),
-        name: (j['name'] ?? '').toString(),
-        criticality: (j['criticality'] ?? '').toString(),
-        description: j['description'] as String?,
-        serialNumber: j['serialNumber'] as String?,
-        manufacturer: j['manufacturer'] as String?,
-        manufacturerPhone: j['manufacturerPhone'] as String?,
-        manufacturerEmail: j['manufacturerEmail'] as String?,
-        manufacturerAddress: j['manufacturerAddress'] as String?,
-        status: (j['status'] ?? '').toString(),
-        recordStatus: (j['recordStatus'] as num?)?.toInt() ?? 0,
-        updatedAt: DateTime.parse(j['updatedAt'] as String),
-        tenantId: (j['tenantId'] ?? '').toString(),
-        clientId: (j['clientId'] ?? '').toString(),
-        plantId: (j['plantId'] ?? '').toString(),
-        plantName: j['plantName'] as String?
-      );
+      id: (j['code'] ?? '').toString(),
+      name: (j['name'] ?? '').toString(),
+      criticality: (j['criticality'] ?? '').toString(),
+      description: j['description'] as String?,
+      serialNumber: j['serialNumber'] as String?,
+      manufacturer: j['manufacturer'] as String?,
+      manufacturerPhone: j['manufacturerPhone'] as String?,
+      manufacturerEmail: j['manufacturerEmail'] as String?,
+      manufacturerAddress: j['manufacturerAddress'] as String?,
+      status: (j['status'] ?? '').toString(),
+      recordStatus: (j['recordStatus'] as num?)?.toInt() ?? 0,
+      updatedAt: DateTime.parse(j['updatedAt'] as String),
+      tenantId: (j['tenantId'] ?? '').toString(),
+      clientId: (j['clientId'] ?? '').toString(),
+      plantId: (j['plantId'] ?? '').toString(),
+      plantName: j['plantName'] as String?);
 
   Map<String, dynamic> toJson() => {
         'id': id,

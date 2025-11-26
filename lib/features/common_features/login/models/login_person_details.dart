@@ -62,7 +62,8 @@ class LoginPersonDetails {
 
   factory LoginPersonDetails.fromJson(Map<String, dynamic> json) {
     return LoginPersonDetails(
-      id: json['id'] as String,
+      id: json['code'] as String,
+      //id: json['id'] as String,
       name: json['name'] as String,
       userPhone: json['userPhone'] as String,
       recordStatus: (json['recordStatus'] as num).toInt(),

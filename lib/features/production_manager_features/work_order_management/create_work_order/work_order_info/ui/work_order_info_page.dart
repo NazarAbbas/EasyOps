@@ -423,13 +423,13 @@ class WorkOrderInfoPage extends GetView<WorkorderInfoController> {
                       // Assets Serial No. | Type (Criticality)
                       _Row2(
                         left: _Label(
-                          'Asset Serial No.',
+                          'Asset Code',
                           SizedBox(
                             height: 48,
                             child: TextField(
                               controller: controller.assetsCtrl,
                               decoration: _D.field(
-                                hint: 'Enter or pick serial no.',
+                                hint: 'Enter or pick code',
                                 prefix: const Padding(
                                   padding: EdgeInsets.only(left: 12, right: 6),
                                   child: Icon(
@@ -1292,7 +1292,7 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
       _filtered = q.isEmpty
           ? _sorted(widget.items)
           : _sorted(widget.items.where((e) {
-              final sn = (e.serialNumber ?? '').toLowerCase();
+              final sn = (e.id ?? '').toLowerCase();
               final nm = e.name.toLowerCase();
               return sn.contains(q) || nm.contains(q);
             }).toList());
@@ -1302,8 +1302,8 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
   List<AssetItem> _sorted(List<AssetItem> list) {
     final copy = List<AssetItem>.from(list);
     copy.sort((a, b) {
-      final asn = (a.serialNumber ?? '').toLowerCase();
-      final bsn = (b.serialNumber ?? '').toLowerCase();
+      final asn = (a.id ?? '').toLowerCase();
+      final bsn = (b.id ?? '').toLowerCase();
       final by = asn.compareTo(bsn);
       return by != 0
           ? by
@@ -1332,14 +1332,14 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
               ),
             ),
             const Text(
-              'Select Asset by Serial No.',
+              'Select Asset by code',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _searchCtrl,
               decoration: const InputDecoration(
-                hintText: 'Search by serial no. or name',
+                hintText: 'Search by asset code or name',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -1360,7 +1360,7 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final it = _filtered[i];
-                        final sn = it.serialNumber ?? '-';
+                        final sn = it.id ?? '-';
                         return ListTile(
                           title: Text(
                             sn,
