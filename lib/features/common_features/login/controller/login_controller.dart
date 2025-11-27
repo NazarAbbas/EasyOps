@@ -113,6 +113,7 @@ class LoginPageController extends GetxController {
           await repository.upsertPlantsOrgData(plantsOrgData.data!);
         }
 
+
         final dropDownData = await repositoryImpl.lookup();
         final workOrderCategory = await repositoryImpl.workOrderCategoryLookup();
         final shiftData = await repositoryImpl.shiftData();

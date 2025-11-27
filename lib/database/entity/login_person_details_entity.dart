@@ -5,6 +5,7 @@ class LoginPersonDetailsEntity {
   @primaryKey
   final String id;
   final String name;
+  final String code;
   final String userPhone;
   final String? dob;
   final String? bloodGroup;
@@ -27,6 +28,7 @@ class LoginPersonDetailsEntity {
   LoginPersonDetailsEntity({
     required this.id,
     required this.name,
+    required this.code,
     required this.userPhone,
     this.dob,
     this.bloodGroup,

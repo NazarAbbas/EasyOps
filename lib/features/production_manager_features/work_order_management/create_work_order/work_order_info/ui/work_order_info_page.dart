@@ -1292,7 +1292,7 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
       _filtered = q.isEmpty
           ? _sorted(widget.items)
           : _sorted(widget.items.where((e) {
-              final sn = (e.id ?? '').toLowerCase();
+              final sn = (e.serialNumber ?? '').toLowerCase();
               final nm = e.name.toLowerCase();
               return sn.contains(q) || nm.contains(q);
             }).toList());
@@ -1302,8 +1302,8 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
   List<AssetItem> _sorted(List<AssetItem> list) {
     final copy = List<AssetItem>.from(list);
     copy.sort((a, b) {
-      final asn = (a.id ?? '').toLowerCase();
-      final bsn = (b.id ?? '').toLowerCase();
+      final asn = (a.serialNumber ?? '').toLowerCase();
+      final bsn = (b.serialNumber ?? '').toLowerCase();
       final by = asn.compareTo(bsn);
       return by != 0
           ? by
@@ -1360,7 +1360,7 @@ class _AssetSerialSearchSheetState extends State<AssetSerialSearchSheet> {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final it = _filtered[i];
-                        final sn = it.id ?? '-';
+                        final sn = it.serialNumber ?? '-';
                         return ListTile(
                           title: Text(
                             sn,

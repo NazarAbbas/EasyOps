@@ -65,11 +65,11 @@ class AssetItem {
       this.plantName});
 
   factory AssetItem.fromJson(Map<String, dynamic> j) => AssetItem(
-      id: (j['code'] ?? '').toString(),
+      id: (j['id'] ?? '').toString(),
       name: (j['name'] ?? '').toString(),
       criticality: (j['criticality'] ?? '').toString(),
       description: j['description'] as String?,
-      serialNumber: j['serialNumber'] as String?,
+      serialNumber: j['code'] as String?,
       manufacturer: j['manufacturer'] as String?,
       manufacturerPhone: j['manufacturerPhone'] as String?,
       manufacturerEmail: j['manufacturerEmail'] as String?,

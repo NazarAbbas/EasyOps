@@ -146,6 +146,7 @@ class DBRepository {
     return LoginPersonDetails(
       id: personRow.id,
       name: personRow.name,
+      code: personRow.code,
       userPhone: personRow.userPhone,
       dob: personRow.dob != null ? DateTime.parse(personRow.dob!) : null,
       bloodGroup: personRow.bloodGroup,
