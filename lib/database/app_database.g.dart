@@ -872,6 +872,14 @@ class _$PlantsOrgDao extends PlantsOrgDao {
   }
 
   @override
+  Future<List<PlantsOrgEntity>> getAllByParentOrgID(String parentOrgId) {
+    return _queryAdapter.queryList(
+        'SELECT * FROM plants_org      WHERE parentOrgId = ?1     ORDER BY displayName',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(id: row['id'] as String, displayName: row['displayName'] as String, orgTypeId: row['orgTypeId'] as String, orgTypeName: row['orgTypeName'] as String, addressLine1: row['addressLine1'] as String, addressLine2: row['addressLine2'] as String, zip: row['zip'] as String, recordStatus: row['recordStatus'] as int, tenantId: row['tenantId'] as String, tenantName: row['tenantName'] as String, clientId: row['clientId'] as String, clientName: row['clientName'] as String, parentOrgId: row['parentOrgId'] as String?, parentOrgName: row['parentOrgName'] as String?, countryId: row['countryId'] as String, countryName: row['countryName'] as String, stateId: row['stateId'] as String, stateName: row['stateName'] as String, districtId: row['districtId'] as String, districtName: row['districtName'] as String, timezoneId: row['timezoneId'] as String, timezoneName: row['timezoneName'] as String, dateFormatId: row['dateFormatId'] as String, languageId: row['languageId'] as String, languageName: row['languageName'] as String, currencyId: row['currencyId'] as String, currencyName: row['currencyName'] as String, taxProfileId: row['taxProfileId'] as String?),
+        arguments: [parentOrgId]);
+  }
+
+  @override
   Future<List<PlantsOrgEntity>> getAll() async {
     return _queryAdapter.queryList(
         'SELECT * FROM plants_org ORDER BY displayName',

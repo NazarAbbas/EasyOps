@@ -1,8 +1,8 @@
 // lib/features/work_order_management/create_work_order/operator_info/ui/operator_info_page.dart
 
 import 'package:easy_ops/core/theme/app_colors.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:easy_ops/core/utils/utils.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/operator_info/controller/operator_info_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -235,25 +235,6 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _Label(
-                            'Location',
-                            child: _TapField(
-                              text: controller.location.value.isEmpty
-                                  ? 'Select'
-                                  : controller.location.value,
-                              leading: const Icon(CupertinoIcons.placemark,
-                                  size: 18, color: AppColors.muted),
-                              trailing: const Icon(CupertinoIcons.chevron_down,
-                                  color: AppColors.muted),
-                              onTap: () => _pickFromList(
-                                context,
-                                title: 'Select Location',
-                                options: controller.locationsForPicker,
-                                onSelected: controller.onLocationChanged,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _Label(
                             'Plant',
                             child: _TapField(
                               text: controller.plant.value.isEmpty
@@ -270,6 +251,25 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                                 title: 'Select Plant',
                                 options: controller.plantsForPicker,
                                 onSelected: controller.onPlantChanged,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _Label(
+                            'Location',
+                            child: _TapField(
+                              text: controller.location.value.isEmpty
+                                  ? 'Select'
+                                  : controller.location.value,
+                              leading: const Icon(CupertinoIcons.placemark,
+                                  size: 18, color: AppColors.muted),
+                              trailing: const Icon(CupertinoIcons.chevron_down,
+                                  color: AppColors.muted),
+                              onTap: () => _pickFromList(
+                                context,
+                                title: 'Select Location',
+                                options: controller.locationsForPicker,
+                                onSelected: controller.onLocationChanged,
                               ),
                             ),
                           ),
@@ -310,12 +310,15 @@ class OperatorInfoPage extends GetView<OperatorInfoController> {
                             child: _TapField(
                               text: controller.shift.value.isEmpty
                                   ? 'Auto-detected shift will appear here'
-                                  : controller.shift.value, // Take shift automatically
+                                  : controller.shift.value,
+                              // Take shift automatically
                               leading: const Icon(
-                                  CupertinoIcons.square_stack_3d_down_dottedline,
+                                  CupertinoIcons
+                                      .square_stack_3d_down_dottedline,
                                   size: 18,
                                   color: AppColors.muted),
-                              trailing: const Icon(CupertinoIcons.lock_fill, // Lock icon
+                              trailing: const Icon(
+                                  CupertinoIcons.lock_fill, // Lock icon
                                   color: AppColors.muted),
                               onTap: () {}, // Empty callback
                             ),
@@ -392,6 +395,7 @@ class _SectionBox extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget child;
+
   const _SectionBox({required this.title, this.subtitle, required this.child});
 
   @override
@@ -455,7 +459,9 @@ class _SectionBox extends StatelessWidget {
 class _Label extends StatelessWidget {
   final String label;
   final Widget child;
+
   const _Label(this.label, {required this.child});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -479,7 +485,9 @@ class _Label extends StatelessWidget {
 class _LabelValuePlain extends StatelessWidget {
   final String label;
   final String value;
+
   const _LabelValuePlain(this.label, this.value);
+
   @override
   Widget build(BuildContext context) {
     return _Label(
@@ -500,6 +508,7 @@ class _TapField extends StatelessWidget {
   final VoidCallback onTap;
   final Widget? leading;
   final Widget? trailing;
+
   const _TapField({
     required this.text,
     required this.onTap,
@@ -547,6 +556,7 @@ class _CheckboxLine extends StatelessWidget {
   final String label;
   final bool value;
   final ValueChanged<bool> onChanged;
+
   const _CheckboxLine({
     required this.label,
     required this.value,
@@ -586,6 +596,7 @@ class _Row2 extends StatelessWidget {
   final double spacing;
   final Widget left;
   final Widget right;
+
   const _Row2({required this.spacing, required this.left, required this.right});
 
   @override
@@ -604,6 +615,7 @@ class _PickerContent extends StatelessWidget {
   final String title;
   final List<String> options;
   final ValueChanged<String> onSelected;
+
   const _PickerContent({
     required this.title,
     required this.options,

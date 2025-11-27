@@ -3,6 +3,7 @@ import 'package:easy_ops/core/utils/share_preference.dart';
 import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/tabs/controller/work_tabs_controller.dart';
@@ -56,8 +57,8 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // Dropdown data sources (typed) + names
   // ─────────────────────────────────────────────────────────────────────────
-  final RxList<Organization> locationTypeOptions = <Organization>[].obs;
-  final RxList<Organization> plantTypeOptions = <Organization>[].obs;
+  final RxList<PlantsOrgItem> locationTypeOptions = <PlantsOrgItem>[].obs;
+  final RxList<PlantsOrgItem> plantTypeOptions = <PlantsOrgItem>[].obs;
 
   final RxList<String> locationOptions = <String>[].obs;
   final RxList<String> plantOptions = <String>[].obs;
@@ -65,6 +66,7 @@ class OperatorInfoController extends GetxController {
 
   // Shifts cache to evaluate reported time
   final RxList<Shift> _shifts = <Shift>[].obs;
+  final RxList<PlantsOrgItem> _locations = <PlantsOrgItem>[].obs;
 
   // Convenience getters
   List<String> get locations => locationOptions;
@@ -172,6 +174,37 @@ class OperatorInfoController extends GetxController {
         tenantId: '',
         clientId: '',
       );
+
+  PlantsOrgItem _placeholderPlants(String label) => PlantsOrgItem(
+    id: 'PLANT_PLACEHOLDER',
+    displayName: 'Select Plant',
+    orgTypeId: '',
+    orgTypeName: '',
+    addressLine1: '',
+    addressLine2: '',
+    zip: '',
+    recordStatus: 1, // or 0, depending on your convention
+    tenantId: '',
+    tenantName: '',
+    clientId: '',
+    clientName: '',
+    parentOrgId: null,
+    parentOrgName: null,
+    countryId: '',
+    countryName: '',
+    stateId: '',
+    stateName: '',
+    districtId: '',
+    districtName: '',
+    timezoneId: '',
+    timezoneName: '',
+    dateFormatId: '',
+    languageId: '',
+    languageName: '',
+    currencyId: '',
+    currencyName: '',
+    taxProfileId: null,
+  );
 
   DateTime? _parseIso(String? s) =>
       (s == null || s.isEmpty) ? null : DateTime.tryParse(s);
@@ -391,10 +424,10 @@ class OperatorInfoController extends GetxController {
     // Fetch lists
     final operatorsList = await repository.getAllOperator();
     final shiftList = await repository.getAllShift(); // List<Shift>
-    final deptList =
-        await repository.getAllOrganization(); // List<Organization>
+   /* final deptList =
+        await repository.getPlantsByParentOrgID();*/ // List<Organization>
     final plantsList =
-        await repository.getAllOrganization(); // List<Organization>
+        await repository.getActivePlants(); // List<Organization>
 
     _shifts.assignAll(shiftList);
 
@@ -404,14 +437,14 @@ class OperatorInfoController extends GetxController {
 
     // Typed option lists (with placeholder rows)
     locationTypeOptions
-        .assignAll([_placeholderOrg('Select location'), ...deptList]);
+        .assignAll([_placeholderPlants('Select location'), ...locationTypeOptions]);
     plantTypeOptions
-        .assignAll([_placeholderOrg('Select plant'), ...plantsList]);
+        .assignAll([_placeholderPlants('Select plant'), ...plantsList]);
 
     // Names lists for simpler dropdowns
     locationOptions
       ..clear()
-      ..addAll([_placeholder, ...deptList.map((e) => e.displayName)]);
+      ..addAll([_placeholder, ...locationTypeOptions.map((e) => e.displayName)]);
     plantOptions
       ..clear()
       ..addAll([_placeholder, ...plantsList.map((e) => e.displayName)]);
@@ -425,7 +458,7 @@ class OperatorInfoController extends GetxController {
       ..addEntries(plantsList.map((e) => MapEntry(e.displayName, e.id)));
     _locationNameToId
       ..clear()
-      ..addEntries(deptList.map((e) => MapEntry(e.displayName, e.id)));
+      ..addEntries(locationTypeOptions.map((e) => MapEntry(e.displayName, e.id)));
     _shiftNameToId
       ..clear()
       ..addEntries(shiftList.map((s) => MapEntry(s.name, s.id)));
@@ -731,9 +764,16 @@ class OperatorInfoController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
   // Dropdown change handlers
   // ─────────────────────────────────────────────────────────────────────────
-  void onPlantChanged(String name) {
+  Future<void> onPlantChanged(String name) async {
     plant.value = name;
     plantId.value = _plantNameToId[name] ?? '';
+    locationTypeOptions.value = await repository.getPlantsByParentOrgID(plantId.value);
+    locationOptions
+      ..clear()
+      ..addAll([_placeholder, ...locationTypeOptions.map((e) => e.displayName)]);
+    _locationNameToId
+      ..clear()
+      ..addEntries(locationTypeOptions.map((e) => MapEntry(e.displayName, e.id)));
     saveToBag();
   }
 

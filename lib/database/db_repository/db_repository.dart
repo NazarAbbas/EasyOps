@@ -1,23 +1,23 @@
 // lib/database/db_repository/asset_repository.dart
 import 'dart:convert';
 
-import 'package:easy_ops/database/entity/user_list_entity.dart';
-import 'package:easy_ops/database/mappers/mappers.dart';
-import 'package:easy_ops/features/common_features/login/models/user_response.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
-import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:easy_ops/database/app_database.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
-import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/database/entity/lookup_entity.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/database/entity/operators_details_entity.dart';
+import 'package:easy_ops/database/entity/shift_entity.dart';
+import 'package:easy_ops/database/entity/user_list_entity.dart';
+import 'package:easy_ops/database/mappers/mappers.dart';
+import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
 import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
+import 'package:easy_ops/features/common_features/login/models/user_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 // lib/database/db_repository/shift_repository.dart
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
-import 'package:easy_ops/database/entity/shift_entity.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 import '../../core/network/rest_client.dart';
 import '../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
@@ -56,12 +56,20 @@ class DBRepository {
   }
 
   Future<List<PlantsOrgItem>> getPlantsByTenant(String tenantId) async {
-    final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getActiveByTenant(tenantId);
+    final List<PlantsOrgEntity> rows =
+        await db.plantsOrgDao.getActiveByTenant(tenantId);
     return rows.map((e) => e.toDomain()).toList();
   }
 
   Future<List<PlantsOrgItem>> getPlantsByClient(String clientId) async {
-    final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getActiveByClient(clientId);
+    final List<PlantsOrgEntity> rows =
+        await db.plantsOrgDao.getActiveByClient(clientId);
+    return rows.map((e) => e.toDomain()).toList();
+  }
+
+  Future<List<PlantsOrgItem>> getPlantsByParentOrgID(String parentOrgId) async {
+    final List<PlantsOrgEntity> rows =
+        await db.plantsOrgDao.getAllByParentOrgID(parentOrgId);
     return rows.map((e) => e.toDomain()).toList();
   }
 
@@ -77,10 +85,14 @@ class DBRepository {
     }
   }
 
-  Future<List<PlantsOrgItem>> fetchPlantsFromServer({required String organizationId,}) async {
+  Future<List<PlantsOrgItem>> fetchPlantsFromServer({
+    required String organizationId,
+  }) async {
     try {
       final restClient = Get.find<RestClient>();
-      final plantsList = await restClient.getPlantsOrg(organizationId: organizationId,);
+      final plantsList = await restClient.getPlantsOrg(
+        organizationId: organizationId,
+      );
       await upsertPlantsOrgData(plantsList);
       return plantsList;
     } catch (e) {
@@ -183,14 +195,16 @@ class DBRepository {
           .map((e) => LoginPersonAsset(
                 id: e.id,
                 recordStatus: e.recordStatus,
-                createdAt: _parseDateTime(e.createdAt), // already DateTime?
+                createdAt: _parseDateTime(e.createdAt),
+                // already DateTime?
                 personId: e.personId,
                 personName: e.personName,
                 assetId: e.assetId,
                 assetName: e.assetName,
                 assetSerialNumber: e.assetSerialNumber,
               ))
-          .toList(), // assets can be handled later
+          .toList(),
+      // assets can be handled later
       attendance: attendance
           .map((e) => LoginPersonAttendance(
                 id: e.id,
@@ -252,7 +266,9 @@ class DBRepository {
     try {
       final dynamic json = (e as dynamic).toJson();
       if (json is Map<String, dynamic>) return json;
-    } catch (_) {/* ignore */}
+    } catch (_) {
+      /* ignore */
+    }
     // Fallback: build a minimal map with common fields
     final typeName = () {
       try {

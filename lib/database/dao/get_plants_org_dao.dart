@@ -30,6 +30,14 @@ abstract class PlantsOrgDao {
   ''')
   Future<List<PlantsOrgEntity>> getActiveByClient(String clientId);
 
+
+  @Query('''
+    SELECT * FROM plants_org 
+    WHERE parentOrgId = :parentOrgId 
+    ORDER BY displayName
+  ''')
+  Future<List<PlantsOrgEntity>> getAllByParentOrgID(String parentOrgId);
+
   @Query('SELECT * FROM plants_org ORDER BY displayName')
   Future<List<PlantsOrgEntity>> getAll();
 
