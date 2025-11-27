@@ -106,8 +106,9 @@ class LoginPageController extends GetxController {
 
         final loginPerson =
             await repository.getPersonById(loginPersonDetails.data!.id);
+        final organizationId = loginPersonDetails.data!.organizationId;
 
-        final plantsOrgData = await repositoryImpl.getPlantsOrg();           //getplantorg
+        final plantsOrgData = await repositoryImpl.getPlantsOrg(organizationId!);           //getplantorg
         if(plantsOrgData.isSuccess && plantsOrgData.data != null){
           await repository.upsertPlantsOrgData(plantsOrgData.data!);
         }

@@ -38,6 +38,8 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 
+import '../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
+
 class ApiService {
   late final RestClient _api;
 
@@ -132,6 +134,14 @@ class ApiService {
   Future<LookupData> workOrderCategoryLookup() async {
     try {
       return await _api.workOrderCategoryLookup();
+    } on DioException catch (e) {
+      throw Exception(NetworkExceptions.getMessage(e));
+    }
+  }
+
+  Future<List<PlantsOrgItem>> getPlantsOrg({required String organizationId}) async {
+    try {
+      return await _api.getPlantsOrg(organizationId: organizationId);
     } on DioException catch (e) {
       throw Exception(NetworkExceptions.getMessage(e));
     }

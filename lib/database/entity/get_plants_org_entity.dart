@@ -2,6 +2,8 @@
 import 'package:easy_ops/database/converter/converters.dart';
 import 'package:floor/floor.dart';
 
+import '../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
+
 @TypeConverters([LookupTypeConverter, DateTimeIsoConverter])
 @Entity(
   tableName: 'plants_org',
@@ -73,4 +75,37 @@ class PlantsOrgEntity {
     required this.currencyName,
     this.taxProfileId,
   });
+
+  PlantsOrgItem toDomain() {
+    return PlantsOrgItem(
+      id: id,
+      displayName: displayName,
+      orgTypeId: orgTypeId,
+      orgTypeName: orgTypeName,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
+      zip: zip,
+      recordStatus: recordStatus,
+      tenantId: tenantId,
+      tenantName: tenantName,
+      clientId: clientId,
+      clientName: clientName,
+      parentOrgId: parentOrgId,
+      parentOrgName: parentOrgName,
+      countryId: countryId,
+      countryName: countryName,
+      stateId: stateId,
+      stateName: stateName,
+      districtId: districtId,
+      districtName: districtName,
+      timezoneId: timezoneId,
+      timezoneName: timezoneName,
+      dateFormatId: dateFormatId,
+      languageId: languageId,
+      languageName: languageName,
+      currencyId: currencyId,
+      currencyName: currencyName,
+      taxProfileId: taxProfileId,
+    );
+  }
 }

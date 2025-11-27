@@ -68,24 +68,24 @@ class NetworkRepositoryImpl implements NetworkRepository {
 
   // Add getplantsorg
   @override
-  Future<ApiResult<PlantsOrgData>> getPlantsOrg() async {
+  Future<ApiResult<List<PlantsOrgItem>>> getPlantsOrg(String organizationId) async {
     try {
-      final plantsOrgData = await _apiService.getPlantsOrg();
-      return ApiResult<PlantsOrgData>(
+      final plantsList = await _apiService.getPlantsOrg(organizationId: organizationId);
+      return ApiResult<List<PlantsOrgItem>>(
         httpCode: 200,
-        data: plantsOrgData,
+        data: plantsList,
         message: 'Success',
       );
     } on DioException catch (e) {
       final code = e.response?.statusCode ?? 0;
       final msg = NetworkExceptions.getMessage(e);
-      return ApiResult<PlantsOrgData>(
+      return ApiResult<List<PlantsOrgItem>>(
         httpCode: code,
         data: null,
         message: msg,
       );
     } catch (e) {
-      return ApiResult<PlantsOrgData>(
+      return ApiResult<List<PlantsOrgItem>>(
         httpCode: 0,
         data: null,
         message: e.toString(),

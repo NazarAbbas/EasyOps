@@ -86,7 +86,7 @@ class _$AppDatabase extends AppDatabase {
 
   ShiftDao? _shiftDaoInstance;
 
-  PlantsOrgDao? _plantsOrgDao;
+  PlantsOrgDao? _plantsOrgDaoInstance;
 
   OfflineWorkOrderDao? _offlineWorkOrderDaoInstance;
 
@@ -126,7 +126,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `shifts` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `clientId` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL,`categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `offline_workorders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `operatorName` TEXT NOT NULL, `operatorId` TEXT NOT NULL, `operatorPhoneNumber` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `reporterId` TEXT NOT NULL, `reporterName` TEXT NOT NULL, `reporterPhoneNumber` TEXT NOT NULL, `type` TEXT NOT NULL, `priority` TEXT NOT NULL, `status` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `remark` TEXT NOT NULL, `scheduledStart` TEXT NOT NULL, `scheduledEnd` TEXT NOT NULL, `assetId` TEXT NOT NULL, `plantId` TEXT NOT NULL, `departmentId` TEXT NOT NULL, `issueTypeId` TEXT NOT NULL, `impactId` TEXT NOT NULL, `shiftId` TEXT NOT NULL, `mediaFilesJson` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `synced` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `login_person_details` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `userPhone` TEXT NOT NULL, `dob` TEXT, `bloodGroup` TEXT, `designation` TEXT, `type` TEXT, `recordStatus` INTEGER NOT NULL, `updatedAt` TEXT NOT NULL, `userId` TEXT, `userEmail` TEXT, `organizationId` TEXT, `organizationName` TEXT, `departmentId` TEXT, `departmentName` TEXT, `managerId` TEXT, `managerName` TEXT, `managerContact` TEXT, `shiftId` TEXT, `shiftName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -144,15 +144,15 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `users_list` (`id` TEXT NOT NULL, `email` TEXT NOT NULL, `communicationEmail` TEXT, `passwordHash` TEXT NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `phone` TEXT NOT NULL, `userType` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `tenantId` TEXT NOT NULL, `tenantName` TEXT NOT NULL, `clientId` TEXT NOT NULL, `clientName` TEXT NOT NULL, `orgId` TEXT, `orgName` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `plants_org` (`id` TEXT NOT NULL, `displayName` TEXT NOT NULL, `orgTypeId` TEXT NOT NULL, `orgTypeName` TEXT NOT NULL, `addressLine1` TEXT NOT NULL, `addressLine2` TEXT NOT NULL, `zip` TEXT NOT NULL, `recordStatus` INTEGER NOT NULL, `tenantId` TEXT NOT NULL, `tenantName` TEXT NOT NULL, `clientId` TEXT NOT NULL, `clientName` TEXT NOT NULL, `parentOrgId` TEXT, `parentOrgName` TEXT, `countryId` TEXT NOT NULL, `countryName` TEXT NOT NULL, `stateId` TEXT NOT NULL, `stateName` TEXT NOT NULL, `districtId` TEXT NOT NULL, `districtName` TEXT NOT NULL, `timezoneId` TEXT NOT NULL, `timezoneName` TEXT NOT NULL, `dateFormatId` TEXT NOT NULL, `languageId` TEXT NOT NULL, `languageName` TEXT NOT NULL, `currencyId` TEXT NOT NULL, `currencyName` TEXT NOT NULL, `taxProfileId` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
             'CREATE INDEX `index_lookup_lookupType` ON `lookup` (`lookupType`)');
         await database.execute(
-            'CREATE UNIQUE INDEX `index_lookup_lookupType_code` ON `lookup` (`lookupType`, `code`)');
-        await database.execute(
-            'CREATE INDEX `index_assets_tenantId_clientId_serialNumber` ON `assets` (`tenantId`, `clientId`, `serialNumber`)');
+            'CREATE INDEX `index_lookup_lookupType_code` ON `lookup` (`lookupType`, `code`)');
         await database.execute(
             'CREATE INDEX `index_assets_tenantId_clientId_plantId` ON `assets` (`tenantId`, `clientId`, `plantId`)');
         await database.execute(
-            'CREATE INDEX `index_assets_tenantId_clientId` ON `assets` (`tenantId`, `clientId`)');
+            'CREATE INDEX `index_assets_tenantId_clientId_serialNumber` ON `assets` (`tenantId`, `clientId`, `serialNumber`)');
         await database.execute(
             'CREATE INDEX `index_assets_tenantId_clientId_status` ON `assets` (`tenantId`, `clientId`, `status`)');
         await database.execute(
@@ -187,6 +187,10 @@ class _$AppDatabase extends AppDatabase {
             'CREATE INDEX `index_organizations_parentOrgId` ON `organizations` (`parentOrgId`)');
         await database.execute(
             'CREATE INDEX `index_organizations_recordStatus` ON `organizations` (`recordStatus`)');
+        await database.execute(
+            'CREATE INDEX `index_plants_org_orgTypeId` ON `plants_org` (`orgTypeId`)');
+        await database.execute(
+            'CREATE INDEX `index_plants_org_orgTypeId_id` ON `plants_org` (`orgTypeId`, `id`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -234,8 +238,8 @@ class _$AppDatabase extends AppDatabase {
   }
 
   @override
-  ShiftDao get plantdao {
-    return _plantsOrgDao ??= $Pl(database, changeListener);
+  PlantsOrgDao get plantsOrgDao {
+    return _plantsOrgDaoInstance ??= _$PlantsOrgDao(database, changeListener);
   }
 
   @override
@@ -576,13 +580,9 @@ class _$LookupDao extends LookupDao {
                   'id': item.id,
                   'code': item.code,
                   'displayName': item.displayName,
-                  /* 'description': item.description,*/
                   'lookupType': item.lookupType,
                   'sortOrder': item.sortOrder,
-                  'recordStatus': item.recordStatus,
-                  /*'updatedAt': _dateTimeIsoConverter.encode(item.updatedAt?? DateTime.now()),
-                  'tenantId': item.tenantId,
-                  'clientId': item.clientId*/
+                  'recordStatus': item.recordStatus
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -597,52 +597,28 @@ class _$LookupDao extends LookupDao {
   Future<List<LookupEntity>> getActiveByType(LookupType lookupType) async {
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
-        mapper: (Map<String, Object?> row) => LookupEntity(
-              id: row['id'] as String,
-              code: row['code'] as String,
-              displayName: row['displayName'] as String,
-              /*description: row['description'] as String,*/
-              lookupType: row['lookupType'] as String,
-              sortOrder: row['sortOrder'] as int,
-              recordStatus: row['recordStatus'] as int,
-              /* updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String), tenantId: row['tenantId'] as String, clientId: row['clientId'] as String*/
-            ),
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int),
         arguments: [_lookupTypeConverter.encode(lookupType)]);
   }
 
   @override
   Future<List<LookupEntity>> getActiveByCode(String lookupCode) async {
     return _queryAdapter.queryList(
-      'SELECT * FROM lookup WHERE code = ?1 AND recordStatus = 1 ORDER BY sortOrder',
-      mapper: (Map<String, Object?> row) => LookupEntity(
-        id: row['id'] as String,
-        code: row['code'] as String,
-        displayName: row['displayName'] as String,
-        //description: row['description'] as String?, // or non-null default
-        lookupType: row['lookupType'] as String,
-        sortOrder: (row['sortOrder'] as num).toInt(),
-        recordStatus: (row['recordStatus'] as num).toInt(),
-        // updatedAt / tenantId / clientId as nullable if needed
-      ),
-      arguments: [lookupCode],
-    );
+        'SELECT * FROM lookup     WHERE code = ?1       AND recordStatus = 1     ORDER BY sortOrder',
+        mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int),
+        arguments: [lookupCode]);
   }
 
   @override
   Future<List<LookupEntity>> getAll() async {
     return _queryAdapter.queryList('SELECT * FROM lookup ORDER BY sortOrder',
         mapper: (Map<String, Object?> row) => LookupEntity(
-              id: row['id'] as String,
-              code: row['code'] as String,
-              displayName: row['displayName'] as String,
-              /* description: row['description'] as String,*/
-              lookupType: row['lookupType'] as String,
-              sortOrder: row['sortOrder'] as int,
-              recordStatus: row['recordStatus'] as int,
-              /*updatedAt: _dateTimeIsoConverter.decode(row['updatedAt'] as String),
-            tenantId: row['tenantId'] as String,
-            clientId: row['clientId'] as String*/
-            ));
+            id: row['id'] as String,
+            code: row['code'] as String,
+            displayName: row['displayName'] as String,
+            lookupType: row['lookupType'] as String,
+            sortOrder: row['sortOrder'] as int,
+            recordStatus: row['recordStatus'] as int));
   }
 
   @override
@@ -763,8 +739,6 @@ class _$ShiftDao extends ShiftDao {
                   'clientId': item.clientId
                 });
 
-
-
   final sqflite.DatabaseExecutor database;
 
   final StreamController<String> changeListener;
@@ -793,6 +767,200 @@ class _$ShiftDao extends ShiftDao {
   Future<void> upsertAllShift(List<ShiftEntity> items) async {
     await _shiftEntityInsertionAdapter.insertList(
         items, OnConflictStrategy.replace);
+  }
+}
+
+class _$PlantsOrgDao extends PlantsOrgDao {
+  _$PlantsOrgDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _plantsOrgEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'plants_org',
+            (PlantsOrgEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'displayName': item.displayName,
+                  'orgTypeId': item.orgTypeId,
+                  'orgTypeName': item.orgTypeName,
+                  'addressLine1': item.addressLine1,
+                  'addressLine2': item.addressLine2,
+                  'zip': item.zip,
+                  'recordStatus': item.recordStatus,
+                  'tenantId': item.tenantId,
+                  'tenantName': item.tenantName,
+                  'clientId': item.clientId,
+                  'clientName': item.clientName,
+                  'parentOrgId': item.parentOrgId,
+                  'parentOrgName': item.parentOrgName,
+                  'countryId': item.countryId,
+                  'countryName': item.countryName,
+                  'stateId': item.stateId,
+                  'stateName': item.stateName,
+                  'districtId': item.districtId,
+                  'districtName': item.districtName,
+                  'timezoneId': item.timezoneId,
+                  'timezoneName': item.timezoneName,
+                  'dateFormatId': item.dateFormatId,
+                  'languageId': item.languageId,
+                  'languageName': item.languageName,
+                  'currencyId': item.currencyId,
+                  'currencyName': item.currencyName,
+                  'taxProfileId': item.taxProfileId
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<PlantsOrgEntity> _plantsOrgEntityInsertionAdapter;
+
+  @override
+  Future<List<PlantsOrgEntity>> getActivePlants() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM plants_org      WHERE recordStatus = 1      ORDER BY displayName',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(
+            id: row['id'] as String,
+            displayName: row['displayName'] as String,
+            orgTypeId: row['orgTypeId'] as String,
+            orgTypeName: row['orgTypeName'] as String,
+            addressLine1: row['addressLine1'] as String,
+            addressLine2: row['addressLine2'] as String,
+            zip: row['zip'] as String,
+            recordStatus: row['recordStatus'] as int,
+            tenantId: row['tenantId'] as String,
+            tenantName: row['tenantName'] as String,
+            clientId: row['clientId'] as String,
+            clientName: row['clientName'] as String,
+            parentOrgId: row['parentOrgId'] as String?,
+            parentOrgName: row['parentOrgName'] as String?,
+            countryId: row['countryId'] as String,
+            countryName: row['countryName'] as String,
+            stateId: row['stateId'] as String,
+            stateName: row['stateName'] as String,
+            districtId: row['districtId'] as String,
+            districtName: row['districtName'] as String,
+            timezoneId: row['timezoneId'] as String,
+            timezoneName: row['timezoneName'] as String,
+            dateFormatId: row['dateFormatId'] as String,
+            languageId: row['languageId'] as String,
+            languageName: row['languageName'] as String,
+            currencyId: row['currencyId'] as String,
+            currencyName: row['currencyName'] as String,
+            taxProfileId: row['taxProfileId'] as String?));
+  }
+
+  @override
+  Future<List<PlantsOrgEntity>> getActiveByTenant(String tenantId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM plants_org      WHERE tenantId = ?1        AND recordStatus = 1      ORDER BY displayName',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(id: row['id'] as String, displayName: row['displayName'] as String, orgTypeId: row['orgTypeId'] as String, orgTypeName: row['orgTypeName'] as String, addressLine1: row['addressLine1'] as String, addressLine2: row['addressLine2'] as String, zip: row['zip'] as String, recordStatus: row['recordStatus'] as int, tenantId: row['tenantId'] as String, tenantName: row['tenantName'] as String, clientId: row['clientId'] as String, clientName: row['clientName'] as String, parentOrgId: row['parentOrgId'] as String?, parentOrgName: row['parentOrgName'] as String?, countryId: row['countryId'] as String, countryName: row['countryName'] as String, stateId: row['stateId'] as String, stateName: row['stateName'] as String, districtId: row['districtId'] as String, districtName: row['districtName'] as String, timezoneId: row['timezoneId'] as String, timezoneName: row['timezoneName'] as String, dateFormatId: row['dateFormatId'] as String, languageId: row['languageId'] as String, languageName: row['languageName'] as String, currencyId: row['currencyId'] as String, currencyName: row['currencyName'] as String, taxProfileId: row['taxProfileId'] as String?),
+        arguments: [tenantId]);
+  }
+
+  @override
+  Future<List<PlantsOrgEntity>> getActiveByClient(String clientId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM plants_org      WHERE clientId = ?1        AND recordStatus = 1      ORDER BY displayName',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(id: row['id'] as String, displayName: row['displayName'] as String, orgTypeId: row['orgTypeId'] as String, orgTypeName: row['orgTypeName'] as String, addressLine1: row['addressLine1'] as String, addressLine2: row['addressLine2'] as String, zip: row['zip'] as String, recordStatus: row['recordStatus'] as int, tenantId: row['tenantId'] as String, tenantName: row['tenantName'] as String, clientId: row['clientId'] as String, clientName: row['clientName'] as String, parentOrgId: row['parentOrgId'] as String?, parentOrgName: row['parentOrgName'] as String?, countryId: row['countryId'] as String, countryName: row['countryName'] as String, stateId: row['stateId'] as String, stateName: row['stateName'] as String, districtId: row['districtId'] as String, districtName: row['districtName'] as String, timezoneId: row['timezoneId'] as String, timezoneName: row['timezoneName'] as String, dateFormatId: row['dateFormatId'] as String, languageId: row['languageId'] as String, languageName: row['languageName'] as String, currencyId: row['currencyId'] as String, currencyName: row['currencyName'] as String, taxProfileId: row['taxProfileId'] as String?),
+        arguments: [clientId]);
+  }
+
+  @override
+  Future<List<PlantsOrgEntity>> getAll() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM plants_org ORDER BY displayName',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(
+            id: row['id'] as String,
+            displayName: row['displayName'] as String,
+            orgTypeId: row['orgTypeId'] as String,
+            orgTypeName: row['orgTypeName'] as String,
+            addressLine1: row['addressLine1'] as String,
+            addressLine2: row['addressLine2'] as String,
+            zip: row['zip'] as String,
+            recordStatus: row['recordStatus'] as int,
+            tenantId: row['tenantId'] as String,
+            tenantName: row['tenantName'] as String,
+            clientId: row['clientId'] as String,
+            clientName: row['clientName'] as String,
+            parentOrgId: row['parentOrgId'] as String?,
+            parentOrgName: row['parentOrgName'] as String?,
+            countryId: row['countryId'] as String,
+            countryName: row['countryName'] as String,
+            stateId: row['stateId'] as String,
+            stateName: row['stateName'] as String,
+            districtId: row['districtId'] as String,
+            districtName: row['districtName'] as String,
+            timezoneId: row['timezoneId'] as String,
+            timezoneName: row['timezoneName'] as String,
+            dateFormatId: row['dateFormatId'] as String,
+            languageId: row['languageId'] as String,
+            languageName: row['languageName'] as String,
+            currencyId: row['currencyId'] as String,
+            currencyName: row['currencyName'] as String,
+            taxProfileId: row['taxProfileId'] as String?));
+  }
+
+  @override
+  Future<PlantsOrgEntity?> getById(String id) async {
+    return _queryAdapter.query('SELECT * FROM plants_org WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(
+            id: row['id'] as String,
+            displayName: row['displayName'] as String,
+            orgTypeId: row['orgTypeId'] as String,
+            orgTypeName: row['orgTypeName'] as String,
+            addressLine1: row['addressLine1'] as String,
+            addressLine2: row['addressLine2'] as String,
+            zip: row['zip'] as String,
+            recordStatus: row['recordStatus'] as int,
+            tenantId: row['tenantId'] as String,
+            tenantName: row['tenantName'] as String,
+            clientId: row['clientId'] as String,
+            clientName: row['clientName'] as String,
+            parentOrgId: row['parentOrgId'] as String?,
+            parentOrgName: row['parentOrgName'] as String?,
+            countryId: row['countryId'] as String,
+            countryName: row['countryName'] as String,
+            stateId: row['stateId'] as String,
+            stateName: row['stateName'] as String,
+            districtId: row['districtId'] as String,
+            districtName: row['districtName'] as String,
+            timezoneId: row['timezoneId'] as String,
+            timezoneName: row['timezoneName'] as String,
+            dateFormatId: row['dateFormatId'] as String,
+            languageId: row['languageId'] as String,
+            languageName: row['languageName'] as String,
+            currencyId: row['currencyId'] as String,
+            currencyName: row['currencyName'] as String,
+            taxProfileId: row['taxProfileId'] as String?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<List<PlantsOrgEntity>> searchPlants(String searchTerm) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM plants_org WHERE displayName LIKE ?1 AND recordStatus = 1',
+        mapper: (Map<String, Object?> row) => PlantsOrgEntity(id: row['id'] as String, displayName: row['displayName'] as String, orgTypeId: row['orgTypeId'] as String, orgTypeName: row['orgTypeName'] as String, addressLine1: row['addressLine1'] as String, addressLine2: row['addressLine2'] as String, zip: row['zip'] as String, recordStatus: row['recordStatus'] as int, tenantId: row['tenantId'] as String, tenantName: row['tenantName'] as String, clientId: row['clientId'] as String, clientName: row['clientName'] as String, parentOrgId: row['parentOrgId'] as String?, parentOrgName: row['parentOrgName'] as String?, countryId: row['countryId'] as String, countryName: row['countryName'] as String, stateId: row['stateId'] as String, stateName: row['stateName'] as String, districtId: row['districtId'] as String, districtName: row['districtName'] as String, timezoneId: row['timezoneId'] as String, timezoneName: row['timezoneName'] as String, dateFormatId: row['dateFormatId'] as String, languageId: row['languageId'] as String, languageName: row['languageName'] as String, currencyId: row['currencyId'] as String, currencyName: row['currencyName'] as String, taxProfileId: row['taxProfileId'] as String?),
+        arguments: [searchTerm]);
+  }
+
+  @override
+  Future<void> deletePlant(String id) async {
+    await _queryAdapter
+        .queryNoReturn('DELETE FROM plants_org WHERE id = ?1', arguments: [id]);
+  }
+
+  @override
+  Future<void> deleteAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM plants_org');
+  }
+
+  @override
+  Future<void> upsertAll(List<PlantsOrgEntity> rows) async {
+    await _plantsOrgEntityInsertionAdapter.insertList(
+        rows, OnConflictStrategy.replace);
   }
 }
 

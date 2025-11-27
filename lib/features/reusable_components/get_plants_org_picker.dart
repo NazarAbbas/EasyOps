@@ -11,14 +11,14 @@ import '../production_manager_features/work_order_management/create_work_order/m
 class PlantsOrgPicker {
   static Future<PlantsOrgItem?> show({
     required BuildContext context,
-    required String tenantId, // or clientId based on your needs
+    required String organizationId, // or clientId based on your needs
     required PlantsOrgItem? selected,
     String title = 'Select Plant',
   }) async {
     final repository = Get.find<DBRepository>();
 
     // Use tenant-based filtering (or client-based based on your requirements)
-    final plants = await repository.getPlantsByTenant(tenantId);
+    final plants = await repository.getPlantsByTenant(organizationId);
 
     // Filter out invalid entries
     final items = plants

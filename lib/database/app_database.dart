@@ -25,6 +25,8 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
+import 'entity/get_plants_org_entity.dart';
+
 part 'app_database.g.dart';
 
 @TypeConverters([EpochDateTimeConverter])
@@ -40,7 +42,8 @@ part 'app_database.g.dart';
   OperatorsDetailsEntity,
   LoginPersonHolidayEntity,
   OrganizationEntity,
-  UserListEntity
+  UserListEntity,
+  PlantsOrgEntity,
 ])
 abstract class AppDatabase extends FloorDatabase {
   LoginPersonDetailsDao get loginPersonDao;
@@ -50,7 +53,7 @@ abstract class AppDatabase extends FloorDatabase {
   LookupDao get lookupDao;
   AssetDao get assetDao;
   ShiftDao get shiftDao;
-  PlantsOrgDao get plantDao;
+  PlantsOrgDao get plantsOrgDao;
   OfflineWorkOrderDao get offlineWorkOrderDao;
   OperatorsDetailsDao get operatorsDetailsDao;
   LoginPersonHolidaysDao get loginPersonHolidaysDao;

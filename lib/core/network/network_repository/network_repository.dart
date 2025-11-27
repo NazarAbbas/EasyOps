@@ -17,6 +17,7 @@ import 'package:easy_ops/features/production_manager_features/dashboard_profile_
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
@@ -25,6 +26,7 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_request.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/update_work_order/re_open_work_order/models/re_open_work_order_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
 
 abstract class NetworkRepository {
   Future<ApiResult<LoginResponse>> login({
@@ -34,6 +36,7 @@ abstract class NetworkRepository {
 
   Future<ApiResult<OrganizationData>> organization();
   Future<ApiResult<LookupData>> lookup();
+  Future<ApiResult<List<PlantsOrgItem>>> getPlantsOrg(String organizationId);
   Future<ApiResult<LookupData>> workOrderCategoryLookup();
   Future<ApiResult<ShiftData>> shiftData();
   Future<ApiResult<AssetsData>> assetsData();

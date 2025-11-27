@@ -19,6 +19,7 @@ import 'package:easy_ops/features/common_features/login/models/operators_details
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 import 'package:easy_ops/database/entity/shift_entity.dart';
 
+import '../../core/network/rest_client.dart';
 import '../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
 import '../entity/get_plants_org_entity.dart';
 
@@ -43,7 +44,7 @@ class DBRepository {
     }
   }
 
-  // PlantsOrg Repository - UPDATED with correct fields
+  // PlantsOrg Repository
   Future<List<PlantsOrgItem>> getAllPlants() async {
     final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getAll();
     return rows.map((e) => e.toDomain()).toList();
@@ -55,14 +56,12 @@ class DBRepository {
   }
 
   Future<List<PlantsOrgItem>> getPlantsByTenant(String tenantId) async {
-    final List<PlantsOrgEntity> rows =
-    await db.plantsOrgDao.getActiveByTenant(tenantId);
+    final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getActiveByTenant(tenantId);
     return rows.map((e) => e.toDomain()).toList();
   }
 
   Future<List<PlantsOrgItem>> getPlantsByClient(String clientId) async {
-    final List<PlantsOrgEntity> rows =
-    await db.plantsOrgDao.getActiveByClient(clientId);
+    final List<PlantsOrgEntity> rows = await db.plantsOrgDao.getActiveByClient(clientId);
     return rows.map((e) => e.toDomain()).toList();
   }
 
@@ -71,14 +70,23 @@ class DBRepository {
     return row?.toDomain();
   }
 
-  // plantsorg - UPDATED with correct mapping
-  Future<void> upsertPlantsOrgData(PlantsOrgData apiPage) async {
-    final entities = apiPage.content.map((e) => PlantsOrgEntity.fromDomain(e)).toList();
+  Future<void> upsertPlantsOrgData(List<PlantsOrgItem> plantsList) async {
+    final entities = plantsList.map((e) => e.toEntity()).toList();
     if (entities.isNotEmpty) {
       await db.plantsOrgDao.upsertAll(entities);
     }
   }
 
+  Future<List<PlantsOrgItem>> fetchPlantsFromServer({required String organizationId,}) async {
+    try {
+      final restClient = Get.find<RestClient>();
+      final plantsList = await restClient.getPlantsOrg(organizationId: organizationId,);
+      await upsertPlantsOrgData(plantsList);
+      return plantsList;
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
 
   // End Assets Repository
 

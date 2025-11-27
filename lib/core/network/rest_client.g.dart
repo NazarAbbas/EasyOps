@@ -6,7 +6,7 @@ part of 'rest_client.dart';
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element
 
 class _RestClient implements RestClient {
   _RestClient(
@@ -83,6 +83,42 @@ class _RestClient implements RestClient {
     late LookupData _value;
     try {
       _value = LookupData.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<List<PlantsOrgItem>> getPlantsOrg(
+      {required String organizationId}) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<PlantsOrgItem>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/organization/parent/${organizationId}/descendants?orgType=Plant',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<PlantsOrgItem> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => PlantsOrgItem.fromJson(i as Map<String, dynamic>))
+          .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -703,7 +739,7 @@ class _RestClient implements RestClient {
     )
         .compose(
           _dio.options,
-          'work-order-activity/bulk',
+          '/work-order-activity/bulk',
           queryParameters: queryParameters,
           data: _data,
         )

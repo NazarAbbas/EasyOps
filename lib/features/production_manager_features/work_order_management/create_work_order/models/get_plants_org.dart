@@ -1,30 +1,7 @@
-// lib/features/.../models/plants_org_data.dart
+// lib/features/.../models/get_plants_org.dart
 import 'dart:convert';
+import '../../../../../database/entity/get_plants_org_entity.dart';
 
-class PlantsOrgData {
-  final List<PlantsOrgItem> content;
-
-  const PlantsOrgData({
-    required this.content,
-  });
-
-  factory PlantsOrgData.fromJson(Map<String, dynamic> json) {
-    return PlantsOrgData(
-      content: (json['content'] as List<dynamic>? ?? [])
-          .map((e) => PlantsOrgItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'content': content.map((e) => e.toJson()).toList(),
-  };
-
-  static PlantsOrgData fromJsonString(String s) =>
-      PlantsOrgData.fromJson(json.decode(s) as Map<String, dynamic>);
-
-  String toJsonString() => json.encode(toJson());
-}
 
 class PlantsOrgItem {
   final String id;
@@ -89,33 +66,33 @@ class PlantsOrgItem {
 
   factory PlantsOrgItem.fromJson(Map<String, dynamic> json) {
     return PlantsOrgItem(
-      id: json['id'] as String,
-      displayName: json['displayName'] as String,
-      orgTypeId: json['orgTypeId'] as String,
-      orgTypeName: json['orgTypeName'] as String,
-      addressLine1: json['addressLine1'] as String,
-      addressLine2: json['addressLine2'] as String,
-      zip: json['zip'] as String,
+      id: json['id'] as String? ?? '',
+      displayName: json['displayName'] as String? ?? '',
+      orgTypeId: json['orgTypeId'] as String? ?? '',
+      orgTypeName: json['orgTypeName'] as String? ?? '',
+      addressLine1: json['addressLine1'] as String? ?? '',
+      addressLine2: json['addressLine2'] as String? ?? '',
+      zip: json['zip'] as String? ?? '',
       recordStatus: (json['recordStatus'] as num?)?.toInt() ?? 1,
-      tenantId: json['tenantId'] as String,
-      tenantName: json['tenantName'] as String,
-      clientId: json['clientId'] as String,
-      clientName: json['clientName'] as String,
+      tenantId: json['tenantId'] as String? ?? '',
+      tenantName: json['tenantName'] as String? ?? '',
+      clientId: json['clientId'] as String? ?? '',
+      clientName: json['clientName'] as String? ?? '',
       parentOrgId: json['parentOrgId'] as String?,
       parentOrgName: json['parentOrgName'] as String?,
-      countryId: json['countryId'] as String,
-      countryName: json['countryName'] as String,
-      stateId: json['stateId'] as String,
-      stateName: json['stateName'] as String,
-      districtId: json['districtId'] as String,
-      districtName: json['districtName'] as String,
-      timezoneId: json['timezoneId'] as String,
-      timezoneName: json['timezoneName'] as String,
-      dateFormatId: json['dateFormatId'] as String,
-      languageId: json['languageId'] as String,
-      languageName: json['languageName'] as String,
-      currencyId: json['currencyId'] as String,
-      currencyName: json['currencyName'] as String,
+      countryId: json['countryId'] as String? ?? '',
+      countryName: json['countryName'] as String? ?? '',
+      stateId: json['stateId'] as String? ?? '',
+      stateName: json['stateName'] as String? ?? '',
+      districtId: json['districtId'] as String? ?? '',
+      districtName: json['districtName'] as String? ?? '',
+      timezoneId: json['timezoneId'] as String? ?? '',
+      timezoneName: json['timezoneName'] as String? ?? '',
+      dateFormatId: json['dateFormatId'] as String? ?? '',
+      languageId: json['languageId'] as String? ?? '',
+      languageName: json['languageName'] as String? ?? '',
+      currencyId: json['currencyId'] as String? ?? '',
+      currencyName: json['currencyName'] as String? ?? '',
       taxProfileId: json['taxProfileId'] as String?,
     );
   }
@@ -210,6 +187,40 @@ class PlantsOrgItem {
       currencyId: currencyId ?? this.currencyId,
       currencyName: currencyName ?? this.currencyName,
       taxProfileId: taxProfileId ?? this.taxProfileId,
+    );
+  }
+
+  // ADD THIS METHOD
+  PlantsOrgEntity toEntity() {
+    return PlantsOrgEntity(
+      id: id,
+      displayName: displayName,
+      orgTypeId: orgTypeId,
+      orgTypeName: orgTypeName,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
+      zip: zip,
+      recordStatus: recordStatus,
+      tenantId: tenantId,
+      tenantName: tenantName,
+      clientId: clientId,
+      clientName: clientName,
+      parentOrgId: parentOrgId,
+      parentOrgName: parentOrgName,
+      countryId: countryId,
+      countryName: countryName,
+      stateId: stateId,
+      stateName: stateName,
+      districtId: districtId,
+      districtName: districtName,
+      timezoneId: timezoneId,
+      timezoneName: timezoneName,
+      dateFormatId: dateFormatId,
+      languageId: languageId,
+      languageName: languageName,
+      currencyId: currencyId,
+      currencyName: currencyName,
+      taxProfileId: taxProfileId,
     );
   }
 }

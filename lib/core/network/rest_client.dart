@@ -26,6 +26,8 @@ import 'package:easy_ops/features/production_manager_features/work_order_managem
 import 'package:retrofit/retrofit.dart';
 import 'package:easy_ops/features/common_features/login/models/login_response.dart';
 
+import '../../features/production_manager_features/work_order_management/create_work_order/models/get_plants_org.dart';
+
 part 'rest_client.g.dart';
 
 // Define this at the top of the file or in a constants file
@@ -40,6 +42,12 @@ abstract class RestClient {
 
   @GET('/client-lookup/')
   Future<LookupData> lookup();
+
+  // /organization/parent/{organizationId}/descendants?orgType=Plant \
+  @GET('/organization/parent/{organizationId}/descendants?orgType=Plant')
+  Future<List<PlantsOrgItem>> getPlantsOrg({
+    @Path('organizationId') required String organizationId,
+});
 
   //https://user-dev.eazyops.in:8443/v1/api/lookup-value/type/WORK_ORDER_CATEGORY' \
   @GET('/lookup-value/type/WORK_ORDER_CATEGORY')
@@ -120,7 +128,7 @@ abstract class RestClient {
   );
 
   /// Sends a JSON array body
-  @POST('work-order-activity/bulk')
+  @POST('/work-order-activity/bulk')
   Future<PendingActivityResponse> createActivitiesBulk(
       @Body() List<PendingActivityRequest> items);
 
