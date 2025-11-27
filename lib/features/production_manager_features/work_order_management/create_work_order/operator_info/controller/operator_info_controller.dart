@@ -32,6 +32,7 @@ class OperatorInfoController extends GetxController {
   final sameAsOperator = false.obs;
 
   final RxString reporterId = ''.obs;
+  final RxString employeeCode = ''.obs;
   final RxString reporterPhoneNumber = ''.obs;
 
   final RxString operatorId = ''.obs;
@@ -144,6 +145,9 @@ class OperatorInfoController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     final loginPersonId = prefs.getString(Constant.loginPersonId);
     final details = await repository.getPersonById(loginPersonId!);
+    if (details != null) {
+      employeeCode.value = details.code;
+    }
   }
 
   @override
@@ -459,18 +463,22 @@ class OperatorInfoController extends GetxController {
       _selectedOperator = person;
       operatorCtrl.text = _displayFor(person);
       operatorId.value = person.id;
+      employeeCode.value = person.code ?? '';
       operatorPhoneNumber.value = person.userPhone;
+
 
       if (sameAsOperator.value) {
         _selectedReporter = person;
         reporterCtrl.text = _displayFor(person);
         reporterId.value = person.id;
+        employeeCode.value = person.code ?? '';
         reporterPhoneNumber.value = person.userPhone;
       }
     } else {
       _selectedReporter = person;
       reporterCtrl.text = _displayFor(person);
       reporterId.value = person.id;
+      employeeCode.value = person.code ??'';
       reporterPhoneNumber.value = person.userPhone;
     }
 
@@ -593,6 +601,7 @@ class OperatorInfoController extends GetxController {
         _selectedReporter = _selectedOperator;
         reporterCtrl.text = _displayFor(_selectedOperator!);
         reporterId.value = _selectedOperator!.id;
+        employeeCode.value = _selectedOperator!.code ?? '';
         reporterPhoneNumber.value = _selectedOperator!.userPhone;
       } else {
         reporterCtrl.text = operatorCtrl.text;

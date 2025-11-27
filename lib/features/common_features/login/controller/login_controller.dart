@@ -107,6 +107,7 @@ class LoginPageController extends GetxController {
         final loginPerson =
             await repository.getPersonById(loginPersonDetails.data!.id);
 
+
         final dropDownData = await repositoryImpl.lookup();
         final workOrderCategory = await repositoryImpl.workOrderCategoryLookup();
         final shiftData = await repositoryImpl.shiftData();

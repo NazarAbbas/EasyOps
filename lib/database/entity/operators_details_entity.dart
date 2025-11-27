@@ -15,6 +15,7 @@ import 'package:floor/floor.dart';
 class OperatorsDetailsEntity {
   @primaryKey
   final String id;
+  final String? code;
 
   final String name;
   final String userPhone;
@@ -51,6 +52,7 @@ class OperatorsDetailsEntity {
   const OperatorsDetailsEntity({
     required this.id,
     required this.name,
+    this.code,
     required this.userPhone,
     required this.type,
     required this.recordStatus,

@@ -4,6 +4,7 @@
 class LoginPersonDetails {
   final String id;
   final String name;
+  final String code;
   final DateTime? dob; // "1990-01-15"
   final String? bloodGroup; // e.g., "O+"
   final String? designation; // e.g., "Plant Manager"
@@ -36,6 +37,7 @@ class LoginPersonDetails {
   LoginPersonDetails({
     required this.id,
     required this.name,
+    required this.code,
     required this.userPhone,
     required this.recordStatus,
     this.dob,
@@ -62,8 +64,8 @@ class LoginPersonDetails {
 
   factory LoginPersonDetails.fromJson(Map<String, dynamic> json) {
     return LoginPersonDetails(
-      id: json['code'] as String,
-      //id: json['id'] as String,
+      id: json['id'] as String,
+      code: json['code'] as String,
       name: json['name'] as String,
       userPhone: json['userPhone'] as String,
       recordStatus: (json['recordStatus'] as num).toInt(),
@@ -103,6 +105,7 @@ class LoginPersonDetails {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'code': code,
         'userPhone': userPhone,
         'dob': _formatDate(dob),
         'bloodGroup': bloodGroup,
@@ -132,6 +135,7 @@ class LoginPersonDetails {
     String? id,
     String? userPhone,
     String? name,
+    String? code,
     String? us,
     DateTime? dob,
     String? bloodGroup,
@@ -157,6 +161,7 @@ class LoginPersonDetails {
   }) {
     return LoginPersonDetails(
       id: id ?? this.id,
+      code: code ?? this.code,
       userPhone: userPhone ?? this.userPhone,
       name: name ?? this.name,
       dob: dob ?? this.dob,

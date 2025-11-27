@@ -1,44 +1,43 @@
 // lib/database/mappers/asset_mappers.dart
+import 'dart:convert';
+
 import 'package:easy_ops/database/converter/converters.dart';
-import 'package:easy_ops/database/converter/criticality_converter.dart';
 import 'package:easy_ops/database/entity/assets_entity.dart';
+import 'package:easy_ops/database/entity/login_person_details_entity.dart';
+import 'package:easy_ops/database/entity/lookup_entity.dart';
+import 'package:easy_ops/database/entity/offline_work_order_entity.dart';
+import 'package:easy_ops/database/entity/operators_details_entity.dart';
 import 'package:easy_ops/database/entity/organizations_entity.dart';
+import 'package:easy_ops/database/entity/shift_entity.dart';
 import 'package:easy_ops/database/entity/user_list_entity.dart';
+import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
+import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
 import 'package:easy_ops/features/common_features/login/models/user_response.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
-import 'package:easy_ops/database/entity/login_person_details_entity.dart';
-import 'package:easy_ops/features/common_features/login/models/login_person_details.dart';
-import 'package:easy_ops/database/entity/lookup_entity.dart';
-import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
-import 'dart:convert';
-import 'package:easy_ops/database/entity/offline_work_order_entity.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/create_work_order_request.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/offline_work_order.dart';
-import 'package:easy_ops/database/entity/operators_details_entity.dart';
-import 'package:easy_ops/features/common_features/login/models/operators_details.dart';
-import 'package:easy_ops/database/entity/shift_entity.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/organization_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/shift_data.dart';
 
 extension AssetEntityDomainX on AssetEntity {
   AssetItem toDomain() => AssetItem(
-        id: id,
-        name: name,
-        criticality: criticality.name,
-        description: description,
-        serialNumber: serialNumber,
-        manufacturer: manufacturer,
-        manufacturerPhone: manufacturerPhone,
-        manufacturerEmail: manufacturerEmail,
-        manufacturerAddress: manufacturerAddress,
-        status: status.name,
-        recordStatus: recordStatus,
-        updatedAt: updatedAt,
-        tenantId: tenantId,
-        clientId: clientId,
-        plantId: plantId,
-        plantName: plantName
-      );
+      id: id,
+      name: name,
+      criticality: criticality.name,
+      description: description,
+      serialNumber: serialNumber,
+      manufacturer: manufacturer,
+      manufacturerPhone: manufacturerPhone,
+      manufacturerEmail: manufacturerEmail,
+      manufacturerAddress: manufacturerAddress,
+      status: status.name,
+      recordStatus: recordStatus,
+      updatedAt: updatedAt,
+      tenantId: tenantId,
+      clientId: clientId,
+      plantId: plantId,
+      plantName: plantName);
 }
 
 extension AssetDomainEntityX on AssetItem {
@@ -84,20 +83,27 @@ String? _enumNameOrString(dynamic v) {
     // Works for Dart enums that expose `.name`
     final n = (v as dynamic).name;
     if (n is String) return n; // e.g., 'EMPLOYEE'
-  } catch (_) {/* ignore */}
+  } catch (_) {
+    /* ignore */
+  }
   return v is String ? v : v.toString();
 }
 
 extension LoginPersonDetailsMapper on LoginPersonDetails {
   LoginPersonDetailsEntity toEntity() {
     return LoginPersonDetailsEntity(
-      id: id, // assumed non-null
-      name: name, // keep as-is (per your requirement)
+      id: id,
+      // assumed non-null
+      name: name,
+      // keep as-is (per your requirement)
+      code: code,
+      // keep as-is (per your requirement)
       userPhone: userPhone ?? '',
       dob: _formatDate(dob) ?? '',
       bloodGroup: bloodGroup ?? '',
       designation: designation ?? '',
-      type: _enumNameOrString(type) ?? '', // 'EMPLOYEE', etc.
+      type: _enumNameOrString(type) ?? '',
+      // 'EMPLOYEE', etc.
       recordStatus: recordStatus,
       updatedAt: updatedAt?.toIso8601String() ?? '',
       userId: userId ?? '',
@@ -118,7 +124,8 @@ extension LoginPersonDetailsMapper on LoginPersonDetails {
 extension ContactMapper on LoginPersonContact {
   LoginPersonContactEntity toEntity() {
     return LoginPersonContactEntity(
-      id: id, // assume non-null
+      id: id,
+      // assume non-null
       label: label ?? '',
       relationship: relationship ?? '',
       phone: phone ?? '',
@@ -135,7 +142,8 @@ extension ContactMapper on LoginPersonContact {
 extension AttendanceMapper on LoginPersonAttendance {
   LoginPersonAttendanceEntity toEntity() {
     return LoginPersonAttendanceEntity(
-      id: id, // assuming non-null in your model
+      id: id,
+      // assuming non-null in your model
       attDate: _formatDate(attDate) ?? '',
       checkIn: checkIn?.toIso8601String() ?? '',
       checkOut: checkOut?.toIso8601String() ?? '',
@@ -202,11 +210,11 @@ extension LookupEntityDomain on LookupEntity {
         id: id,
         code: code,
         displayName: displayName,
-       /* description: description,*/
+        /* description: description,*/
         lookupType: lookupType,
         sortOrder: sortOrder,
         recordStatus: recordStatus,
-       /* updatedAt: updatedAt,
+        /* updatedAt: updatedAt,
         tenantId: tenantId,
         clientId: clientId,*/
       );
@@ -221,7 +229,7 @@ extension LookupEntityMapper on LookupValues {
         lookupType: lookupType,
         sortOrder: sortOrder,
         recordStatus: recordStatus,
-       /* updatedAt: updatedAt,
+        /* updatedAt: updatedAt,
         tenantId: tenantId,
         clientId: clientId,*/
       );
@@ -287,9 +295,8 @@ extension OfflineWorkOrderDomainX on OfflineWorkOrder {
         issueTypeId: issueTypeId,
         impactId: impactId,
         shiftId: shiftId,
-        mediaFilesJson: jsonEncode(mediaFiles
-            .map((m) => m.toJson())
-            .toList()), // ✅ proper serialization
+        mediaFilesJson: jsonEncode(mediaFiles.map((m) => m.toJson()).toList()),
+        // ✅ proper serialization
         createdAt: createdAt.toIso8601String(),
         synced: synced ? "true" : "false",
       );
@@ -331,12 +338,14 @@ extension PersonApiToEntityX on OperatosDetails {
   OperatorsDetailsEntity toEntity() => OperatorsDetailsEntity(
         id: id,
         name: name,
+        code: code,
         userPhone: userPhone,
         type: type,
         recordStatus: recordStatus,
         tenantId: tenantId,
         clientId: clientId,
-        dob: dob, // already DateTime?
+        dob: dob,
+        // already DateTime?
         updatedAt: updatedAt,
         bloodGroup: bloodGroup,
         designation: designation,
@@ -359,6 +368,7 @@ extension PersonEntityToApiX on OperatorsDetailsEntity {
   OperatosDetails toDomain() => OperatosDetails(
         id: id,
         name: name,
+        code: code ?? '',
         userPhone: userPhone,
         type: type,
         recordStatus: recordStatus,
@@ -401,8 +411,8 @@ extension ShiftDomainEntityX on Shift {
   ShiftEntity toEntity() => ShiftEntity(
         id: id,
         name: name,
-        description:
-            description, // entity allows nullable; your model has non-null
+        description: description,
+        // entity allows nullable; your model has non-null
         startTime: startTime,
         endTime: endTime,
         recordStatus: recordStatus,
