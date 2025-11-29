@@ -782,7 +782,7 @@ class _WorkOrderCardState extends State<_WorkOrderCard> {
                                 children: [
                                   if ((order.asset.criticality ?? '')
                                           .toLowerCase() ==
-                                      'high')
+                                      'critical')
                                     const Icon(
                                       CupertinoIcons
                                           .exclamationmark_triangle_fill,

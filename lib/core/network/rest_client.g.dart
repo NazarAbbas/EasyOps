@@ -293,7 +293,7 @@ class _RestClient implements RestClient {
     try {
       _value = WorkOrderListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      //errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options,_result);
       rethrow;
     }
     return _value;

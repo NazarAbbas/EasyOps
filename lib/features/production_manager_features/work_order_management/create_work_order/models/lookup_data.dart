@@ -36,10 +36,12 @@ class LookupValues {
   final String id;
   final String code;
   final String displayName;
+
   /*final String description;*/
   final String lookupType;
   final int sortOrder;
   final int recordStatus;
+
   /*final DateTime? updatedAt;
   final String? tenantId;
   final String? clientId;*/
@@ -62,7 +64,7 @@ class LookupValues {
       id: json['id'] as String,
       code: json['code'] as String,
       displayName: json['displayName'] as String,
-     /* description: json['description'] as String,*/
+      /* description: json['description'] as String,*/
       lookupType: json['lookupType'] as String,
       sortOrder: (json['sortOrder'] as num).toInt(),
       recordStatus: (json['recordStatus'] as num).toInt(),
@@ -80,7 +82,7 @@ class LookupValues {
         'lookupType': lookupType,
         'sortOrder': sortOrder,
         'recordStatus': recordStatus,
-       /* if (updatedAt != null)
+        /* if (updatedAt != null)
           'updatedAt': updatedAt!.toUtc().toIso8601String(),
         if (clientId != null) 'tenantId': tenantId,
         if (clientId != null) 'clientId': clientId,*/
@@ -102,11 +104,11 @@ class LookupValues {
       id: id ?? this.id,
       code: code ?? this.code,
       displayName: displayName ?? this.displayName,
-    /*  description: description ?? this.description,*/
+      /*  description: description ?? this.description,*/
       lookupType: lookupType ?? this.lookupType,
       sortOrder: sortOrder ?? this.sortOrder,
       recordStatus: recordStatus ?? this.recordStatus,
-     /* updatedAt: updatedAt ?? this.updatedAt,
+      /* updatedAt: updatedAt ?? this.updatedAt,
       tenantId: tenantId ?? this.tenantId,
       clientId: clientId ?? this.clientId,*/
     );
@@ -152,6 +154,7 @@ enum LookupType {
   suggestion,
   resolutiontype,
   cancellation,
+  cancelWorkOrder,
   assetcat1,
   activityType,
   unknown
@@ -162,6 +165,8 @@ extension LookupTypeX on LookupType {
     switch ((v ?? '').toUpperCase()) {
       case 'DEPARTMENT':
         return LookupType.department;
+      case 'CANCELWORKORDER':
+        return LookupType.cancelWorkOrder;
       case 'PLANT':
         return LookupType.plant;
       case 'WORKORDERISSUETYPE':

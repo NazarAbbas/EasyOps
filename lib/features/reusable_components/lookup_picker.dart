@@ -17,9 +17,12 @@ class LookupPicker {
     //final lookupRepository = Get.find<LookupRepository>();
     final repository = Get.find<DBRepository>();
     List<LookupValues>? serverItems;
+
     if (lookupCode.isEmpty) {
+      debugPrint('LookupPicker: fetching by type=$lookupType');
       final type = LookupTypeX.fromString(
           lookupType); // -> LookupType.department  _parseLookupType(lookupType);
+      debugPrint('LookupPicker: fetching items for type=$type');
       serverItems = await repository.getLookupByType(type);
     } else {
       serverItems = await repository.getLookupByCode(lookupCode);

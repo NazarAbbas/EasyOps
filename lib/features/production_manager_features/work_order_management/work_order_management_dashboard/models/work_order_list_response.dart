@@ -2,6 +2,7 @@
 // Defensive JSON parsing for WorkOrder list
 
 import 'dart:convert';
+
 import 'package:easy_ops/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -46,6 +47,7 @@ class WorkOrderListResponse {
 class WorkOrders {
   final String id;
   final String reportedTime;
+
   // final String type;
   final String issueNo;
   final String shiftId;
@@ -58,7 +60,7 @@ class WorkOrders {
   final String? issueTypeId;
   final String? issueTypeName;
 
-  final String locationId;
+  final String? locationId;
   final String locationName;
 
   final String? impactId;
@@ -132,57 +134,71 @@ class WorkOrders {
   });
 
   factory WorkOrders.fromJson(Map<String, dynamic> json) {
-    List<dynamic> mf = [];
-    final rawMf = json['mediaFiles'];
-    if (rawMf is List) mf = rawMf;
+    try {
+      List<dynamic> mf = [];
+      final rawMf = json['mediaFiles'];
+      if (rawMf is List) mf = rawMf;
 
-    return WorkOrders(
-      id: _string(json['id'])!, // non-nullable: throw if truly missing
-      reportedTime: _string(json['reportedTime']) ?? '', // no
-      issueNo: _string(json['issueNo']) ?? '', // no
-      shiftId: _string(json['shiftId']) ?? '', // could be null
-      shiftName: _string(json['shiftName']) ?? '',
-      // type: _string(json['type'])!,
-      plantId: _string(json['plantId']), // could be null
-      plantName: _string(json['plantName']),
-      issueTypeId: _string(json['issueTypeId']), // could be null
-      issueTypeName: _string(json['issueTypeName']),
-      locationId: _string(json['locationId']) ?? '',
-      locationName: _string(json['locationName']) ?? '',
-      impactId: _string(json['impactId']),
-      impactName: _string(json['impactName']),
-      priority: _string(json['priority']) ?? '',
-      status: _string(json['status']) ?? '',
-      title: _string(json['title']) ?? '',
-      description: _string(json['description'])!,
-      remark: _string(json['remark']),
-      comment: _string(json['comment']),
-      scheduledStart: _date(json['scheduledStart'] as String?) ??
-          DateTime(1970, 1, 1).toUtc(),
-      scheduledEnd: _date(json['scheduledEnd'] as String?) ??
-          DateTime(1970, 1, 1).toUtc(),
-      recordStatus: _int(json['recordStatus']) ?? 0,
-      createdAt:
-          _date(json['createdAt'] as String?) ?? DateTime(1970, 1, 1).toUtc(),
-      updatedAt:
-          _date(json['updatedAt'] as String?) ?? DateTime(1970, 1, 1).toUtc(),
-      escalated: _int(json['escalated']) ?? 0,
-      estimatedTimeToFix:
-          _string(json['estimatedTimeToFix']) ?? '', // <-- default to "0"
-      tenant: Tenant.fromJson((json['tenant'] as Map).cast<String, dynamic>()),
-      client: Client.fromJson((json['client'] as Map).cast<String, dynamic>()),
-      asset: Asset.fromJson((json['asset'] as Map).cast<String, dynamic>()),
-      reportedBy: json['reportedBy'] != null
-          ? Person.fromJson(json['reportedBy'])
-          : null,
-      operator:
-          json['operator'] != null ? Person.fromJson(json['operator']) : null,
-      createdBy: json['createdBy'],
-      updatedBy: json['updatedBy'],
-      mediaFiles: mf
-          .map((e) => MediaFile.fromJson((e as Map).cast<String, dynamic>()))
-          .toList(),
-    );
+      return WorkOrders(
+        id: _string(json['id'])!,
+        // non-nullable: throw if truly missing
+        reportedTime: _string(json['reportedTime']) ?? '',
+        // no
+        issueNo: _string(json['issueNo']) ?? '',
+        // no
+        shiftId: _string(json['shiftId']) ?? '',
+        // could be null
+        shiftName: _string(json['shiftName']) ?? '',
+        // type: _string(json['type'])!,
+        plantId: _string(json['plantId']),
+        // could be null
+        plantName: _string(json['plantName']),
+        issueTypeId: _string(json['issueTypeId']),
+        // could be null
+        issueTypeName: _string(json['issueTypeName']),
+        locationId: _string(json['locationId']) ?? '',
+        locationName: _string(json['locationName']) ?? '',
+        impactId: _string(json['impactId']),
+        impactName: _string(json['impactName']),
+        priority: _string(json['priority']) ?? '',
+        status: _string(json['status']) ?? '',
+        title: _string(json['title']) ?? '',
+        description: _string(json['description'])??'',
+        remark: _string(json['remark']),
+        comment: _string(json['comment']),
+        scheduledStart: _date(json['scheduledStart'] as String?) ??
+            DateTime(1970, 1, 1).toUtc(),
+        scheduledEnd: _date(json['scheduledEnd'] as String?) ??
+            DateTime(1970, 1, 1).toUtc(),
+        recordStatus: _int(json['recordStatus']) ?? 0,
+        createdAt:
+            _date(json['createdAt'] as String?) ?? DateTime(1970, 1, 1).toUtc(),
+        updatedAt:
+            _date(json['updatedAt'] as String?) ?? DateTime(1970, 1, 1).toUtc(),
+        escalated: _int(json['escalated']) ?? 0,
+        estimatedTimeToFix: _string(json['estimatedTimeToFix']) ?? '',
+        // <-- default to "0"
+        tenant:
+            Tenant.fromJson((json['tenant'] as Map).cast<String, dynamic>()),
+        client:
+            Client.fromJson((json['client'] as Map).cast<String, dynamic>()),
+        asset: Asset.fromJson((json['asset'] as Map).cast<String, dynamic>()),
+        reportedBy: json['reportedBy'] != null
+            ? Person.fromJson(json['reportedBy'])
+            : null,
+        operator:
+            json['operator'] != null ? Person.fromJson(json['operator']) : null,
+        createdBy: json['createdBy'],
+        updatedBy: json['updatedBy'],
+        mediaFiles: mf
+            .map((e) => MediaFile.fromJson((e as Map).cast<String, dynamic>()))
+            .toList(),
+      );
+    } catch (e, s) {
+      // add some temporary logging to know which order broke
+      debugPrint('WorkOrders.fromJson failed for json: $json\n$e\n$s');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() => {

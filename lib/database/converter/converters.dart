@@ -21,6 +21,9 @@ class LookupTypeConverter extends TypeConverter<LookupType, String> {
 
   @override
   String encode(LookupType value) {
+    if(value == LookupType.cancelWorkOrder) {
+      return 'cancel-work-order';
+    }
     return value.name.toUpperCase();
   }
 }

@@ -32,6 +32,7 @@ class OfflineWorkOrderEntity {
   // Foreign IDs
   final String assetId;
   final String plantId;
+  final String locationId;
   final String departmentId;
   final String issueTypeId;
   final String impactId;
@@ -64,6 +65,7 @@ class OfflineWorkOrderEntity {
     required this.scheduledEnd,
     required this.assetId,
     required this.plantId,
+    required this.locationId,
     required this.departmentId,
     required this.issueTypeId,
     required this.impactId,

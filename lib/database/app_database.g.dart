@@ -598,6 +598,7 @@ class _$LookupDao extends LookupDao {
 
   @override
   Future<List<LookupEntity>> getActiveByType(LookupType lookupType) async {
+    debugPrint('Getting lookup for type: $lookupType');
     return _queryAdapter.queryList(
         'SELECT * FROM lookup     WHERE lookupType = ?1       AND recordStatus = 1     ORDER BY sortOrder',
         mapper: (Map<String, Object?> row) => LookupEntity(id: row['id'] as String, code: row['code'] as String, displayName: row['displayName'] as String, lookupType: row['lookupType'] as String, sortOrder: row['sortOrder'] as int, recordStatus: row['recordStatus'] as int),
@@ -1003,6 +1004,7 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
                   'scheduledEnd': item.scheduledEnd,
                   'assetId': item.assetId,
                   'plantId': item.plantId,
+                  'locationId': item.locationId,
                   'departmentId': item.departmentId,
                   'issueTypeId': item.issueTypeId,
                   'impactId': item.impactId,
@@ -1080,6 +1082,7 @@ class _$OfflineWorkOrderDao extends OfflineWorkOrderDao {
             scheduledEnd: row['scheduledEnd'] as String,
             assetId: row['assetId'] as String,
             plantId: row['plantId'] as String,
+            locationId: row['locationId'] as String,
             departmentId: row['departmentId'] as String,
             issueTypeId: row['issueTypeId'] as String,
             impactId: row['impactId'] as String,

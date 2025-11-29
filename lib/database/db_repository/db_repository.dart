@@ -246,6 +246,7 @@ class DBRepository {
 
   Future<List<LookupValues>> getLookupByType(LookupType type) async {
     final List<LookupEntity> rows = await db.lookupDao.getActiveByType(type);
+    debugPrint('Fetched ${rows.length} lookup rows for type $type');
     return rows.map((e) => e.toDomain()).toList();
   }
 

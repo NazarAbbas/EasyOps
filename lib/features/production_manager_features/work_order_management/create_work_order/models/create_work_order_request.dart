@@ -22,6 +22,7 @@ class CreateWorkOrderRequest {
   final DateTime scheduledEnd;
   final String assetId;
   final String plantId;
+  final String locationId;
   final String departmentId;
   final String issueTypeId;
   final String impactId;
@@ -47,6 +48,7 @@ class CreateWorkOrderRequest {
     required this.scheduledEnd,
     required this.assetId,
     required this.plantId,
+    required this.locationId,
     required this.departmentId,
     required this.mediaFiles,
     required this.issueTypeId,
@@ -65,6 +67,7 @@ class CreateWorkOrderRequest {
     DateTime? scheduledEnd,
     String? assetId,
     String? plantId,
+    String? locationId,
     String? departmentId,
     String? issueTypeId,
     String? impactId,
@@ -90,6 +93,7 @@ class CreateWorkOrderRequest {
       scheduledEnd: scheduledEnd ?? this.scheduledEnd,
       assetId: assetId ?? this.assetId,
       plantId: plantId ?? this.plantId,
+      locationId: locationId ?? this.locationId,
       departmentId: departmentId ?? this.departmentId,
       mediaFiles: mediaFiles ?? this.mediaFiles,
       issueTypeId: issueTypeId ?? this.issueTypeId,
@@ -118,6 +122,7 @@ class CreateWorkOrderRequest {
       scheduledEnd: DateTime.parse(json['scheduledEnd'] as String),
       assetId: json['assetId'] as String,
       plantId: json['plantId'] as String,
+      locationId: json['locationId'] as String,
       departmentId: json['departmentId'] as String,
       issueTypeId: (json['issueTypeId'] as String?) ?? '',
       impactId: (json['impactId'] as String?) ?? '',
@@ -170,6 +175,7 @@ class CreateWorkOrderRequest {
         'issueTypeId': issueTypeId,
         'impactId': impactId,
         'shiftId': shiftId,
+        'locationId': locationId,
         'reportedTime': scheduledStart.toUtc().toIso8601String(),
         'estimatedTimeToFix': scheduledEnd.toUtc().toIso8601String(),
         'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),

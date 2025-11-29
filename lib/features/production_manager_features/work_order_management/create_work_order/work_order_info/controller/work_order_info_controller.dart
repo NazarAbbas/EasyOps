@@ -139,7 +139,7 @@ class WorkorderInfoController extends GetxController {
     if (loginPerson != null) {
       final details = await repository.getPersonById(loginPerson);
       if (details != null) {
-        operatorName.value = '${details.name}(${details.id})';
+        operatorName.value = '${details.name}(${details.code})';
         if (details.userPhone != null) {
           operatorMobileNumber.value = details.userPhone!;
         }

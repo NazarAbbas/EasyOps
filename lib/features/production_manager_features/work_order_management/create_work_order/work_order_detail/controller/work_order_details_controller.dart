@@ -173,6 +173,7 @@ class WorkOrderDetailsController extends GetxController {
       final reporterPhoneNumber =
           _bag.get<String>(WOKeys.reporterPhoneNumber, '');
       final isSameAsOperator = _bag.get<String>(WOKeys.sameAsOperator, 'false');
+      final locationId = _bag.get<String>(WOKeys.locationId, '');
 
       operatorName.value = _bag.get<String>(WOKeys.operatorName, '');
       operatorPhoneNumber.value =
@@ -270,6 +271,7 @@ class WorkOrderDetailsController extends GetxController {
         scheduledEnd: DateTime.parse(schedEndStr).toUtc(),
         assetId: assetId,
         plantId: plantId,
+        locationId: locationId,
         departmentId: departmentId,
         issueTypeId: issueTypeId,
         impactId: impactId,
@@ -342,6 +344,7 @@ class WorkOrderDetailsController extends GetxController {
       scheduledEnd: req.scheduledEnd,
       assetId: req.assetId,
       plantId: req.plantId,
+      locationId: req.locationId,
       departmentId: req.departmentId,
       issueTypeId: req.issueTypeId,
       impactId: req.impactId,
