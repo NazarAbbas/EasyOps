@@ -126,7 +126,7 @@ class _FormCard extends StatelessWidget {
                 final v = await LookupPicker.show(
                   context: context,
                   // ⬇️ Use the correct lookup for cancellation reasons
-                  lookupType: LookupType.cancellation.name,
+                  lookupType: LookupType.cancelWorkOrder.name,
                   selected: controller.selectedReason.value,
                 );
                 if (v != null) controller.selectedReason.value = v;

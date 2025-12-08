@@ -30,12 +30,12 @@ class LoginPageController extends GetxController {
     //passwordController.text = '@Raaj1234';
 
 //Maintaince engineer
-    //emailController.text = "monazarabbas07@gmail.com";
-    //passwordController.text = "fB7#xEGoL0WU";
+    emailController.text = "monazarabbas07@gmail.com";
+    passwordController.text = "fB7#xEGoL0WU";
 
 //Production supervisor
-    emailController.text = "nnazarabbas07@gmail.com";
-    passwordController.text = "!Z@z5tqFTpH3";
+   /* emailController.text = "nnazarabbas07@gmail.com";
+    passwordController.text = "!Z@z5tqFTpH3";*/
   }
 
   Future<void> login() async {
