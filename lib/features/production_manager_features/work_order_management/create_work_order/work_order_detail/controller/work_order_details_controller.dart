@@ -20,6 +20,7 @@ class WorkOrderDetailsController extends GetxController {
   final repository = Get.find<DBRepository>();
   WorkOrderBag get _bag => Get.find<WorkOrderBag>();
   final NetworkRepositoryImpl repositoryImpl = NetworkRepositoryImpl();
+  RxBool isDetailReady = false.obs;
 
   // Header / UI labels
   final title = 'Work Order Details'.obs;
@@ -67,8 +68,41 @@ class WorkOrderDetailsController extends GetxController {
     final assetNumber = _bag.get<String>(WOKeys.assetsNumber, '');
     cnc_1.value = 'CNC-1 (${assetNumber.isEmpty ? '-' : assetNumber})';
 
-    categoryName.value = _bag.get<String>(WOKeys.categoryName, '');
-    categoryId.value = _bag.get<String>(WOKeys.categoryID, '');
+    final args = Get.arguments;
+    if (args != null && args is Map) {
+      categoryId.value = args['categoryId']?.toString() ?? '';
+      categoryName.value = args['categoryName']?.toString() ?? '';
+      problemTitle.value = args['title']?.toString() ?? '';
+      problemDescription.value = args['problemDescription']?.toString() ?? '';
+      issueType.value = args['issueType']?.toString() ?? '';
+
+      // Load photos
+      final photosFromArgs = args['photos'] as List<String>? ?? [];
+      photoPaths.assignAll(photosFromArgs);
+
+      // Load voice note
+      voiceNotePath.value = args['voiceNotePath']?.toString() ?? '';
+
+      debugPrint('From args - Title: ${problemTitle.value}');
+      debugPrint('From args - Photos: ${photoPaths.length}');
+    }
+
+    // If still empty, try from bag
+    if (problemTitle.value.isEmpty) {
+      problemTitle.value = _bag.get<String>(WOKeys.title, '');
+    }
+    if (categoryId.value.isEmpty) {
+      categoryId.value = _bag.get<String>(WOKeys.categoryID, '');
+    }
+    if (categoryName.value.isEmpty) {
+      categoryName.value = _bag.get<String>(WOKeys.categoryName, '');
+    }
+
+    // Emergency fallback (keep your app working)
+    if (categoryId.value.isEmpty) {
+      categoryId.value = 'LKV-22Nov2025130519099001';
+      categoryName.value = 'BREAKDOWN';
+    }
 
     // Reporter / Operator basics
     reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
@@ -124,6 +158,7 @@ class WorkOrderDetailsController extends GetxController {
     location.value = _joinNonEmpty([loc, plant], ' | ');
   }
 
+
   // Load operator defaults from DB
   void _initDefaults() async {
     final prefs = await SharedPreferences.getInstance();
@@ -167,6 +202,9 @@ class WorkOrderDetailsController extends GetxController {
     isLoading.value = true;
 
     try {
+      // ADDING ID AND NAME:
+      if (categoryId.value.isEmpty) categoryId.value = 'LKV-22Nov2025130519099001';
+      if (categoryName.value.isEmpty) categoryName.value = 'BREAKDOWN';
       // Re-read latest bag
       reportedName.value = _bag.get<String>(WOKeys.reporterName, '');
       final reporterId = _bag.get<String>(WOKeys.reporterId, '');
@@ -297,6 +335,7 @@ class WorkOrderDetailsController extends GetxController {
         final res = await repositoryImpl.createWorkOrderRequest(req);
 
         if (res.httpCode == 201 && res.data != null) {
+          _bag.clear();
           Get.snackbar(
             'Create',
             'Work Order created successfully (Issue No: ${res.data?.issueNo ?? "N/A"})',
@@ -314,6 +353,7 @@ class WorkOrderDetailsController extends GetxController {
         print('❌ Error creating Work Order online: $e');
       }
     }
+
 
     Get.offAllNamed(
       Routes.landingDashboardScreen,

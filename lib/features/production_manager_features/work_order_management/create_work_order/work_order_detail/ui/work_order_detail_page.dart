@@ -16,7 +16,7 @@ class WorkOrderDetailsPage extends GetView<WorkOrderDetailsController> {
 
   @override
   WorkOrderDetailsController get controller =>
-      Get.put(WorkOrderDetailsController());
+      Get.find<WorkOrderDetailsController>();       //changed
 
   bool _isTablet(BuildContext c) => MediaQuery.of(c).size.shortestSide >= 600;
 

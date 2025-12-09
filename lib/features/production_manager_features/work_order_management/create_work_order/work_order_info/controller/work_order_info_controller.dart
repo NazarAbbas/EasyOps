@@ -7,6 +7,7 @@ import 'package:easy_ops/database/db_repository/db_repository.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/lookups/create_work_order_bag.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/assets_data.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/models/lookup_data.dart';
+import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/work_order_detail/controller/work_order_details_controller.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/create_work_order/work_order_info/ui/work_order_info_page.dart';
 import 'package:easy_ops/features/production_manager_features/work_order_management/work_order_management_dashboard/models/work_order_list_response.dart';
 import 'package:flutter/material.dart';
@@ -105,30 +106,49 @@ class WorkorderInfoController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
+
+    // Load critical data first
+    await _loadWorkType(); // Must complete before anything else
+
+    // Now load other data
     await _loadLookups();
     await _loadAssets();
-    await _loadWorkType();
+
+    // Load from work order if exists
+    workOrderInfo.value = await SharePreferences.getObject(
+      Constant.workOrder,
+      WorkOrders.fromJson,
+    );
+
     if (workOrderInfo.value != null) {
       await _putWorkOrderIntoBag(workOrderInfo.value!);
-      _loadFromBag();
-    } else {
-      await _initOperatorInfo();
     }
-    // await _initOperatorInfo();
-    // await _initAsync(); // ensure lookups/assets available before reactions
-    // _setupReactions(); // set up reactive label syncing
 
+    // Always load from bag (includes category from _loadWorkType())
+    _loadFromBag();
+
+    // Load operator info
+    await _initOperatorInfo();
+
+    // Setup asset listener
     _assetListener = () => _applyMetaIfSerialMatch(assetsCtrl.text);
     assetsCtrl.addListener(_assetListener);
+
+    // // Log current state
+    // debugPrint('Controller initialized with:');
+    // debugPrint('- Category ID: ${workTypeLookup.value.id}');
+    // debugPrint('- Category Name: ${workTypeLookup.value.code}');
+    // debugPrint('- Bag Category ID: ${_bag.get<String>(WOKeys.categoryID, '')}');
   }
 
   @override
   void onClose() {
-    // assetsCtrl
-    //   ..removeListener(_assetListener)
-    //   ..dispose();
-    // problemCtrl.dispose();
-    // titleCtrl.dispose();
+    assetsCtrl
+      ..removeListener(_assetListener)
+      ..dispose();
+    problemCtrl.dispose();
+    titleCtrl.dispose();
+    _bag.clear();
     super.onClose();
   }
 
@@ -164,21 +184,63 @@ class WorkorderInfoController extends GetxController {
   }
 
   Future<void> _loadWorkType() async {
-    var workType = await repository.getActiveByCode("BREAKDOWN");
+    // debugPrint('Loading work type...');
 
-    if (workType.isEmpty) {
-      final workOrderCategories =
-          await repository.getLookupByCode("BREAKDOWN");
-      workType = workOrderCategories
-          .where((l) => l.code.toUpperCase() == 'BREAKDOWN')
-          .toList();
+    // Try to get from bag first (for new work orders)
+    final bagCategoryId = _bag.get<String>(WOKeys.categoryID, '');
+    final bagCategoryName = _bag.get<String>(WOKeys.categoryName, '');
+
+    if (bagCategoryId.isNotEmpty && bagCategoryName.isNotEmpty) {
+      // debugPrint('Using category from bag: $bagCategoryName ($bagCategoryId)');
+      workTypeLookup.value = LookupValues(
+        id: bagCategoryId,
+        code: bagCategoryName,
+        displayName: bagCategoryName,
+        lookupType: 'Work Order Category',
+        sortOrder: 1,
+        recordStatus: 1,
+      );
+      return;
     }
 
+    // Try database lookup
+    List<LookupValues> workType = [];
+
+    try {
+      workType = await repository.getActiveByCode("BREAKDOWN");
+
+      if (workType.isEmpty) {
+        final allCategories = await repository.getLookupByCode("BREAKDOWN");
+        workType = allCategories
+            .where((l) => l.code.toUpperCase() == 'BREAKDOWN')
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error loading work type: $e');
+    }
+
+    // Set from database or use default
     if (workType.isNotEmpty) {
       workTypeLookup.value = workType.first;
+      // debugPrint('Work type loaded from DB: ${workTypeLookup.value.displayName}');
+    } else {
+      // CRITICAL: Always have a default category
+      workTypeLookup.value = LookupValues(
+        id: 'LKV-22Nov2025130519099001', // From your logs - BREAKDOWN category ID
+        code: 'BREAKDOWN',
+        displayName: 'Breakdown',
+        lookupType: 'Work Order Category',
+        sortOrder: 1,
+        recordStatus: 1,
+      );
+      debugPrint('Using DEFAULT work type: ${workTypeLookup.value.displayName}');
     }
 
-    debugPrint('Work type loaded: ${workTypeLookup.value.displayName}');
+    // Always update the bag with the work type
+    _bag.merge({
+      WOKeys.categoryID: workTypeLookup.value.id,
+      WOKeys.categoryName: workTypeLookup.value.code,
+    });
   }
 
   Future<void> _loadLookups() async {
@@ -291,6 +353,9 @@ class WorkorderInfoController extends GetxController {
   List<String> _validate() {
     final missing = <String>[];
 
+    final categoryId = _bag.get<String>(WOKeys.categoryID, workTypeLookup.value.id);
+    if (categoryId.isEmpty) missing.add('Work Type');
+
     if (selectedIssueTypeId.value.isEmpty) missing.add('Issue Type');
     if (selectedImpactId.value.isEmpty) missing.add('Impact');
 
@@ -306,12 +371,30 @@ class WorkorderInfoController extends GetxController {
 
   void goToWorkOrderDetailScreen() {
     final missing = _validate();
+    final detailsController = Get.put(WorkOrderDetailsController());
     if (missing.isNotEmpty) {
       _showError('Missing Info', 'Please fill: ${missing.join(', ')}');
       return;
     }
     saveToBag();
-    Get.toNamed(Routes.workOrderDetailScreen);
+    // DEBUG: Check what's in bag
+    debugPrint('=== Before Navigation ===');
+    debugPrint('Title in bag: ${_bag.get<String>(WOKeys.title, 'EMPTY')}');
+    debugPrint('Category in bag: ${_bag.get<String>(WOKeys.categoryID, 'EMPTY')}');
+
+    // Pass ALL data as arguments
+    Get.toNamed(
+      Routes.workOrderDetailScreen,
+      arguments: {
+        'categoryId': workTypeLookup.value.id,
+        'categoryName': workTypeLookup.value.code,
+        'title': titleCtrl.text.trim(),
+        'problemDescription': problemCtrl.text.trim(),
+        'issueType': selectedIssueType.value,
+        'photos': photos.toList(),
+        'voiceNotePath': voiceNotePath.value,
+      },
+    );
   }
 
   void _showError(String title, String message) {
@@ -445,6 +528,13 @@ class WorkorderInfoController extends GetxController {
     // IDs + labels
     selectedIssueTypeId.value = _bag.get<String>(WOKeys.issueTypeId, '');
     selectedIssueType.value = _bag.get<String>(WOKeys.issueType, '');
+
+    // Add category loading
+    selectedWorkTypeId.value = _bag.get<String>(WOKeys.categoryID, '');
+    selectedWorkType.value = _bag.get<String>(WOKeys.categoryName, '');
+    selectedWorkTypeDisplay.value = selectedWorkType.value.isNotEmpty
+        ? selectedWorkType.value
+        : 'Select Work Type';
 //  ───────────────────────────────────────────────
     selectedImpactId.value = _bag.get<String>(WOKeys.impactId, '');
     selectedImpact.value = _bag.get<String>(WOKeys.impact, '');
@@ -473,7 +563,7 @@ class WorkorderInfoController extends GetxController {
         _bag.get<String>(WOKeys.operatorName, operatorName.value);
     operatorMobileNumber.value = _bag.get<String>(
         WOKeys.operatorPhoneNumber, operatorMobileNumber.value);
-    operatorInfo.value ==
+    operatorInfo.value =
         _bag.get<String>(WOKeys.operatorInfo, operatorInfo.value);
   }
 
@@ -499,7 +589,7 @@ class WorkorderInfoController extends GetxController {
       //  ───────────────────────────────────────────────
       WOKeys.operatorName: operatorName.value,
       WOKeys.operatorPhoneNumber: operatorMobileNumber.value,
-      WOKeys.operatorInfo: operatorInfo,
+      WOKeys.operatorInfo: operatorInfo.value,
 
       WOKeys.categoryID : workTypeLookup.value.id,
       WOKeys.categoryName : workTypeLookup.value.code,
