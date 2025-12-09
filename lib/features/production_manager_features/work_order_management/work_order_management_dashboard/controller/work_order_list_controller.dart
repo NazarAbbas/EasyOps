@@ -127,6 +127,8 @@ class WorkOrdersController extends GetxController {
         await SharePreferences.get<String>(SharePreferences.userRole) as String;
   }
 
+  
+
   // ---------------- API / Initial Load ----------------
   Future<void> _loadInitial() async {
     loading.value = true;
