@@ -115,7 +115,7 @@ class MaintenanceEngineerStartWorkOrderPage
               ),
               // _SummaryHeroCard(),
               _OperatorInfoCard(),
-              // _WorkOrderInfoCard(),
+              _WorkOrderInfoCard(),
               _MediaCard(),
               _SparesCard(), // shows placed items here
             ],

@@ -74,7 +74,7 @@ class MaintenanceEnginnerStartWorkOrderController extends GetxController {
     // woCode.value = workOrderInfo!.issueNo;
     // status.value = workOrderInfo!.status;
     // date.value = formatDate(workOrderInfo!.createdAt);
-    // description.value = workOrderInfo!.description;
+    description.value = workOrderInfo!.description;
 
     reportedByPhone.value = (workOrderInfo?.reportedBy?.phone).orNA();
     final operatorName = [

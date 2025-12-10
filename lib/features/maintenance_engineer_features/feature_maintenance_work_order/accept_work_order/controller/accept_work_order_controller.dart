@@ -35,6 +35,8 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
 
   // Location line under summary
   final line = ''.obs;
+  final loc = ''.obs;
+  final plant = ''.obs;
   final location = ''.obs;
 
   // Body
@@ -82,6 +84,11 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
     operatorInfo.value = workOrderInfo!.asset.name.isNotEmpty
         ? workOrderInfo!.asset.name
         : 'Not available';
+
+    loc.value = workOrderInfo?.locationName ?? '';
+    plant.value = workOrderInfo?.plantName ?? '';
+
+    location.value = _joinNonEmpty([loc.value, plant.value], ' | ');
 
     cnc_1.value =
         '${workOrderInfo?.asset.name}(${workOrderInfo?.asset.assetNo})';
@@ -181,6 +188,9 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
     final month = months[dt.month - 1];
     return '$hh:$mm | $day $month';
   }
+
+  String _joinNonEmpty(List<String> parts, String sep) =>
+      parts.where((p) => p.trim().isNotEmpty).join(sep);
 
 //   // Your navigation actions:
   Future<void> acceptWorkOrder() async {
