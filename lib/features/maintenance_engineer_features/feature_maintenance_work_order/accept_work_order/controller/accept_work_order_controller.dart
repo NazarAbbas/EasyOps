@@ -83,6 +83,8 @@ class MaintenanceEnginnerAcceptWorkOrderController extends GetxController {
         ? workOrderInfo!.asset.name
         : 'Not available';
 
+    location.value = workOrderInfo?.locationName ?? 'Not available';
+
     cnc_1.value =
         '${workOrderInfo?.asset.name}(${workOrderInfo?.asset.assetNo})';
     issueType.value = workOrderInfo?.issueTypeName ?? "-";

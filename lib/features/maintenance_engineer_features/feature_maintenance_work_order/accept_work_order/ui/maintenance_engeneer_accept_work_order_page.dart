@@ -169,6 +169,7 @@ class _MainDetailsCard extends StatelessWidget {
                 name: controller.operatorName.value,
                 phone: controller.operatorPhoneNumber.value,
                 info: controller.operatorInfo.value,
+                location: controller.location.value,
               ),
               const _DividerPad(),
               Row(
@@ -274,13 +275,13 @@ class _MainDetailsCard extends StatelessWidget {
                   fontSize: 15.5,
                 ),
               ),
-              if (controller.remark.value.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  controller.remark.value,
-                  style: const TextStyle(color: _C.text, height: 1.35),
-                ),
-              ],
+              // if (controller.remark.value.isNotEmpty) ...[
+              //   const SizedBox(height: 6),
+              //   Text(
+              //     controller.remark.value,
+              //     style: const TextStyle(color: _C.text, height: 1.35),
+              //   ),
+              // ],
             ],
           );
         }),
@@ -368,10 +369,12 @@ class _OperatorSection extends StatelessWidget {
   final String name;
   final String phone;
   final String info;
+  final String location;
   const _OperatorSection({
     required this.name,
     required this.phone,
     required this.info,
+    required this.location,
   });
 
   @override
@@ -395,7 +398,7 @@ class _OperatorSection extends StatelessWidget {
         const SizedBox(height: 4),
         _LineWithIcon(
           icon: CupertinoIcons.location,
-          text: info.isEmpty ? '—' : info,
+          text: info.isEmpty ? '—' : location,
         ),
       ],
     );
