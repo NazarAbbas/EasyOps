@@ -861,8 +861,9 @@ Color? _statusColor(String? s) {
 }
 
 String _formatDate(DateTime dt) {
-  final hh = dt.hour.toString().padLeft(2, '0');
-  final mm = dt.minute.toString().padLeft(2, '0');
+  final localDt = dt.toLocal();
+  final hh = localDt.hour.toString().padLeft(2, '0');
+  final mm = localDt.minute.toString().padLeft(2, '0');
 
   const months = [
     'Jan',
@@ -878,8 +879,8 @@ String _formatDate(DateTime dt) {
     'Nov',
     'Dec'
   ];
-  final day = dt.day.toString().padLeft(2, '0');
-  final month = months[dt.month - 1];
+  final day = localDt.day.toString().padLeft(2, '0');
+  final month = months[localDt.month - 1];
 
   return '$hh:$mm | $day $month';
 }

@@ -177,7 +177,8 @@ class CreateWorkOrderRequest {
         'shiftId': shiftId,
         'locationId': locationId,
         'reportedTime': scheduledStart.toUtc().toIso8601String(),
-        'estimatedTimeToFix': scheduledEnd.toUtc().toIso8601String(),
+        'estimatedTimeToFix': 'Not Given',
+        // 'estimatedTimeToFix': scheduledEnd.toUtc().toIso8601String(),
         'mediaFiles': mediaFiles.map((e) => e.toJson()).toList(),
       };
 
