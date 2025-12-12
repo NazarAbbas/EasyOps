@@ -14,6 +14,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MaintenanceEngineerStartWorkOrderPage
@@ -622,6 +624,75 @@ class _HistoryBtn extends StatelessWidget {
 class _MediaCard extends StatelessWidget {
   const _MediaCard();
 
+  void _showPhotoViewer(List<String> paths, int initialIndex) {
+    if (paths.isEmpty) return;
+
+    final PageController pageController = PageController(initialPage: initialIndex);
+    int currentIndex = initialIndex;
+
+    showDialog(
+      context: Get.context!,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            child: Stack(
+              children: [
+                // Photo viewer
+                PhotoViewGallery.builder(
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  builder: (BuildContext context, int index) {
+                    final path = paths[index];
+                    ImageProvider imageProvider;
+
+                    // Direct logic without helper method
+                    if (path.startsWith('assets/')) {
+                      imageProvider = AssetImage(path);
+                    } else if (path.startsWith('http')) {
+                      imageProvider = NetworkImage(path);
+                    } else {
+                      imageProvider = FileImage(File(path));
+                    }
+
+                    return PhotoViewGalleryPageOptions(
+                      imageProvider: imageProvider,
+                      initialScale: PhotoViewComputedScale.contained,
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.covered * 2,
+                    );
+                  },
+                  itemCount: paths.length,
+                  loadingBuilder: (context, event) => Center(
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        value: event == null
+                            ? 0
+                            : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+                      ),
+                    ),
+                  ),
+                  backgroundDecoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                  ),
+                  pageController: pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentIndex = index;
+                    });
+                  },
+                ),
+                // ... rest of the code
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = Get.find<MaintenanceEnginnerStartWorkOrderController>();
@@ -652,9 +723,17 @@ class _MediaCard extends StatelessWidget {
                   SizedBox(
                     width: box.maxWidth,
                     child: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: photos.map((p) => _Thumb(path: p)).toList(),
+                    spacing: 10,
+                    runSpacing: 10,
+                children: photos.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final path = entry.value;
+
+                  return GestureDetector(
+                    onTap: () => _showPhotoViewer(photos, index),
+                    child: _Thumb(path: path),
+                        );
+                      }).toList(),
                     ),
                   ),
                 if (voice.isNotEmpty) ...[

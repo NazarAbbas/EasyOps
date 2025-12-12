@@ -11,6 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart'; // <-- added
 
 class MaintenanceEngineerDiagnosticsPage
@@ -27,6 +29,7 @@ class MaintenanceEngineerDiagnosticsPage
         foregroundColor: Colors.white,
         elevation: 0,
         titleSpacing: 0,
+        centerTitle: true,
         title: const Text('Diagnostics'),
       ),
       body: Obx(() {
@@ -153,27 +156,29 @@ class _WorkOrderContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        // _Accordion(
-        //   title: 'Work Order Info',
-        //   initiallyOpen: false,
-        //   content: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: const [
-        //       _InfoRow(
-        //         'Attachment',
-        //         'Tap to view / add',
-        //         trailingIcon: Icons.refresh,
-        //       ),
-        //       SizedBox(height: 12),
-        //       Divider(height: 1),
-        //       SizedBox(height: 12),
-        //       Text(
-        //         'Spindle speed issues in XYZ – check belt alignment and tension.',
-        //         style: TextStyle(color: Color(0xFF1F2430)),
-        //       ),
-        //     ],
-        //   ),
-        // ),
+        _Accordion(
+          title: 'Work Order Info',
+          initiallyOpen: true,
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              Text(
+                   w.description.isEmpty ? '—' : w.description,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _C.text,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15.5,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -203,6 +208,75 @@ class _MediaSection extends StatelessWidget {
   final MaintenanceEnginnerDiagnosticsController controller;
   const _MediaSection({required this.controller});
 
+  void _showPhotoViewer(List<String> paths, int initialIndex) {
+    if (paths.isEmpty) return;
+
+    final PageController pageController = PageController(initialPage: initialIndex);
+    int currentIndex = initialIndex;
+
+    showDialog(
+      context: Get.context!,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            child: Stack(
+              children: [
+                // Photo viewer
+                PhotoViewGallery.builder(
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  builder: (BuildContext context, int index) {
+                    final path = paths[index];
+                    ImageProvider imageProvider;
+
+                    // Direct logic without helper method
+                    if (path.startsWith('assets/')) {
+                      imageProvider = AssetImage(path);
+                    } else if (path.startsWith('http')) {
+                      imageProvider = NetworkImage(path);
+                    } else {
+                      imageProvider = FileImage(File(path));
+                    }
+
+                    return PhotoViewGalleryPageOptions(
+                      imageProvider: imageProvider,
+                      initialScale: PhotoViewComputedScale.contained,
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.covered * 2,
+                    );
+                  },
+                  itemCount: paths.length,
+                  loadingBuilder: (context, event) => Center(
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        value: event == null
+                            ? 0
+                            : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+                      ),
+                    ),
+                  ),
+                  backgroundDecoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                  ),
+                  pageController: pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentIndex = index;
+                    });
+                  },
+                ),
+                // ... rest of the code
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -231,7 +305,15 @@ class _MediaSection extends StatelessWidget {
                     runAlignment: WrapAlignment.start,
                     spacing: 10,
                     runSpacing: 10,
-                    children: photos.map((p) => _Thumb(path: p)).toList(),
+                    children: photos.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final path = entry.value;
+
+                      return GestureDetector(
+                        onTap: () => _showPhotoViewer(photos, index),
+                        child: _Thumb(path: path),
+                      );
+                    }).toList(),
                   ),
                 ),
                 if (voice.isNotEmpty) ...[
